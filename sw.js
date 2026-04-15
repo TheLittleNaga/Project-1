@@ -1,15 +1,11 @@
-const CACHE = 'expense-tracker-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+const CACHE = 'expense-tracker-v2';
+const STATIC = [
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js'
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {}));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC).catch(()=>{})));
   self.skipWaiting();
 });
 
@@ -21,18 +17,28 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network first for Firebase, cache first for static assets
-  if (e.request.url.includes('firestore') || e.request.url.includes('firebase')) {
+  const url = new URL(e.request.url);
+
+  // NEVER cache index.html or Supabase calls — always fresh from network
+  if (url.pathname.endsWith('/') ||
+      url.pathname.endsWith('index.html') ||
+      url.hostname.includes('github.io') ||
+      url.hostname.includes('supabase.co')) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-  } else {
-    e.respondWith(
-      caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+    return;
+  }
+
+  // Cache first for CDN static assets only
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
         if (res.ok) {
           const clone = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return res;
-      }))
-    );
-  }
+      });
+    })
+  );
 });
