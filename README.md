@@ -19,6 +19,8 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 
 | Feature | Details |
 |---|---|
+| 🔐 **Login + Accounts** | Email/password auth, each user's data fully isolated |
+| 📲 **Stays Logged In** | No re-typing credentials — session persists until you sign out |
 | 📊 **Dashboard** | Monthly overview with salary, carryover, other income, and remaining balance |
 | 🗂 **15 Categories** | Grocery, Food, Travel, Utilities (WiFi / LPG / Electricity), Health, EMI, and more |
 | 📈 **Analytics** | Daily / Weekly / Monthly / Yearly stacked bar charts |
@@ -26,7 +28,6 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 | 🎯 **Budgets** | Set per-category monthly limits with live progress bars |
 | 🔁 **EMI Manager** | Add recurring loans — auto-inserted as expenses every applicable month |
 | ☁️ **Cloud Sync** | Real-time sync across devices via Supabase Realtime |
-| 📲 **PWA / Installable** | Add to home screen on Android (Chrome) or iOS (Safari) |
 | ⬇️ **Backup Export** | One-click JSON download of all your data |
 
 ---
@@ -36,6 +37,7 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 ```
 Frontend    →  Vanilla HTML + CSS + JavaScript (no framework)
 Charts      →  Chart.js 4.4
+Auth        →  Supabase Auth (email + password)
 Database    →  Supabase (PostgreSQL + Realtime websockets)
 Hosting     →  GitHub Pages
 Offline     →  Service Worker (cache-first for CDN assets)
@@ -50,12 +52,12 @@ No build step. No npm. Open the file and it works.
 ### 1 — Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) → sign in with GitHub
-2. New project → name it `expense-tracker`, pick a region near you (Singapore / Mumbai)
+2. New project → name it `expense-tracker`, pick Mumbai region
 3. Wait ~60 seconds for it to provision
 
 ### 2 — Create the database table
 
-In Supabase → SQL Editor → New Query, paste and run:
+Supabase → SQL Editor → New Query → paste and run:
 
 ```sql
 CREATE TABLE tracker (
@@ -66,40 +68,47 @@ CREATE TABLE tracker (
 
 ALTER TABLE tracker ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "allow_all" ON tracker
-  FOR ALL USING (true) WITH CHECK (true);
+-- Secure: each user can ONLY read/write their own row
+CREATE POLICY "users_own_data" ON tracker
+  FOR ALL
+  USING (auth.uid()::text = id)
+  WITH CHECK (auth.uid()::text = id);
 ```
 
-### 3 — Get your API keys
+> ⚠️ Upgrading from the old single-user version? Drop the old policy first:
+> `DROP POLICY "allow_all" ON tracker;`
+
+### 3 — Enable Email Auth
+
+Supabase → Authentication → Providers → Email → **enabled**.
+
+Optional for personal use — turn off **"Confirm email"** so you don't need to click a link every signup.
+
+### 4 — Get your API keys
 
 Supabase → Settings → API → copy:
-- **Project URL** (looks like `https://xyzabc.supabase.co`)
+- **Project URL** (e.g. `https://xyzabc.supabase.co`)
 - **anon/public key** (long `eyJ...` string)
 
-### 4 — Add your keys to `index.html`
-
-Find near the top of the `<script>` block:
+### 5 — Add your keys to `index.html`
 
 ```js
 const SUPABASE_URL = "YOUR_PROJECT_URL";
 const SUPABASE_KEY = "YOUR_ANON_KEY";
 ```
 
-Replace with your actual values.
+### 6 — Deploy to GitHub Pages
 
-### 5 — Deploy to GitHub Pages
-
-1. Create a new **public** repo on GitHub
+1. New public repo on GitHub
 2. Upload `index.html`, `manifest.json`, `sw.js`
-3. Repo Settings → Pages → Deploy from `main` branch
-4. Your app lives at: `https://YOUR_USERNAME.github.io/REPO_NAME/`
+3. Settings → Pages → Deploy from `main` → Save
+4. URL: `https://YOUR_USERNAME.github.io/REPO_NAME/`
 
-### 6 — Enable Realtime sync
+### 7 — Enable Realtime
 
-Supabase Dashboard → Database → Replication → toggle on the `tracker` table.
-This enables live push updates — change something on your phone, it appears on your PC instantly.
+Supabase → Database → Replication → toggle on the `tracker` table.
 
-### 7 — Install as an app
+### 8 — Install as an app
 
 - **Android** (Chrome): Menu → "Add to Home screen"
 - **iOS** (Safari): Share → "Add to Home Screen"
@@ -107,24 +116,38 @@ This enables live push updates — change something on your phone, it appears on
 
 ---
 
-## Planned
+## How Login Works
 
-- [ ] **Android APK** — wrap the PWA in a native shell (Capacitor)
-- [ ] **iOS App** — same approach, distribute via TestFlight
-- [ ] **Multi-user / Login** — Supabase Auth so 2–3 family members each get their own data, isolated by user ID
+**Sign up** — Enter name, email, password. Account created and tied to a unique user ID. Your data lives under that ID and no one else can touch it (enforced at the database level by the RLS policy).
+
+**Sign in** — Email + password → Supabase verifies and returns a session token stored in `localStorage`.
+
+**Staying logged in** — On every open, `supabase.auth.getSession()` reads the stored token. If it's valid, you go straight to the dashboard — no typing needed. Tokens auto-renew silently.
+
+**Sign out** — Press ↩ at the bottom of the sidebar. Clears the local session.
 
 ---
 
-## Supabase Free Tier Limits
+## How Many Users on the Free Tier?
 
-| Resource | Limit |
+**Way more than you'll ever need for personal use.**
+
+| Supabase Free Limit | Reality for 2–3 users |
 |---|---|
-| Database | 500 MB |
-| Bandwidth | 2 GB / month |
-| Realtime connections | 200 concurrent |
-| Credit card required | ❌ Never |
+| 50,000 Monthly Active Users | You need 2–3 |
+| 500 MB database | ~1–2 KB per expense; 100 entries/month = ~100 KB/user. 500 MB lasts decades |
+| 2 GB bandwidth/month | Full page load ≈ 200 KB. You'd need 10,000 opens to approach the limit |
+| 200 concurrent Realtime connections | You have 2–3 |
+| Credit card | ❌ Never required |
 
-> **Note:** Free projects pause after 1 week of inactivity. To prevent this: Supabase Dashboard → Settings → disable auto-pause.
+One thing to do once: Supabase → Settings → General → disable **Auto Pause** (free projects pause after 1 week of no activity).
+
+---
+
+## Planned
+
+- [ ] **Android APK** — wrap the PWA with Capacitor
+- [ ] **iOS App** — same, via TestFlight
 
 ---
 
@@ -132,10 +155,10 @@ This enables live push updates — change something on your phone, it appears on
 
 | Symptom | Fix |
 |---|---|
-| Red sync dot / "Sync failed" | Wrong URL or key in `index.html` |
-| "relation does not exist" | Re-run the SQL from Step 2 |
-| Saves locally but no cross-device sync | Enable Realtime (Step 6) |
-| App shows offline after deploy | Make sure the `CREATE POLICY` ran correctly |
+| Red sync dot "Sync failed" | Wrong URL or key in `index.html` |
+| Login works but no data loads | Re-run the SQL from Step 2 |
+| "relation does not exist" | Re-run the CREATE TABLE SQL |
+| Email confirmation not arriving | Turn off "Confirm email" in Supabase Auth settings |
 
 ---
 
@@ -143,12 +166,12 @@ This enables live push updates — change something on your phone, it appears on
 
 ```
 expense-tracker/
-├── index.html       # Entire app — UI, logic, Supabase client
-├── manifest.json    # PWA manifest (name, icons, theme)
-├── sw.js            # Service worker — offline caching
-├── icon-192.png     # App icon (you supply this)
-├── icon-512.png     # App icon large (you supply this)
-└── README.md        # This file
+├── index.html       # Entire app — UI, logic, auth, Supabase client
+├── manifest.json    # PWA manifest
+├── sw.js            # Service worker
+├── icon-192.png     # App icon 192×192
+├── icon-512.png     # App icon 512×512
+└── README.md
 ```
 
 ---
