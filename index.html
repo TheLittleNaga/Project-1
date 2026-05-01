@@ -182,9 +182,6 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
   animation:authIn .9s cubic-bezier(.2,.85,.25,1) both;
 }
 @keyframes authIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
-.auth-mark{
-  display:flex;align-items:center;gap:12px;padding-left:4px;
-}
 .auth-mark-tile{
   width:42px;height:42px;border-radius:12px;background:var(--accent);color:var(--accent-ink);
   display:flex;align-items:center;justify-content:center;font-family:'Geist',sans-serif;
@@ -193,7 +190,7 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
 }
 .auth-mark{
   display:flex;align-items:center;gap:12px;padding-left:4px;
-  margin-top:40px;
+  margin-top:80px;
 }
 .auth-mark-text{
   font-family:'Instrument Serif',serif;font-size:26px;letter-spacing:-.01em;line-height:1;
@@ -711,12 +708,17 @@ body.app-mode .dock{display:block}
 
 /* FAB */
 .fab{
-  display:none;position:fixed;
+  position:fixed;
   bottom:calc(86px + env(safe-area-inset-bottom));right:18px;z-index:49;
   width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
-  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;align-items:center;justify-content:center;
   box-shadow:0 12px 32px var(--accent-soft),0 4px 12px rgba(0,0,0,.4);
   font-size:26px;font-weight:300;
+  display:none;opacity:0;pointer-events:none;
+  transition:opacity .2s, transform .15s cubic-bezier(.2,.85,.3,1);
+}
+.fab.home-only{
+  display:flex;opacity:1;pointer-events:auto;
 }
 .fab:active{transform:scale(.92)}
 
@@ -912,22 +914,23 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 .cdlg-ok:hover{box-shadow:0 6px 18px var(--accent-soft)}
 .cdlg-ok.danger{background:var(--danger);color:#fff}
 .cdlg-ok.danger:hover{box-shadow:0 6px 18px color-mix(in srgb,var(--danger) 30%,transparent)}
-.cdlg-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.cdlg-color-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:14px;background:var(--elev);border-radius:14px;border:1px solid var(--border)}
 .cdlg-color-swatch{
-  width:36px;height:36px;border-radius:10px;cursor:pointer;
-  border:2px solid transparent;transition:border-color .15s,transform .15s;
+  width:40px;height:40px;border-radius:12px;cursor:pointer;
+  border:2.5px solid transparent;transition:all .2s cubic-bezier(.2,.85,.3,1);
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
 }
-.cdlg-color-swatch:hover{transform:scale(1.1)}
-.cdlg-color-swatch.picked{border-color:var(--accent);transform:scale(1.1)}
+.cdlg-color-swatch:hover{transform:scale(1.12);box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.cdlg-color-swatch.picked{border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 3px var(--accent-soft),0 4px 12px rgba(0,0,0,.25)}
 .cdlg-color-custom{
-  display:flex;align-items:center;gap:8px;margin-top:8px;
+  display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px;
+  background:var(--elev);border:1px solid var(--border);border-radius:12px;
 }
 .cdlg-color-custom input[type="color"]{
-  width:42px;height:36px;border:1px solid var(--border);border-radius:8px;
-  background:var(--elev);padding:2px;cursor:pointer;
+  width:48px;height:40px;border:1.5px solid var(--border);border-radius:10px;
+  background:var(--card);padding:3px;cursor:pointer;
 }
-.cdlg-color-custom span{font-size:12px;color:var(--muted)}
-</style>
+.cdlg-color-custom span{font-size:12.5px;color:var(--muted);font-weight:500}</style>
 </head>
 <body>
 
@@ -1366,6 +1369,7 @@ function attachGestures(){
 
   scroll.addEventListener('touchmove',e=>{
     if(!touchStart)return;
+    if(activeTab==='set'||activeTab==='cat')return;
     const t=e.touches[0];
     const dx=t.clientX-touchStart.x, dy=t.clientY-touchStart.y;
     touchMoved={dx,dy};
@@ -2148,7 +2152,7 @@ async function deleteSubcategory(parentId,subId){if(!await confirmAsync('This su
 function setTab(t){
   const inner=()=>{
     activeTab=t;
-    const titles={dash:'Home',txn:'<span class="ital">Transactions</span>',an:'<span class="ital">Analytics</span>',sav:'<span class="ital">Savings</span>',bud:'<span class="ital">Budgets</span>',emi:'<span class="ital">Recurring</span>',set:'<span class="ital">Settings</span>'};
+    const titles={dash:'Home',txn:'<span class="ital">Transactions</span>',an:'<span class="ital">Analytics</span>',sav:'<span class="ital">Savings</span>',bud:'<span class="ital">Budgets</span>',emi:'<span class="ital">Recurring</span>',set:'<span class="ital">Settings</span>',cat:'<span class="ital">Categories</span>'};
     $('tab-title').innerHTML=titles[t]||t;
     ['dash','txn','an','sav','bud','emi','set'].forEach(id=>{
       const nb=$('nb-'+id),mb=$('mb-'+id);
@@ -2541,7 +2545,41 @@ function renderEmi(){
   $('e-start').value=new Date().toISOString().slice(0,7);
   if(window.lucide)lucide.createIcons();
 }
-
+// ════════════════════════════════════════════════════════
+// CATEGORIES PAGE
+// ════════════════════════════════════════════════════════
+function renderCat(){
+  $('main-content').innerHTML=`
+    <div style="margin-bottom:18px;font-size:13px;color:var(--muted);max-width:520px;line-height:1.55">Rename, recolor, or add sub-categories. Custom categories can be deleted — built-in ones can be renamed but not removed.</div>
+    <div class="add-row" style="margin-bottom:18px;padding:14px;background:var(--elev);border:1px solid var(--border);border-radius:14px">
+      <div class="fg"><label>Add new category</label><input type="text" id="cc-name" placeholder="e.g. Pet Care" maxlength="24"/></div>
+      <div class="fg" style="max-width:120px"><label>Color</label><input type="color" id="cc-color" value="#a8e063" style="height:38px;padding:3px;cursor:pointer"/></div>
+      <div class="fg0"><button class="primary" onclick="addCustomCat()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div>
+    </div>
+    <div class="cat-mgr">
+      ${allCats().map(c=>{
+        const overridden=!c.custom && state.catOverrides && state.catOverrides[c.id];
+        const subs=c.subs||[];
+        const customSubIds=new Set(((state.customSubs||{})[c.id]||[]).map(s=>s.id));
+        return `<div class="cat-mgr-row">
+          <div class="cat-mgr-head">
+            <span class="cat-dot" style="background:${c.color};width:12px;height:12px;border-radius:50%;display:inline-block"></span>
+            <span class="cat-mgr-name">${c.name}</span>
+            ${c.custom?'<span class="cat-mgr-tag">CUSTOM</span>':(overridden?'<span class="cat-mgr-tag" style="background:var(--accent-soft);color:var(--accent)">EDITED</span>':'')}
+            <div style="flex:1"></div>
+            <button class="mbtn" onclick="editCategory('${c.id}')" title="Rename & recolor"><i data-lucide="pencil" class="ic-sm"></i></button>
+            <button class="mbtn" onclick="addSubcategory('${c.id}')" title="Add sub-category"><i data-lucide="git-branch-plus" class="ic-sm"></i></button>
+            ${overridden?`<button class="mbtn" onclick="resetCategoryOverride('${c.id}')" title="Reset to original"><i data-lucide="rotate-ccw" class="ic-sm"></i></button>`:''}
+            ${c.custom?`<button class="mbtn" onclick="deleteCategoryEntirely('${c.id}')" title="Delete category" style="color:var(--danger)"><i data-lucide="trash-2" class="ic-sm"></i></button>`:''}
+          </div>
+          ${subs.length?`<div class="cat-mgr-subs">${subs.map(s=>{const isCustom=customSubIds.has(s.id);return `<div class="cat-mgr-sub"><span class="cat-dot" style="background:${s.color};width:8px;height:8px;border-radius:50%;display:inline-block"></span><span>${s.name}</span>${isCustom?'<span class="cat-mgr-tag" style="font-size:8px">CUSTOM</span>':''}<div style="flex:1"></div>${isCustom?`<button class="mbtn sm" onclick="editSubcategory('${c.id}','${s.id}')" title="Rename"><i data-lucide="pencil" class="ic-sm"></i></button><button class="mbtn sm" onclick="deleteSubcategory('${c.id}','${s.id}')" title="Delete" style="color:var(--danger)"><i data-lucide="x" class="ic-sm"></i></button>`:''}</div>`;}).join('')}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:18px"><button class="ghost" onclick="setTab('set')"><i data-lucide="arrow-left" class="ic-sm"></i>Back to Settings</button></div>
+  `;
+  if(window.lucide)lucide.createIcons();
+}
 // ════════════════════════════════════════════════════════
 // SETTINGS
 // ════════════════════════════════════════════════════════
@@ -2586,49 +2624,12 @@ function renderSet(){
 
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>Categories</em></div>
-        <div class="set-sub">Rename, recolor, or add sub-categories to any category. Custom categories can also be deleted — built-in ones can be renamed but not removed.</div>
-
-        <div class="add-row" style="margin-bottom:18px;padding:14px;background:var(--elev);border:1px solid var(--border);border-radius:14px">
-          <div class="fg"><label>Add new category</label><input type="text" id="cc-name" placeholder="e.g. Pet Care" maxlength="24"/></div>
-          <div class="fg" style="max-width:120px"><label>Color</label><input type="color" id="cc-color" value="#a8e063" style="height:38px;padding:3px;cursor:pointer"/></div>
-          <div class="fg0"><button class="primary" onclick="addCustomCat()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div>
-        </div>
-
-        <div class="cat-mgr">
-          ${allCats().map(c=>{
-            const overridden=!c.custom && state.catOverrides && state.catOverrides[c.id];
-            const subs=c.subs||[];
-            const customSubIds=new Set(((state.customSubs||{})[c.id]||[]).map(s=>s.id));
-            return `<div class="cat-mgr-row">
-              <div class="cat-mgr-head">
-                <span class="cat-dot" style="background:${c.color};width:12px;height:12px;border-radius:50%;display:inline-block"></span>
-                <span class="cat-mgr-name">${c.name}</span>
-                ${c.custom?'<span class="cat-mgr-tag">CUSTOM</span>':(overridden?'<span class="cat-mgr-tag" style="background:var(--accent-soft);color:var(--accent)">EDITED</span>':'')}
-                <div style="flex:1"></div>
-                <button class="mbtn" onclick="editCategory('${c.id}')" title="Rename & recolor"><i data-lucide="pencil" class="ic-sm"></i></button>
-                <button class="mbtn" onclick="addSubcategory('${c.id}')" title="Add sub-category"><i data-lucide="git-branch-plus" class="ic-sm"></i></button>
-                ${overridden?`<button class="mbtn" onclick="resetCategoryOverride('${c.id}')" title="Reset to original"><i data-lucide="rotate-ccw" class="ic-sm"></i></button>`:''}
-                ${c.custom?`<button class="mbtn" onclick="deleteCategoryEntirely('${c.id}')" title="Delete category" style="color:var(--danger)"><i data-lucide="trash-2" class="ic-sm"></i></button>`:''}
-              </div>
-              ${subs.length?`
-                <div class="cat-mgr-subs">
-                  ${subs.map(s=>{
-                    const isCustom=customSubIds.has(s.id);
-                    return `<div class="cat-mgr-sub">
-                      <span class="cat-dot" style="background:${s.color};width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-                      <span>${s.name}</span>
-                      ${isCustom?'<span class="cat-mgr-tag" style="font-size:8px">CUSTOM</span>':''}
-                      <div style="flex:1"></div>
-                      ${isCustom?`
-                        <button class="mbtn sm" onclick="editSubcategory('${c.id}','${s.id}')" title="Rename"><i data-lucide="pencil" class="ic-sm"></i></button>
-                        <button class="mbtn sm" onclick="deleteSubcategory('${c.id}','${s.id}')" title="Delete" style="color:var(--danger)"><i data-lucide="x" class="ic-sm"></i></button>
-                      `:''}
-                    </div>`;
-                  }).join('')}
-                </div>`:''}
-            </div>`;
-          }).join('')}
-        </div>
+        <div class="set-sub">Rename, recolor, add sub-categories, or create custom categories.</div>
+        <button class="ghost" style="width:100%;justify-content:center;padding:16px;font-size:14px;border-radius:14px" onclick="setTab('cat')">
+          <i data-lucide="layout-grid" class="ic-sm"></i>
+          Manage Categories
+          <i data-lucide="chevron-right" class="ic-sm" style="margin-left:auto"></i>
+        </button>
       </div>
 
       <div class="set-section" style="grid-column:1/-1">
@@ -2700,8 +2701,9 @@ function render(){
   else if(activeTab==='sav')renderSav();
   else if(activeTab==='bud')renderBud();
   else if(activeTab==='emi')renderEmi();
-  else if(activeTab==='set')renderSet();
-  // Fire queued notifications after render (guarded, debounced via internal flags)
+   else if(activeTab==='set')renderSet();
+   else if(activeTab==='cat')renderCat();
+  // Fire queued notifications (guarded, debounced via internal flags)
   if(typeof runAllNotifChecks==='function')setTimeout(runAllNotifChecks,50);
 }
 
