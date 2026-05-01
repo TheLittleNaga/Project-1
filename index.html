@@ -719,7 +719,6 @@ body.app-mode .dock{display:block}
   font-size:26px;font-weight:300;
 }
 .fab:active{transform:scale(.92)}
-body.app-mode .fab.home-only{display:flex}
 
 /* Bottom sheet */
 .sheet-bg{
@@ -873,6 +872,61 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
   0%{opacity:1;transform:translateY(0) rotate(0)}
   100%{opacity:0;transform:translateY(120px) rotate(540deg)}
 }
+
+/* ═══ Custom themed dialogs (replaces native confirm/prompt) ═══ */
+.cdlg-bg{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.cdlg-bg.on{opacity:1;pointer-events:auto}
+.cdlg{
+  background:var(--surface);border:1px solid var(--border-strong);border-radius:22px;
+  padding:24px 22px 20px;width:100%;max-width:360px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  transform:scale(.95);transition:transform .25s cubic-bezier(.34,1.2,.44,1);
+}
+.cdlg-bg.on .cdlg{transform:scale(1)}
+.cdlg-title{font-family:'Instrument Serif',serif;font-size:22px;line-height:1.2;margin-bottom:6px}
+.cdlg-msg{font-size:13.5px;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.cdlg-input{
+  background:var(--elev);border:1px solid var(--border);border-radius:12px;
+  color:var(--text);padding:12px 14px;font-size:15px;font-family:inherit;
+  width:100%;outline:none;margin-bottom:16px;
+}
+.cdlg-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.cdlg-input::placeholder{color:var(--dim)}
+.cdlg-btns{display:flex;gap:10px;justify-content:flex-end}
+.cdlg-cancel{
+  background:transparent;border:1px solid var(--border);border-radius:14px;
+  color:var(--muted);padding:11px 20px;cursor:pointer;font-size:13px;
+  font-family:inherit;font-weight:600;flex:1;
+}
+.cdlg-cancel:hover{border-color:var(--border-strong);color:var(--text)}
+.cdlg-ok{
+  background:var(--accent);border:none;border-radius:14px;
+  color:var(--accent-ink);padding:11px 20px;cursor:pointer;font-size:13px;
+  font-family:inherit;font-weight:600;flex:1;
+}
+.cdlg-ok:hover{box-shadow:0 6px 18px var(--accent-soft)}
+.cdlg-ok.danger{background:var(--danger);color:#fff}
+.cdlg-ok.danger:hover{box-shadow:0 6px 18px color-mix(in srgb,var(--danger) 30%,transparent)}
+.cdlg-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.cdlg-color-swatch{
+  width:36px;height:36px;border-radius:10px;cursor:pointer;
+  border:2px solid transparent;transition:border-color .15s,transform .15s;
+}
+.cdlg-color-swatch:hover{transform:scale(1.1)}
+.cdlg-color-swatch.picked{border-color:var(--accent);transform:scale(1.1)}
+.cdlg-color-custom{
+  display:flex;align-items:center;gap:8px;margin-top:8px;
+}
+.cdlg-color-custom input[type="color"]{
+  width:42px;height:36px;border:1px solid var(--border);border-radius:8px;
+  background:var(--elev);padding:2px;cursor:pointer;
+}
+.cdlg-color-custom span{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -998,6 +1052,11 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 </div>
 
 <!-- Bottom Sheet -->
+<!-- Custom confirm/prompt dialogs -->
+<div class="cdlg-bg" id="cdlg-bg">
+  <div class="cdlg" id="cdlg-box"></div>
+</div>
+
 <div class="sheet-bg" id="sheet-bg" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
@@ -1244,6 +1303,49 @@ setTimeout(()=>{
 // ════════════════════════════════════════════════════════
 // MOBILE GESTURES — swipe between tabs + pull-to-refresh
 // ════════════════════════════════════════════════════════
+function _closeCdlg(){$('cdlg-bg').classList.remove('on');$('cdlg-box').innerHTML='';}
+function confirmAsync(msg,opts={}){
+  return new Promise(resolve=>{
+    const danger=opts.danger||false;
+    const okText=opts.okText||'OK';
+    const cancelText=opts.cancelText||'Cancel';
+    $('cdlg-box').innerHTML=`<div class="cdlg-title">${opts.title||'Confirm'}</div><div class="cdlg-msg">${msg}</div><div class="cdlg-btns"><button class="cdlg-cancel" id="cdlg-no">${cancelText}</button><button class="cdlg-ok${danger?' danger':''}" id="cdlg-yes">${okText}</button></div>`;
+    $('cdlg-bg').classList.add('on');
+    $('cdlg-yes').onclick=()=>{_closeCdlg();resolve(true);};
+    $('cdlg-no').onclick=()=>{_closeCdlg();resolve(false);};
+    $('cdlg-bg').onclick=e=>{if(e.target===$('cdlg-bg')){_closeCdlg();resolve(false);}};
+  });
+}
+function promptAsync(label,defaultValue,opts={}){
+  return new Promise(resolve=>{
+    const isColor=opts.type==='color';
+    if(isColor){
+      const colors=['#a8e063','#f7a26a','#6ab0f7','#f7d06a','#b06af7','#f76aab','#6af7a2','#ffb347','#6ac8f7','#ff7a85','#6af7d8','#f76ace','#9b82ff','#aab0c8','#ff6b5e','#9c9c9c','#ff5e5e','#00e5ff','#ff7a4d','#ffffff','#000000'];
+      $('cdlg-box').innerHTML=`<div class="cdlg-title">${opts.title||'Pick a colour'}</div><div class="cdlg-msg">${label}</div><div class="cdlg-color-row">${colors.map(c=>`<div class="cdlg-color-swatch${c===defaultValue?' picked':''}" style="background:${c}" data-c="${c}"></div>`).join('')}</div><div class="cdlg-color-custom"><input type="color" id="cdlg-cc" value="${defaultValue||'#a8e063'}"/><span>Custom</span></div><div class="cdlg-btns"><button class="cdlg-cancel" id="cdlg-no">Cancel</button><button class="cdlg-ok" id="cdlg-yes">Set</button></div>`;
+      $('cdlg-bg').classList.add('on');
+      let picked=defaultValue||null;
+      $('cdlg-box').querySelectorAll('.cdlg-color-swatch').forEach(sw=>{
+        sw.onclick=()=>{
+          $('cdlg-box').querySelectorAll('.cdlg-color-swatch').forEach(s=>s.classList.remove('picked'));
+          sw.classList.add('picked');picked=sw.dataset.c;
+          $('cdlg-cc').value=picked;
+        };
+      });
+      $('cdlg-cc').oninput=()=>{picked=$('cdlg-cc').value;$('cdlg-box').querySelectorAll('.cdlg-color-swatch').forEach(s=>s.classList.remove('picked'));};
+      $('cdlg-yes').onclick=()=>{_closeCdlg();resolve(picked);};
+      $('cdlg-no').onclick=()=>{_closeCdlg();resolve(null);};
+      $('cdlg-bg').onclick=e=>{if(e.target===$('cdlg-bg')){_closeCdlg();resolve(null);}};
+    } else {
+      $('cdlg-box').innerHTML=`<div class="cdlg-title">${opts.title||'Input'}</div><div class="cdlg-msg">${label}</div><input class="cdlg-input" id="cdlg-inp" value="${(defaultValue||'').replace(/"/g,'&quot;')}"/><div class="cdlg-btns"><button class="cdlg-cancel" id="cdlg-no">Cancel</button><button class="cdlg-ok" id="cdlg-yes">${opts.okText||'OK'}</button></div>`;
+      $('cdlg-bg').classList.add('on');
+      setTimeout(()=>{const inp=$('cdlg-inp');if(inp){inp.focus();inp.select();}},100);
+      $('cdlg-yes').onclick=()=>{_closeCdlg();resolve($('cdlg-inp').value.trim());};
+      $('cdlg-no').onclick=()=>{_closeCdlg();resolve(null);};
+      $('cdlg-bg').onclick=e=>{if(e.target===$('cdlg-bg')){_closeCdlg();resolve(null);}};
+    }
+  });
+}
+
 const TAB_ORDER=['dash','txn','an','sav','bud','emi','set'];
 let touchStart=null, touchMoved=null, ptrPulling=false;
 
@@ -1355,7 +1457,7 @@ async function handleSubmit(){
   btn.querySelector('span').textContent=isSignUp?'Create Account':'Sign In';btn.disabled=false;
 }
 async function doSignOut(){
-  if(!confirm('Sign out?'))return;
+  if(!await confirmAsync('You can sign back in anytime — your data stays in sync.',{title:'Sign out',okText:'Sign out',cancelText:'Cancel'}))return;
   if(rtChannel){sb.removeChannel(rtChannel);rtChannel=null;}
   state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir'};
   [dChart,anChart,savChart].forEach(c=>{if(c)c.destroy();});
@@ -1620,10 +1722,10 @@ function addExp(){
   checkBudgetNotifications();
   render();
 }
-function delExp(id){
+async function delExp(id){
   if(String(id).startsWith('emi_'))return;
-  if(!confirm('Delete this expense?'))return;
-  state.exps=state.exps.filter(e=>e.id!==id);save();render();
+  if(!await confirmAsync('This expense will be permanently removed.',{title:'Delete expense',danger:true,okText:'Delete',cancelText:'Cancel'}))return;
+  state.exps=state.exps.filter(e=>e.id!==id);save();hapticTick();render();
 }
 function addOI(){
   const amt=parseFloat($('oi-amt').value),note=$('oi-note').value.trim(),date=$('oi-date').value;
@@ -1641,7 +1743,7 @@ function addEmi(){
   state.emis.push({id:++state.uid,name,catId:cat,amount:amt,sy,sm:sm-1,months:Math.min(999,months),day});
   $('e-name').value='';$('e-amt').value='';$('e-months').value='';save();hapticTick();showToast('Recurring added ✓');render();
 }
-function delEmi(id){if(!confirm('Remove this EMI?'))return;state.emis=state.emis.filter(e=>e.id!==id);save();render();}
+async function delEmi(id){if(!await confirmAsync('This recurring entry will be permanently removed.',{title:'Remove recurring',danger:true,okText:'Remove',cancelText:'Cancel'}))return;state.emis=state.emis.filter(e=>e.id!==id);save();hapticTick();render();}
 function selCat(id){
   if(selCatId===id){closeDrill();return;}
   selCatId=id;
@@ -1679,19 +1781,15 @@ function addCcPayment(mkey){
   showToast(after>=bill.total?'Fully paid ✓':`Paid ${fmt(after)} / ${fmt(bill.total)}`,'check');
   render();
 }
-function editCcPayment(mkey){
-  const[yy,mm]=mkey.split('-').map(Number);
-  const bill=getCreditBill(yy,mm-1);
+async function editCcPayment(mkey){
+  const bill=getCreditBill(curY,curM);
   const cur=bill.paidAmount;
-  const raw=prompt(`Set total paid amount for this bill (${fmt(bill.total)}):`, cur);
+  const raw=await promptAsync(`Total bill: ${fmt(bill.total)}\nSet amount you have paid so far:`,String(cur),{title:'Edit payment'});
   if(raw===null)return;
   const amt=parseFloat(raw);
   if(isNaN(amt)||amt<0){showToast('Invalid amount','x');return;}
-  _ccSetPaid(mkey,amt);
-  hapticTick();showToast('Updated ✓','check');render();
-}
-function resetCcPayment(mkey){
-  if(!confirm('Reset this bill to unpaid?'))return;
+  _ccSetPaid(mkey,amt);hapticTick();showToast('Updated ✓','check');render();}
+async function resetCcPayment(mkey){if(!await confirmAsync('Mark this entire bill as unpaid?',{title:'Reset payment',danger:true,okText:'Reset',cancelText:'Cancel'}))return;
   _ccSetPaid(mkey,0);
   hapticTick();showToast('Reset');render();
 }
@@ -1753,8 +1851,7 @@ function setCcCutoff(val){
   showToast(state.settings.ccCutoffDay?`Cut-off set to day ${state.settings.ccCutoffDay}`:'Using calendar month','check');
   render();
 }
-function resetNotifState(){
-  if(!confirm('Reset alert history for all months? Alerts will re-fire when thresholds are next crossed.'))return;
+async function resetNotifState(){if(!await confirmAsync('Alert history for all months will be cleared. Alerts will re-fire when thresholds are next crossed.',{title:'Reset alerts',danger:true,okText:'Reset',cancelText:'Cancel'}))return;
   state.notifState={};save();hapticTick();showToast('Alert history cleared');render();
 }
 function _fireNotif(title,body,tag){
@@ -1828,10 +1925,7 @@ function runAllNotifChecks(){checkBudgetNotifications();checkCcNotifications();}
 // EDIT EXPENSE (long-press or tap on tdel-neighbour)
 // ════════════════════════════════════════════════════════
 let editingId=null, editingEmiId=null, editingOiId=null;
-function openEditExp(id){
-  const e=state.exps.find(x=>x.id===id);
-  if(!e)return;
-  editingId=id;
+function openEditExp(id){const e=state.exps.find(x=>x.id===id);if(!e)return;editingId=id;if($('drill-bg').classList.contains('on'))closeDrill();
   const sh=document.getElementById('sheet'),bg=document.getElementById('sheet-bg'),sc=document.getElementById('sheet-content');
   const val=e.subId?`${e.catId}|${e.subId}`:e.catId;
   sc.innerHTML=`<div class="sheet-title">Edit <em>expense</em></div><div class="sheet-sub">Change anything, tap save</div>
@@ -1865,18 +1959,14 @@ function saveEditing(){
   editingId=null;
   closeSheet();save();hapticTick();showToast('Saved ✓');render();
 }
-function deleteEditing(){
-  if(!confirm('Delete this expense?'))return;
+async function deleteEditing(){if(!await confirmAsync('This expense will be permanently removed.',{title:'Delete expense',danger:true,okText:'Delete',cancelText:'Cancel'}))return;
   state.exps=state.exps.filter(x=>x.id!==editingId);
   editingId=null;
   closeSheet();save();hapticTick();showToast('Deleted');render();
 }
 
 // ── Edit Other Income ────────────────────────────────
-function openEditOI(id){
-  const oi=state.otherIncome.find(x=>x.id===id);
-  if(!oi)return;
-  editingOiId=id;editingId=null;editingEmiId=null;
+function openEditOI(id){const oi=state.otherIncome.find(x=>x.id===id);if(!oi)return;editingOiId=id;editingId=null;editingEmiId=null;if($('drill-bg').classList.contains('on'))closeDrill();
   const sh=document.getElementById('sheet'),bg=document.getElementById('sheet-bg'),sc=document.getElementById('sheet-content');
   sc.innerHTML=`<div class="sheet-title">Edit <em>income</em></div><div class="sheet-sub">Others received entry</div>
     <div class="sheet-form">
@@ -1902,17 +1992,13 @@ function saveEditingOI(){
   oi.amount=amt;oi.note=note||'Others';oi.date=date;oi.mk=mk(d.getFullYear(),d.getMonth());
   editingOiId=null;closeSheet();save();hapticTick();showToast('Saved ✓');render();
 }
-function deleteEditingOI(){
-  if(!confirm('Delete this income entry?'))return;
+async function deleteEditingOI(){if(!await confirmAsync('This income entry will be permanently removed.',{title:'Delete income',danger:true,okText:'Delete',cancelText:'Cancel'}))return;
   state.otherIncome=state.otherIncome.filter(x=>x.id!==editingOiId);
   editingOiId=null;closeSheet();save();hapticTick();showToast('Deleted');render();
 }
 
 // ── Edit Recurring/EMI ───────────────────────────────
-function openEditEmi(id){
-  const e=state.emis.find(x=>x.id===id);
-  if(!e)return;
-  editingEmiId=id;editingId=null;editingOiId=null;
+function openEditEmi(id){const e=state.emis.find(x=>x.id===id);if(!e)return;editingEmiId=id;editingId=null;editingOiId=null;if($('drill-bg').classList.contains('on'))closeDrill();
   const sh=document.getElementById('sheet'),bg=document.getElementById('sheet-bg'),sc=document.getElementById('sheet-content');
   const startStr=e.sy+'-'+String(e.sm+1).padStart(2,'0');
   sc.innerHTML=`<div class="sheet-title">Edit <em>recurring</em></div><div class="sheet-sub">${e.months>=900?'Ongoing subscription':e.months+'-month EMI'}</div>
@@ -1948,8 +2034,7 @@ function saveEditingEmi(){
   e.name=name;e.amount=amt;e.catId=cat;e.sy=sy;e.sm=sm-1;e.months=Math.min(999,months);e.day=Math.min(28,Math.max(1,day));
   editingEmiId=null;closeSheet();save();hapticTick();showToast('Saved ✓');render();
 }
-function deleteEditingEmi(){
-  if(!confirm('Remove this recurring entry?'))return;
+async function deleteEditingEmi(){if(!await confirmAsync('This recurring entry will be permanently removed.',{title:'Remove recurring',danger:true,okText:'Remove',cancelText:'Cancel'}))return;
   state.emis=state.emis.filter(x=>x.id!==editingEmiId);
   editingEmiId=null;closeSheet();save();hapticTick();showToast('Deleted');render();
 }
@@ -2006,28 +2091,20 @@ function delCustomCat(id){
 }
 
 // ═══ FULL CATEGORY MANAGER (built-in + custom, with subcategories) ═══
-function editCategory(id){
-  const cat=allCats().find(c=>c.id===id);
-  if(!cat)return;
+async function editCategory(id){
+  const cat=allCats().find(c=>c.id===id);if(!cat)return;
   const isBuiltIn=!cat.custom;
-  const newName=prompt('Rename category:',cat.name);
+  const newName=await promptAsync('Enter a new name for this category:',cat.name,{title:'Rename category'});
   if(newName===null)return;
   const trimmed=newName.trim();
   if(!trimmed){showToast('Name required','x');return;}
-  const newColor=prompt('Color (hex, e.g. #a8e063):',cat.color);
+  const newColor=await promptAsync('Pick a colour:',cat.color,{title:'Category colour',type:'color'});
   if(newColor===null)return;
   const color=newColor.trim()||cat.color;
-  if(isBuiltIn){
-    state.catOverrides=state.catOverrides||{};
-    state.catOverrides[id]={name:trimmed,color};
-  } else {
-    const c=state.customCats.find(x=>x.id===id);
-    if(c){c.name=trimmed;c.color=color;}
-  }
-  save();hapticTick();showToast('Category updated ✓');render();
-}
-function resetCategoryOverride(id){
-  if(!confirm('Reset this category to its original name and color?'))return;
+  if(isBuiltIn){state.catOverrides=state.catOverrides||{};state.catOverrides[id]={name:trimmed,color};}
+  else{const c=state.customCats.find(x=>x.id===id);if(c){c.name=trimmed;c.color=color;}}
+  save();hapticTick();showToast('Category updated ✓');render();}
+async function resetCategoryOverride(id){if(!await confirmAsync('Reset this category to its original name and color?',{title:'Reset category',okText:'Reset',cancelText:'Cancel'}))return;
   if(state.catOverrides){delete state.catOverrides[id];}
   save();hapticTick();showToast('Reset');render();
 }
@@ -2036,34 +2113,31 @@ function deleteCategoryEntirely(id){
   if(!cat||!cat.custom){showToast('Built-in categories cannot be deleted. You can rename them instead.','x');return;}
   delCustomCat(id);
 }
-function addSubcategory(parentId){
-  const name=prompt('Sub-category name (e.g. "WiFi"):');
+async function addSubcategory(parentId){
+  const name=await promptAsync('Sub-category name (e.g. "WiFi"):','',{title:'Add sub-category'});
   if(name===null)return;
   const trimmed=name.trim();
   if(!trimmed){showToast('Name required','x');return;}
   const parent=allCats().find(c=>c.id===parentId);
   const defaultColor=(parent&&parent.color)||'#a8e063';
-  const color=prompt('Color (hex):',defaultColor);
+  const color=await promptAsync('Pick a colour:',defaultColor,{title:'Sub-category colour',type:'color'});
   if(color===null)return;
   const subId='s_'+Date.now().toString(36);
   state.customSubs=state.customSubs||{};
   state.customSubs[parentId]=state.customSubs[parentId]||[];
   state.customSubs[parentId].push({id:subId,name:trimmed,color:color.trim()||defaultColor});
-  save();hapticTick();showToast(`"${trimmed}" added ✓`);render();
-}
-function editSubcategory(parentId,subId){
+  save();hapticTick();showToast(`"${trimmed}" added ✓`);render();}
+async function editSubcategory(parentId,subId){
   const sub=(state.customSubs&&state.customSubs[parentId]||[]).find(s=>s.id===subId);
   if(!sub){showToast('Built-in sub-categories cannot be edited yet','x');return;}
-  const newName=prompt('Rename sub-category:',sub.name);
+  const newName=await promptAsync('Enter a new name:',sub.name,{title:'Rename sub-category'});
   if(newName===null)return;
   if(!newName.trim()){showToast('Name required','x');return;}
-  const newColor=prompt('Color (hex):',sub.color);
+  const newColor=await promptAsync('Pick a colour:',sub.color,{title:'Sub-category colour',type:'color'});
   if(newColor===null)return;
   sub.name=newName.trim();sub.color=newColor.trim()||sub.color;
-  save();hapticTick();showToast('Sub-category updated ✓');render();
-}
-function deleteSubcategory(parentId,subId){
-  if(!confirm('Delete this sub-category?'))return;
+  save();hapticTick();showToast('Updated ✓');render();}
+async function deleteSubcategory(parentId,subId){if(!await confirmAsync('This sub-category will be permanently removed.',{title:'Delete sub-category',danger:true,okText:'Delete',cancelText:'Cancel'}))return;
   if(state.customSubs&&state.customSubs[parentId]){
     state.customSubs[parentId]=state.customSubs[parentId].filter(s=>s.id!==subId);
     if(!state.customSubs[parentId].length)delete state.customSubs[parentId];
