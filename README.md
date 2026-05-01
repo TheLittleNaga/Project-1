@@ -1,92 +1,255 @@
-# ₹ Ledger — UI/UX Redesign v2.0
+# TheLittleNaga — Expense Tracker
 
-A fully reimagined drop-in `index.html` replacement. **Web view on desktop, app view on mobile** — automatically detected. Same Supabase backend. Now with **20 currencies**.
+> A personal finance tracker built because free apps never had exactly what I needed — so I built my own.
 
-## Install (1 step)
+---
 
-Replace your current `index.html` with `/app/redesign/index.html`. Your `sw.js` and `manifest.json` work as-is.
+## Why I Built This
 
-## What's new in v2.0
+Most free expense apps are either too bloated, paywalled behind the features that actually matter, or don't let you own your data. This tracker is:
 
-### Dual-mode experience
-- **Desktop / web**: Sidebar + topbar, multi-column grid, hero balance card, full-width charts
-- **Mobile / app**: Native-feeling — bottom-floating dock, FAB for quick-add, bottom sheets, scaled drawer animation, no inline forms cluttering the screen
-- Auto-detected via viewport + user-agent (no toggle needed)
+- **Yours** — hosted on your GitHub, your Supabase database, zero third-party middleman
+- **Free, forever** — GitHub Pages + Supabase free tier, no credit card needed
+- **Installable** — works as a PWA and as a native Android APK
+- **Private** — no analytics, no ads, no accounts on external platforms you didn't set up yourself
 
-### Cinematic auth (clean & minimal)
-- Animated **aurora gradient** background (drifts continuously, theme-aware)
-- Centered logo + login card — no marketing copy, just sign in
-- **"Try demo mode"** button — explore the entire app with sample data, no account needed (local-only)
-- Glass-morphism card with arrow-pill button
+---
 
-### Settings page (new!)
-Theme picker and currency picker moved here for a cleaner sidebar.
-- **5 theme cards** with live gradient previews — Noir, Paper, Lagoon, Sunset, Monet
-- **20-currency grid** — INR, USD, EUR, GBP, JPY, CNY, KRW, AUD, CAD, SGD, AED, SAR, CHF, BRL, NGN, TRY, RUB, IDR, PKR, BDT — each with its symbol + native locale formatting
-- **Account section** — backup, sign out, about
+## Features
 
-### Multi-currency engine
-- All amounts auto-format using `Intl.NumberFormat` per currency's native locale
-  - `₹95,000` (Indian grouping), `$1,500` (US), `1.500 €` (EUR-DE), `¥150,000` (JP)
-- Dynamic symbols throughout (Salary, Add Expense, Budgets, EMIs all reflect chosen currency)
-- Currency choice **syncs** across all your devices via Supabase
+| Feature | Details |
+|---|---|
+| 🔐 **Login + Accounts** | Email/password auth via Supabase, each user's data fully isolated |
+| 📲 **Stays Logged In** | Session persists until you sign out — no re-typing credentials |
+| 🎨 **4 Themes** | AMOLED Black, Dark, Light, Material You — saved per device |
+| 📊 **Dashboard** | Monthly overview with salary, carryover, other income, remaining balance |
+| 🗂 **15 Categories** | Grocery, Food, Travel, Utilities (WiFi / LPG / Electricity), Health, EMI, and more |
+| 📈 **Analytics** | Daily / Weekly / Monthly / Yearly stacked bar charts |
+| 💰 **Savings Tracker** | Auto carry-forward balance, 12-month income vs expense comparison |
+| 🎯 **Budgets** | Set per-category monthly limits with live progress bars |
+| 🔁 **EMI Manager** | Add recurring loans — auto-inserted as expenses every applicable month |
+| ☁️ **Cloud Sync** | Real-time sync across devices via Supabase Realtime |
+| ⬇️ **Backup Export** | One-click JSON download of all your data |
+| 📱 **Android APK** | Native app built with Capacitor — installable without Play Store |
 
-### Fancy transitions (the "go crazy" part)
-- **View Transitions API** — buttery cross-fades on every tab switch
-- **Theme switch radial reveal** — tap a theme card, the new theme washes in like a wave from your tap point
-- **Page slide + blur** out / in
-- **Card stagger** — category cards fade in one by one
-- **Aurora drift** on auth screen (12s organic loop)
-- **Smooth chart fade-ins**, animated progress bar fills, hover-lift on cards
+---
 
-### Mobile-first interactions
-- **FAB (floating action button)** bottom-right → opens bottom sheet for add-expense
-- **Bottom-sheet "Pick month"** → tappable month grid (no more arrow-clicking)
-- **Drawer animation** (Android-recents): tap menu → main view scales 88% + slides 78% right with rounded corners + shadow, sidebar revealed beneath
-- **Floating glass dock** at bottom — 5 tabs in a pill with backdrop-blur
-- **Swipe between tabs** — drag horizontally to navigate Home → Charts → Save → Budget → EMI → Settings (and back)
-- **Pull-to-refresh** — drag down at the top of any page → refreshes data from cloud (or re-renders in demo mode)
+## Tech Stack
 
-### Layout improvements
-- New **hero balance card** on home — large monospace remaining amount + serif italic dynamic quote ("Plenty of runway." / "Mid-month, on track." / "Tightening up nicely." / "Time to slow the spend.")
-- Logo refresh: small accent-tile "L" + serif "Led*ger*"
-- Lucide icons throughout (no emoji)
-- Grain texture overlays on dark themes
-- Sticky topbar with scroll-blur
+```
+Frontend    →  Vanilla HTML + CSS + JavaScript (no framework)
+Charts      →  Chart.js 4.4
+Auth        →  Supabase Auth (email + password)
+Database    →  Supabase (PostgreSQL + Realtime websockets)
+Hosting     →  GitHub Pages (web)
+Android     →  Capacitor 6
+Offline     →  Service Worker (cache-first for CDN assets)
+```
 
-## Themes (5)
+No build step for the web app. No framework. Open the file and it works.
 
-| Theme   | Mood                                                      |
-|---------|-----------------------------------------------------------|
-| Noir    | Pure AMOLED black + lime accent — editorial fintech       |
-| Paper   | Cream + ink black + olive — Notion-style light            |
-| Lagoon  | Midnight navy + electric cyan                             |
-| Sunset  | Warm charcoal + coral & amber                             |
-| Monet   | **Dynamic** — follows your OS light/dark + accent color   |
+---
 
-## Currencies (20)
+## Install the Android App
 
-INR · USD · EUR · GBP · JPY · CNY · KRW · AUD · CAD · SGD · AED · SAR · CHF · BRL · NGN · TRY · RUB · IDR · PKR · BDT
+Download the latest APK from [Releases](../../releases) and install directly on your phone.
 
-Easy to extend — add more in the `CURRENCIES` array.
+**On your phone:**
+1. Download `app-debug.apk`
+2. Tap it → Android will ask to allow unknown sources → Allow
+3. Install → done
 
-## Preserved 100%
+Supports Android 5.1 and above (API 22+).
 
-- All Supabase auth, realtime sync, EMI auto-generation, carry-over math, backup export
-- All element IDs / class names original JS depended on
-- `sw.js` offline support
-- Original 15 expense categories with subcategories
+---
 
-## Files
+## Web App Setup (≈ 10 minutes, completely free)
 
-- `/app/redesign/index.html` — your drop-in replacement
-- `/app/redesign/README.md` — this doc
-- Live preview: `https://ui-revamp-93.preview.emergentagent.com/ledger.html`
+### 1 — Create a Supabase project
 
-## Customization
+1. Go to [supabase.com](https://supabase.com) → sign in with GitHub
+2. New project → name it `expense-tracker`, pick Mumbai region
+3. Wait ~60 seconds for it to provision
 
-- **Default theme**: `<html data-theme="noir">` → swap to any of the 5
-- **Default currency**: in `state` object initialization, `currency:'INR'` → swap to any code
-- **Add a theme**: copy any `[data-theme="..."]` block, change CSS variables, add card to settings page
-- **Add a currency**: append to `CURRENCIES` array (code, symbol, locale, name)
-- **Brand name**: search "Ledger" — 4 places to change
+### 2 — Create the database table
+
+Supabase → SQL Editor → New Query → paste and run:
+
+```sql
+CREATE TABLE tracker (
+  id TEXT PRIMARY KEY,
+  data TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE tracker ENABLE ROW LEVEL SECURITY;
+
+-- Each user can ONLY read/write their own row
+CREATE POLICY "users_own_data" ON tracker
+  FOR ALL
+  USING (auth.uid()::text = id)
+  WITH CHECK (auth.uid()::text = id);
+```
+
+### 3 — Enable Email Auth
+
+Supabase → Authentication → Providers → Email → **enabled**.
+
+For personal use — turn off **"Confirm email"** so signup is instant.
+
+### 4 — Get your API keys
+
+Supabase → Settings → API → copy:
+- **Project URL**
+- **anon/public key**
+
+### 5 — Add keys to `index.html`
+
+```js
+const SUPABASE_URL = "YOUR_PROJECT_URL";
+const SUPABASE_KEY = "YOUR_ANON_KEY";
+```
+
+### 6 — Deploy to GitHub Pages
+
+1. Upload `index.html`, `manifest.json`, `sw.js`
+2. Settings → Pages → Deploy from `main`
+3. Live at: `https://YOUR_USERNAME.github.io/REPO_NAME/`
+
+### 7 — Enable Realtime
+
+Supabase → Database → Replication → toggle on the `tracker` table.
+
+### 8 — Disable Auto Pause
+
+Supabase → Settings → General → turn off **Auto Pause**.
+Free projects pause after 1 week of inactivity — this prevents that.
+
+---
+
+## Building the Android APK
+
+### Requirements
+- [Node.js LTS](https://nodejs.org)
+- [Android Studio](https://developer.android.com/studio)
+- Project folder on local drive — **never on OneDrive** (causes file corruption)
+
+### First-time setup
+
+```cmd
+cd "C:\path\to\Project 1"
+npm install
+npx cap add android
+npx cap sync android
+npx cap open android
+```
+
+### Build APK in Android Studio
+
+1. Wait for Gradle sync to finish (bottom progress bar)
+2. Build → Generate App Bundles or APKs → Build APK(s)
+3. Click "locate" in the success notification
+
+APK location:
+```
+android\app\build\outputs\apk\debug\app-debug.apk
+```
+
+### Every time you update `index.html`
+
+```cmd
+npx cap sync android
+```
+
+Then rebuild in Android Studio. That's it.
+
+### Updating the app icon
+
+1. Place a 1024×1024 PNG at `assets/icon.png`
+2. Run:
+```cmd
+npx capacitor-assets generate --android
+npx cap sync android
+```
+
+---
+
+## How Login Works
+
+**Sign up** — Name, email, password → account tied to a unique Supabase user ID. Data is isolated at the database level via RLS policy.
+
+**Sign in** — Email + password → session token stored in `localStorage`.
+
+**Stay logged in** — On every open, session is read automatically. No typing needed. Tokens auto-renew silently.
+
+**Sign out** — Press ↩ in the sidebar. Clears the local session.
+
+---
+
+## Themes
+
+Switch between 4 themes from the sidebar (desktop) or topbar (mobile):
+
+| Theme | Style |
+|---|---|
+| ⚫ AMOLED | Pure black — saves battery on OLED screens |
+| 🌑 Dark | Soft dark gray — easier on eyes |
+| ☀️ Light | Clean white — high contrast |
+| 🩵 Material You | Teal/cyan — Android M3 inspired |
+
+Theme choice is saved per device.
+
+---
+
+## Supabase Free Tier — How Many Users?
+
+| Limit | Reality for 2–3 users |
+|---|---|
+| 50,000 Monthly Active Users | You need 2–3 |
+| 500 MB database | ~100 KB/user/month — lasts decades |
+| 2 GB bandwidth/month | ~200 KB per full load |
+| Credit card required | ❌ Never |
+
+---
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Sync failed / red dot | Wrong Supabase URL or key |
+| Login works but no data | Re-run the SQL from setup step 2 |
+| APK build errors | Build → Clean Project → rebuild |
+| Gradle JDK error | File → Settings → Gradle → set JDK to Embedded JDK |
+| App shows blank screen | Check `androidScheme: "https"` in capacitor.config.json |
+| OneDrive file errors | Move project to Desktop — never use OneDrive for this |
+
+---
+
+## Project Structure
+
+```
+Project 1\
+├── android\              ← Android Studio project (auto-generated)
+├── www\                  ← Web app files
+│   ├── index.html        ← Entire app — UI, logic, auth
+│   ├── manifest.json     ← PWA manifest
+│   └── sw.js             ← Service worker
+├── assets\
+│   └── icon.png          ← Source icon (1024×1024)
+├── capacitor.config.json ← Capacitor config
+├── package.json
+└── README.md
+```
+
+---
+
+## Planned
+
+- [ ] Signed release APK (for Play Store)
+- [ ] Push notifications for budget alerts
+
+---
+
+## License
+
+MIT — do whatever you want with it. It's your tracker.
