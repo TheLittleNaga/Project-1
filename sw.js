@@ -1,7 +1,8 @@
-const CACHE = 'expense-tracker-v2';
+const CACHE = 'ledger-v5';
 const STATIC = [
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+  'https://unpkg.com/lucide@latest/dist/umd/lucide.min.js'
 ];
 
 self.addEventListener('install', e => {
@@ -19,16 +20,21 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // NEVER cache index.html or Supabase calls — always fresh from network
-  if (url.pathname.endsWith('/') ||
-      url.pathname.endsWith('index.html') ||
-      url.hostname.includes('github.io') ||
-      url.hostname.includes('supabase.co')) {
+  // NEVER cache HTML, manifest, sw itself, or Supabase — always fresh from network
+  if (
+    url.pathname.endsWith('/') ||
+    url.pathname.endsWith('.html') ||
+    url.pathname.endsWith('manifest.json') ||
+    url.pathname.endsWith('sw.js') ||
+    url.hostname.includes('supabase.co') ||
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com')
+  ) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
 
-  // Cache first for CDN static assets only
+  // Cache first for CDN static assets (libs)
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;

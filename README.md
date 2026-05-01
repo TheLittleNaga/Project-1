@@ -1,181 +1,92 @@
-# ₹ Expense Tracker
+# ₹ Ledger — UI/UX Redesign v2.0
 
-> A personal finance tracker built because free apps never had exactly what I needed — so I built my own.
+A fully reimagined drop-in `index.html` replacement. **Web view on desktop, app view on mobile** — automatically detected. Same Supabase backend. Now with **20 currencies**.
 
----
+## Install (1 step)
 
-## Why I Built This
+Replace your current `index.html` with `/app/redesign/index.html`. Your `sw.js` and `manifest.json` work as-is.
 
-Most free expense apps are either too bloated, paywalled behind the features that actually matter, or don't let you own your data. This tracker is:
+## What's new in v2.0
 
-- **Yours** — hosted on your GitHub, your Supabase database, zero third-party middleman
-- **Free, forever** — GitHub Pages + Supabase free tier, no credit card needed
-- **Installable** — works as a PWA on Android and iOS, feels like a native app
-- **Private** — no analytics, no ads, no accounts on external platforms you didn't set up yourself
+### Dual-mode experience
+- **Desktop / web**: Sidebar + topbar, multi-column grid, hero balance card, full-width charts
+- **Mobile / app**: Native-feeling — bottom-floating dock, FAB for quick-add, bottom sheets, scaled drawer animation, no inline forms cluttering the screen
+- Auto-detected via viewport + user-agent (no toggle needed)
 
----
+### Cinematic auth (clean & minimal)
+- Animated **aurora gradient** background (drifts continuously, theme-aware)
+- Centered logo + login card — no marketing copy, just sign in
+- **"Try demo mode"** button — explore the entire app with sample data, no account needed (local-only)
+- Glass-morphism card with arrow-pill button
 
-## Features
+### Settings page (new!)
+Theme picker and currency picker moved here for a cleaner sidebar.
+- **5 theme cards** with live gradient previews — Noir, Paper, Lagoon, Sunset, Monet
+- **20-currency grid** — INR, USD, EUR, GBP, JPY, CNY, KRW, AUD, CAD, SGD, AED, SAR, CHF, BRL, NGN, TRY, RUB, IDR, PKR, BDT — each with its symbol + native locale formatting
+- **Account section** — backup, sign out, about
 
-| Feature | Details |
-|---|---|
-| 🔐 **Login + Accounts** | Email/password auth, each user's data fully isolated |
-| 📲 **Stays Logged In** | No re-typing credentials — session persists until you sign out |
-| 📊 **Dashboard** | Monthly overview with salary, carryover, other income, and remaining balance |
-| 🗂 **15 Categories** | Grocery, Food, Travel, Utilities (WiFi / LPG / Electricity), Health, EMI, and more |
-| 📈 **Analytics** | Daily / Weekly / Monthly / Yearly stacked bar charts |
-| 💰 **Savings Tracker** | Auto carry-forward balance, 12-month income vs expense comparison |
-| 🎯 **Budgets** | Set per-category monthly limits with live progress bars |
-| 🔁 **EMI Manager** | Add recurring loans — auto-inserted as expenses every applicable month |
-| ☁️ **Cloud Sync** | Real-time sync across devices via Supabase Realtime |
-| ⬇️ **Backup Export** | One-click JSON download of all your data |
+### Multi-currency engine
+- All amounts auto-format using `Intl.NumberFormat` per currency's native locale
+  - `₹95,000` (Indian grouping), `$1,500` (US), `1.500 €` (EUR-DE), `¥150,000` (JP)
+- Dynamic symbols throughout (Salary, Add Expense, Budgets, EMIs all reflect chosen currency)
+- Currency choice **syncs** across all your devices via Supabase
 
----
+### Fancy transitions (the "go crazy" part)
+- **View Transitions API** — buttery cross-fades on every tab switch
+- **Theme switch radial reveal** — tap a theme card, the new theme washes in like a wave from your tap point
+- **Page slide + blur** out / in
+- **Card stagger** — category cards fade in one by one
+- **Aurora drift** on auth screen (12s organic loop)
+- **Smooth chart fade-ins**, animated progress bar fills, hover-lift on cards
 
-## Tech Stack
+### Mobile-first interactions
+- **FAB (floating action button)** bottom-right → opens bottom sheet for add-expense
+- **Bottom-sheet "Pick month"** → tappable month grid (no more arrow-clicking)
+- **Drawer animation** (Android-recents): tap menu → main view scales 88% + slides 78% right with rounded corners + shadow, sidebar revealed beneath
+- **Floating glass dock** at bottom — 5 tabs in a pill with backdrop-blur
+- **Swipe between tabs** — drag horizontally to navigate Home → Charts → Save → Budget → EMI → Settings (and back)
+- **Pull-to-refresh** — drag down at the top of any page → refreshes data from cloud (or re-renders in demo mode)
 
-```
-Frontend    →  Vanilla HTML + CSS + JavaScript (no framework)
-Charts      →  Chart.js 4.4
-Auth        →  Supabase Auth (email + password)
-Database    →  Supabase (PostgreSQL + Realtime websockets)
-Hosting     →  GitHub Pages
-Offline     →  Service Worker (cache-first for CDN assets)
-```
+### Layout improvements
+- New **hero balance card** on home — large monospace remaining amount + serif italic dynamic quote ("Plenty of runway." / "Mid-month, on track." / "Tightening up nicely." / "Time to slow the spend.")
+- Logo refresh: small accent-tile "L" + serif "Led*ger*"
+- Lucide icons throughout (no emoji)
+- Grain texture overlays on dark themes
+- Sticky topbar with scroll-blur
 
-No build step. No npm. Open the file and it works.
+## Themes (5)
 
----
+| Theme   | Mood                                                      |
+|---------|-----------------------------------------------------------|
+| Noir    | Pure AMOLED black + lime accent — editorial fintech       |
+| Paper   | Cream + ink black + olive — Notion-style light            |
+| Lagoon  | Midnight navy + electric cyan                             |
+| Sunset  | Warm charcoal + coral & amber                             |
+| Monet   | **Dynamic** — follows your OS light/dark + accent color   |
 
-## Setup (≈ 10 minutes, completely free)
+## Currencies (20)
 
-### 1 — Create a Supabase project
+INR · USD · EUR · GBP · JPY · CNY · KRW · AUD · CAD · SGD · AED · SAR · CHF · BRL · NGN · TRY · RUB · IDR · PKR · BDT
 
-1. Go to [supabase.com](https://supabase.com) → sign in with GitHub
-2. New project → name it `expense-tracker`, pick Mumbai region
-3. Wait ~60 seconds for it to provision
+Easy to extend — add more in the `CURRENCIES` array.
 
-### 2 — Create the database table
+## Preserved 100%
 
-Supabase → SQL Editor → New Query → paste and run:
+- All Supabase auth, realtime sync, EMI auto-generation, carry-over math, backup export
+- All element IDs / class names original JS depended on
+- `sw.js` offline support
+- Original 15 expense categories with subcategories
 
-```sql
-CREATE TABLE tracker (
-  id TEXT PRIMARY KEY,
-  data TEXT,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+## Files
 
-ALTER TABLE tracker ENABLE ROW LEVEL SECURITY;
+- `/app/redesign/index.html` — your drop-in replacement
+- `/app/redesign/README.md` — this doc
+- Live preview: `https://ui-revamp-93.preview.emergentagent.com/ledger.html`
 
--- Secure: each user can ONLY read/write their own row
-CREATE POLICY "users_own_data" ON tracker
-  FOR ALL
-  USING (auth.uid()::text = id)
-  WITH CHECK (auth.uid()::text = id);
-```
+## Customization
 
-> ⚠️ Upgrading from the old single-user version? Drop the old policy first:
-> `DROP POLICY "allow_all" ON tracker;`
-
-### 3 — Enable Email Auth
-
-Supabase → Authentication → Providers → Email → **enabled**.
-
-Optional for personal use — turn off **"Confirm email"** so you don't need to click a link every signup.
-
-### 4 — Get your API keys
-
-Supabase → Settings → API → copy:
-- **Project URL** (e.g. `https://xyzabc.supabase.co`)
-- **anon/public key** (long `eyJ...` string)
-
-### 5 — Add your keys to `index.html`
-
-```js
-const SUPABASE_URL = "YOUR_PROJECT_URL";
-const SUPABASE_KEY = "YOUR_ANON_KEY";
-```
-
-### 6 — Deploy to GitHub Pages
-
-1. New public repo on GitHub
-2. Upload `index.html`, `manifest.json`, `sw.js`
-3. Settings → Pages → Deploy from `main` → Save
-4. URL: `https://YOUR_USERNAME.github.io/REPO_NAME/`
-
-### 7 — Enable Realtime
-
-Supabase → Database → Replication → toggle on the `tracker` table.
-
-### 8 — Install as an app
-
-- **Android** (Chrome): Menu → "Add to Home screen"
-- **iOS** (Safari): Share → "Add to Home Screen"
-- **PC** (Chrome/Edge): install icon in the address bar
-
----
-
-## How Login Works
-
-**Sign up** — Enter name, email, password. Account created and tied to a unique user ID. Your data lives under that ID and no one else can touch it (enforced at the database level by the RLS policy).
-
-**Sign in** — Email + password → Supabase verifies and returns a session token stored in `localStorage`.
-
-**Staying logged in** — On every open, `supabase.auth.getSession()` reads the stored token. If it's valid, you go straight to the dashboard — no typing needed. Tokens auto-renew silently.
-
-**Sign out** — Press ↩ at the bottom of the sidebar. Clears the local session.
-
----
-
-## How Many Users on the Free Tier?
-
-**Way more than you'll ever need for personal use.**
-
-| Supabase Free Limit | Reality for 2–3 users |
-|---|---|
-| 50,000 Monthly Active Users | You need 2–3 |
-| 500 MB database | ~1–2 KB per expense; 100 entries/month = ~100 KB/user. 500 MB lasts decades |
-| 2 GB bandwidth/month | Full page load ≈ 200 KB. You'd need 10,000 opens to approach the limit |
-| 200 concurrent Realtime connections | You have 2–3 |
-| Credit card | ❌ Never required |
-
-One thing to do once: Supabase → Settings → General → disable **Auto Pause** (free projects pause after 1 week of no activity).
-
----
-
-## Planned
-
-- [ ] **Android APK** — wrap the PWA with Capacitor
-- [ ] **iOS App** — same, via TestFlight
-
----
-
-## Troubleshooting
-
-| Symptom | Fix |
-|---|---|
-| Red sync dot "Sync failed" | Wrong URL or key in `index.html` |
-| Login works but no data loads | Re-run the SQL from Step 2 |
-| "relation does not exist" | Re-run the CREATE TABLE SQL |
-| Email confirmation not arriving | Turn off "Confirm email" in Supabase Auth settings |
-
----
-
-## Project Structure
-
-```
-expense-tracker/
-├── index.html       # Entire app — UI, logic, auth, Supabase client
-├── manifest.json    # PWA manifest
-├── sw.js            # Service worker
-├── icon-192.png     # App icon 192×192
-├── icon-512.png     # App icon 512×512
-└── README.md
-```
-
----
-
-## License
-
-MIT — do whatever you want with it. It's your tracker.
+- **Default theme**: `<html data-theme="noir">` → swap to any of the 5
+- **Default currency**: in `state` object initialization, `currency:'INR'` → swap to any code
+- **Add a theme**: copy any `[data-theme="..."]` block, change CSS variables, add card to settings page
+- **Add a currency**: append to `CURRENCIES` array (code, symbol, locale, name)
+- **Brand name**: search "Ledger" — 4 places to change
