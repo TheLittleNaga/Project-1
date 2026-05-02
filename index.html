@@ -168,17 +168,34 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
    AUTH SCREEN — Cinematic
    ═══════════════════════════════════════════════════════════ */
 #auth-screen{
-  position:fixed;inset:0;background:var(--bg);display:flex;
-  align-items:center;justify-content:center;z-index:1000;padding:24px;
-  overflow:auto;
+  position:fixed;inset:0;background:var(--bg);display:none;
+  align-items:center;justify-content:center;z-index:1000;
+  padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom)) 20px;
+  overflow:hidden;
+  height:100vh;height:100dvh;
 }
+#auth-screen.show{display:flex}
+#app-boot{
+  position:fixed;inset:0;background:var(--bg);z-index:1100;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .25s ease-out;
+}
+#app-boot.hide{opacity:0;pointer-events:none}
+#app-boot .tile{
+  width:72px;height:72px;border-radius:22px;background:var(--accent);color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Instrument Serif',serif;font-style:italic;font-size:26px;font-weight:600;
+  box-shadow:0 10px 30px var(--accent-soft);animation:bootPulse 1.3s ease-in-out infinite;
+}
+@keyframes bootPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.94);opacity:.6}}
 .auth-bg-grain{
   position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.4;mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 .auth-wrap{
   width:100%;max-width:420px;position:relative;z-index:2;
-  display:flex;flex-direction:column;gap:24px;
+  display:flex;flex-direction:column;gap:18px;
+  max-height:100%;
   animation:authIn .9s cubic-bezier(.2,.85,.25,1) both;
 }
 @keyframes authIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
@@ -190,7 +207,7 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
 }
 .auth-mark{
   display:flex;align-items:center;gap:12px;padding-left:4px;
-  margin-top:80px;
+  margin-top:0;
 }
 .auth-mark-text{
   font-family:'Instrument Serif',serif;font-size:26px;letter-spacing:-.01em;line-height:1;
@@ -201,7 +218,7 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
   background:color-mix(in srgb,var(--card) 75%,transparent);
   backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);
   border:1px solid var(--border-strong);border-radius:24px;
-  padding:32px 28px;display:flex;flex-direction:column;gap:14px;
+  padding:26px 24px;display:flex;flex-direction:column;gap:12px;
   box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 0 1px var(--accent-soft);
 }
 .auth-heading{font-family:'Instrument Serif',serif;font-size:30px;line-height:1.1;letter-spacing:-.01em}
@@ -228,6 +245,21 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
 .auth-msg{font-size:12.5px;min-height:18px;text-align:center;color:var(--danger)}
 .auth-msg.ok{color:var(--accent2)}
 .auth-toggle{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--muted);margin-top:4px}
+.auth-remember{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;margin:4px 0;
+  border-radius:10px;cursor:pointer;user-select:none;
+  font-size:13px;color:var(--muted);transition:all .2s;
+}
+.auth-remember:hover{background:color-mix(in srgb,var(--accent) 4%,transparent);color:var(--text)}
+.auth-remember input[type="checkbox"]{position:absolute;opacity:0;pointer-events:none}
+.auth-remember .rm-box{
+  width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border-strong);
+  background:transparent;display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .18s cubic-bezier(.3,.85,.35,1);position:relative;
+}
+.auth-remember input:checked ~ .rm-box{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.auth-remember input:checked ~ .rm-box::after{content:'';position:absolute;top:2.5px;left:6px;width:5px;height:10px;border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.auth-remember input:checked ~ .rm-txt{color:var(--text)}
 .auth-toggle-btn{background:none;border:none;cursor:pointer;color:var(--text);font-size:13px;font-family:inherit;padding:0;font-weight:600;text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--accent);text-decoration-thickness:1.5px}
 
 .auth-demo{
@@ -403,6 +435,14 @@ body.app-mode .shell.menu-open .drawer-scrim{z-index:4}
 .inc-meta b{color:var(--accent2);font-weight:600}
 .inc-div{height:1px;background:var(--border);margin:14px 0}
 .oi-row{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+.oi-row .fg input[type="date"]{min-width:140px}
+@media (max-width:560px){
+  .oi-row{gap:8px}
+  .oi-row .fg{flex:1 1 calc(50% - 4px);max-width:none!important}
+  .oi-row .fg:nth-child(2){flex:1 1 100%}
+  .oi-row .fg0{flex:1 1 100%}
+  .oi-row .fg0 .primary{width:100%;justify-content:center}
+}
 .oi-list{max-height:140px;overflow-y:auto}
 .oi-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
 .oi-item:last-child{border-bottom:none}
@@ -488,7 +528,59 @@ button.primary:active{transform:translateY(0) scale(.97)}
 .tdel{background:transparent;border:none;cursor:pointer;color:var(--dim);font-size:12px;padding:4px 6px;border-radius:6px;display:flex;align-items:center;justify-content:center}
 .tdel:hover{color:var(--danger);background:var(--elev)}
 .emi-tag{font-size:9px;background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:2px 6px;margin-left:6px;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
-.cc-tag{font-size:11px;margin-left:6px;vertical-align:middle;filter:saturate(0.85);opacity:.85}
+.cc-tag{font-size:11px;margin-left:6px;vertical-align:middle;filter:none;opacity:.85}
+.cc-unpaid .tia{color:var(--danger)!important}
+.cc-unpaid .tis{color:var(--danger)!important}
+
+/* ═══ Credit-card toggle (visible checked state) ═══ */
+.cc-toggle{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border:1.5px solid var(--border);border-radius:14px;
+  background:var(--surface);cursor:pointer;user-select:none;font-size:13.5px;
+  color:var(--muted);position:relative;
+  transition:all .25s cubic-bezier(.3,.85,.35,1);
+}
+.cc-toggle:hover{border-color:var(--border-strong);color:var(--text)}
+.cc-toggle input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;border-radius:7px;
+  border:1.5px solid var(--border-strong);background:transparent;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  flex-shrink:0;margin:0;position:relative;
+  transition:all .2s cubic-bezier(.3,.85,.35,1);
+}
+.cc-toggle input[type="checkbox"]:checked{
+  background:var(--accent);border-color:var(--accent);
+  box-shadow:0 0 0 4px var(--accent-soft);
+}
+.cc-toggle input[type="checkbox"]:checked::after{
+  content:'';display:block;width:6px;height:11px;
+  border:solid var(--accent-ink);border-width:0 2.5px 2.5px 0;
+  transform:rotate(45deg) translate(-1px,-1px);
+}
+.cc-toggle:has(input:checked){
+  border-color:var(--accent);color:var(--text);
+  background:color-mix(in srgb,var(--accent) 10%,var(--surface));
+  box-shadow:0 0 0 1px var(--accent-soft);
+}
+.cc-toggle .cc-icon{
+  width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);flex-shrink:0;
+  transition:all .2s;
+}
+.cc-toggle:has(input:checked) .cc-icon{
+  background:var(--accent);color:var(--accent-ink);
+}
+.cc-toggle-label{flex:1;line-height:1.3;font-weight:500}
+.cc-toggle-label em{font-style:italic;color:var(--accent);font-weight:600}
+/* Inline (compact) variant for inline Add Expense */
+.cc-toggle.inline{
+  padding:8px 12px;gap:8px;font-size:12px;border-radius:10px;white-space:nowrap;
+}
+.cc-toggle.inline input[type="checkbox"]{width:18px;height:18px;border-radius:5px}
+.cc-toggle.inline input[type="checkbox"]:checked::after{width:5px;height:9px;border-width:0 2px 2px 0}
+.cc-toggle.inline .cc-icon{width:22px;height:22px}
+.cc-toggle.inline .cc-icon [data-lucide]{width:13px;height:13px}
 /* ═══ Category Manager ═══ */
 .cat-mgr{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
 .cat-mgr-row{background:var(--elev);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;transition:border-color .2s}
@@ -568,6 +660,43 @@ button.primary:active{transform:translateY(0) scale(.97)}
 .set-h em{font-style:italic;color:var(--accent)}
 .set-sub{font-size:12.5px;color:var(--muted);margin-bottom:20px;line-height:1.5}
 
+/* ═══ Account card (top of Settings) ═══ */
+.account-card{padding:22px 24px}
+.acct-head{display:flex;align-items:center;gap:14px}
+.acct-avatar{
+  width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 65%,var(--accent2)));
+  color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Instrument Serif',serif;font-size:24px;font-style:italic;font-weight:600;
+  flex-shrink:0;box-shadow:0 6px 18px var(--accent-soft);
+}
+.acct-meta{flex:1;min-width:0}
+.acct-name-row{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.acct-name{font-family:'Instrument Serif',serif;font-size:22px;line-height:1.1;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.acct-email{font-size:12.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-head .mbtn{width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;flex-shrink:0}
+.acct-signout{
+  white-space:nowrap;flex-shrink:0;
+  color:var(--danger)!important;
+  border-color:color-mix(in srgb,var(--danger) 30%,var(--border))!important;
+  padding:9px 14px!important;gap:6px;
+}
+.acct-sync{
+  margin-top:14px;padding:10px 14px;
+  background:color-mix(in srgb,var(--accent2) 8%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--accent2) 22%,var(--border));
+  border-radius:10px;
+  display:flex;align-items:center;gap:9px;
+  font-size:12px;color:var(--muted);line-height:1.3;
+}
+@media (max-width:560px){
+  .account-card{padding:18px}
+  .acct-signout span{display:none}
+  .acct-signout{padding:0!important;width:42px;height:42px;justify-content:center;border-radius:12px}
+  .acct-name{font-size:20px}
+}
+
 /* Theme picker cards */
 .th-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .th-card{
@@ -608,7 +737,15 @@ button.primary:active{transform:translateY(0) scale(.97)}
 .cur-code{font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace}
 .cur-name{font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.set-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.set-row>*{min-width:0}
+.set-row>div:first-child{flex:1;min-width:0}
+.set-row button,.set-row a.ghost,.set-row .ghost{white-space:nowrap;flex-shrink:0}
+@media (max-width:560px){
+  .set-row{flex-wrap:wrap;gap:10px}
+  .set-row>div:first-child{flex:1 1 100%}
+  .set-row button,.set-row a.ghost,.set-row .ghost{padding:10px 16px;width:auto}
+}
 .set-row:last-child{border-bottom:none}
 .set-rl{font-size:13px;font-weight:500}
 .set-rs{font-size:11px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace}
@@ -617,22 +754,99 @@ button.primary:active{transform:translateY(0) scale(.97)}
    APP MODE — Mobile native-feeling UI
    ═══════════════════════════════════════════════════════════ */
 body.app-mode .sidebar{
-  position:fixed;inset:0 auto 0 0;z-index:2;width:80%;max-width:320px;
-  transform:translateX(-100%);opacity:0;pointer-events:none;
-  transition:transform .45s cubic-bezier(.2,.85,.25,1), opacity .3s;
+  position:fixed;inset:0;z-index:2;width:100%;max-width:100%;
+  background:linear-gradient(160deg, #0a1a12 0%, #0a0f0c 40%, #050807 100%);
+  opacity:0;pointer-events:none;
+  transition:opacity .38s cubic-bezier(.2,.85,.25,1);
+  padding:max(56px,calc(env(safe-area-inset-top) + 42px)) 24px 36px;
+  display:flex;flex-direction:column;gap:8px;
+  --accent:#3fb37f; --accent-soft:rgba(63,179,127,.18); --accent-ink:#05110b;
 }
-body.app-mode .shell.menu-open .sidebar{transform:none;opacity:1;pointer-events:auto;z-index:5}
+body.app-mode .shell.menu-open .sidebar{opacity:1;pointer-events:auto}
+
+/* Main wrap shrinks + tilts + moves right — like Android recents */
 body.app-mode .shell.menu-open .main-wrap{
-  transform:scale(.82) translate(76%,-2%);border-radius:32px;
-  box-shadow:-30px 0 80px rgba(0,0,0,.65),0 0 0 1px var(--border-strong);
-  pointer-events:none;
-  transition:transform .5s cubic-bezier(.34,1.2,.44,1), border-radius .5s, box-shadow .5s;
+  transform:scale(.78) translate(52%,3%) rotate(-2deg);
+  border-radius:34px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06);
+  pointer-events:auto;cursor:pointer;
+  transition:transform .55s cubic-bezier(.34,1.15,.44,1), border-radius .45s, box-shadow .45s;
 }
 body.app-mode .main-wrap{
-  transition:transform .42s cubic-bezier(.34,1.2,.44,1), border-radius .42s, box-shadow .42s;
+  transition:transform .42s cubic-bezier(.34,1.15,.44,1), border-radius .42s, box-shadow .42s;
+}
+/* When drawer is open, clicking anywhere on the shrunk page closes the drawer */
+body.app-mode .shell.menu-open .main-wrap::before{
+  content:'';position:absolute;inset:0;z-index:50;
+  background:linear-gradient(135deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.28) 100%);
+  pointer-events:none;
 }
 body.app-mode .shell.menu-open .main-wrap .hamb,
-body.app-mode .shell.menu-open .main-wrap .main{pointer-events:auto}
+body.app-mode .shell.menu-open .main-wrap .dock,
+body.app-mode .shell.menu-open .main-wrap .fab{pointer-events:none;opacity:.4}
+
+/* Mobile drawer elements — hidden on desktop, visible in app-mode */
+.drawer-close, .drawer-acct, .drawer-signout{display:none}
+body.app-mode .sidebar .logo{display:none}
+body.app-mode .sidebar .sidebar-foot{display:none}
+body.app-mode .sidebar .nav-item-desktop{display:none}
+
+body.app-mode .drawer-close{
+  display:flex;align-items:center;justify-content:center;
+  position:absolute;top:max(14px,calc(env(safe-area-inset-top) + 8px));right:18px;
+  width:42px;height:42px;border-radius:14px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  color:#e9f6ee;cursor:pointer;
+  transition:all .2s;z-index:10;
+}
+body.app-mode .drawer-close:hover{background:rgba(255,255,255,.12);transform:rotate(90deg)}
+body.app-mode .drawer-close [data-lucide]{width:20px;height:20px}
+
+body.app-mode .drawer-acct{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 18px;margin-bottom:22px;
+  background:linear-gradient(135deg, rgba(63,179,127,.15), rgba(63,179,127,.05));
+  border:1px solid rgba(63,179,127,.25);
+  border-radius:18px;cursor:pointer;
+  transition:all .2s cubic-bezier(.3,.85,.35,1);
+}
+body.app-mode .drawer-acct:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(63,179,127,.2);border-color:rgba(63,179,127,.4)}
+.drawer-acct-av{
+  width:52px;height:52px;border-radius:16px;flex-shrink:0;
+  background:linear-gradient(135deg, #3fb37f, #2d8c5f);color:#05110b;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;font-weight:600;
+  box-shadow:0 4px 12px rgba(63,179,127,.3);
+}
+.drawer-acct-meta{flex:1;min-width:0}
+.drawer-acct-nm{font-family:'Instrument Serif',serif;font-size:20px;line-height:1.1;color:#e9f6ee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer-acct-em{font-size:11.5px;color:#7ba895;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+
+body.app-mode .sidebar .nav-items{gap:4px}
+body.app-mode .sidebar .nav-item{
+  padding:14px 16px;border-radius:12px;font-size:14px;
+  color:#b5d4c3;transition:all .18s;
+  font-weight:500;letter-spacing:-.005em;
+}
+body.app-mode .sidebar .nav-item [data-lucide]{color:#7ba895;width:18px;height:18px}
+body.app-mode .sidebar .nav-item:hover{background:rgba(63,179,127,.08);color:#e9f6ee}
+body.app-mode .sidebar .nav-item:hover [data-lucide]{color:#3fb37f}
+body.app-mode .sidebar .nav-item.on{
+  background:rgba(63,179,127,.18);color:#e9f6ee;
+  box-shadow:inset 0 0 0 1px rgba(63,179,127,.3);
+}
+body.app-mode .sidebar .nav-item.on [data-lucide]{color:#3fb37f}
+
+body.app-mode .drawer-signout{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:auto;padding:14px 18px;width:100%;
+  background:transparent;border:1px solid rgba(255,110,110,.3);
+  color:#ff8f8f;border-radius:14px;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:500;
+  transition:all .2s;
+}
+body.app-mode .drawer-signout:hover{background:rgba(255,110,110,.1);border-color:rgba(255,110,110,.5);transform:translateY(-1px)}
+body.app-mode .drawer-signout:active{transform:translateY(0) scale(.98)}
 
 body.app-mode .hamb{display:inline-flex}
 body.app-mode .topbar-title{font-size:24px}
@@ -930,9 +1144,110 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
   width:48px;height:40px;border:1.5px solid var(--border);border-radius:10px;
   background:var(--card);padding:3px;cursor:pointer;
 }
-.cdlg-color-custom span{font-size:12.5px;color:var(--muted);font-weight:500}</style>
+.cdlg-color-custom span{font-size:12.5px;color:var(--muted);font-weight:500}
+
+/* ═══ Color swatch button (opens themed picker) ═══ */
+.color-swatch-btn{
+  display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;
+  border:1.5px solid var(--border);border-radius:12px;background:var(--surface);
+  color:var(--text);cursor:pointer;font-family:inherit;font-size:12.5px;
+  transition:all .2s cubic-bezier(.3,.85,.35,1);
+}
+.color-swatch-btn:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.color-swatch-btn .sw{
+  width:22px;height:22px;border-radius:7px;background:var(--swatch,#a8e063);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 2px 6px rgba(0,0,0,.3);
+  flex-shrink:0;
+}
+.color-swatch-btn .lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+
+/* Hide "Customised" label + hex text on themed color picker — keep just swatches */
+.cdlg-color-custom{background:color-mix(in srgb,var(--accent) 5%,var(--elev));border:1px solid var(--accent-soft)}
+.cdlg-color-custom::before{
+  content:'';display:block;width:22px;height:22px;border-radius:6px;
+  background:var(--accent);opacity:.0;
+}
+
+/* ═══ CC Payment Allocator (bottom sheet) ═══ */
+.ccpay-summary{background:var(--elev);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin:0 0 16px;display:flex;flex-direction:column;gap:6px}
+.ccpay-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.ccpay-row b{color:var(--fg);font-weight:600}
+.ccpay-row.strong{padding-top:8px;margin-top:4px;border-top:1px dashed var(--border);font-size:14px}
+.ccpay-row.strong span{color:var(--fg)}
+.ccpay-groups{display:flex;flex-direction:column;gap:12px;max-height:48vh;overflow-y:auto;margin-bottom:14px}
+.ccpay-group{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.ccpay-group-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:color-mix(in srgb,var(--accent) 4%,var(--elev));border-bottom:1px solid var(--border)}
+.ccpay-group-name{font-size:13px;font-weight:600;color:var(--fg);flex:1}
+.ccpay-group-total{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.ccpay-items{display:flex;flex-direction:column}
+.ccpay-item{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;user-select:none;border-bottom:1px solid color-mix(in srgb,var(--border) 50%,transparent);transition:background .15s}
+.ccpay-item:last-child{border-bottom:none}
+.ccpay-item:hover{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.ccpay-item input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border-strong);background:transparent;cursor:pointer;flex-shrink:0;margin:0;position:relative;transition:all .18s}
+.ccpay-item input[type="checkbox"]:checked{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ccpay-item input[type="checkbox"]:checked::after{content:'';position:absolute;top:3px;left:6px;width:5px;height:10px;border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ccpay-check{display:none}
+.ccpay-item-meta{flex:1;min-width:0}
+.ccpay-item-note{font-size:13px;color:var(--fg);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccpay-item-date{font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.ccpay-item-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--fg)}
+.ccpay-item:has(input:checked){background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.ccpay-item:has(input:checked) .ccpay-item-note{color:var(--accent)}
+.ccpay-footer{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 16px;background:var(--elev);border:1px solid var(--border);border-radius:14px}
+.ccpay-foot-lbl{font-size:11px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.ccpay-foot-amt{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--accent);margin-top:2px}
+.ccpay-footer .primary{min-width:140px;justify-content:center}
+.ccpay-footer .primary:disabled{opacity:.45;cursor:not-allowed}
+
+/* ═══ EMI Split (split CC expense over N months) ═══ */
+.split-panel{background:color-mix(in srgb,var(--accent) 5%,var(--surface));border:1px solid var(--accent-soft);border-radius:14px;padding:14px;margin-top:8px;display:flex;flex-direction:column;gap:12px;animation:fadeSlide .25s ease-out both}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.split-panel-head{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;color:var(--accent)}
+.split-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.split-row .fg{flex:1}
+.split-preview{padding:10px 12px;background:var(--surface);border:1px dashed var(--border-strong);border-radius:10px;font-size:11.5px;line-height:1.6;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.split-preview b{color:var(--accent);font-weight:600}
+
+/* ═══ Split-EMI banner in Edit sheet ═══ */
+.split-banner{
+  background:linear-gradient(135deg, color-mix(in srgb,var(--accent) 10%,var(--surface)), var(--surface));
+  border:1px solid color-mix(in srgb,var(--accent) 24%,var(--border));
+  border-radius:14px;padding:14px 16px;margin-bottom:4px;
+}
+.split-banner-head{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.split-banner-head b{color:var(--fg);font-weight:700}
+.split-banner-meta{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.5}
+.split-banner-meta b{color:var(--fg);font-weight:600}
+
+/* ═══ Transaction search bar ═══ */
+.txn-search-wrap{
+  position:relative;margin-bottom:12px;
+}
+.txn-search{
+  width:100%;padding:12px 42px 12px 42px;
+  border:1px solid var(--border);border-radius:14px;
+  background:var(--card);color:var(--fg);
+  font-family:inherit;font-size:14px;outline:none;
+  transition:all .2s;
+}
+.txn-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.txn-search-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--muted);pointer-events:none;
+}
+.txn-search-clear{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;border-radius:8px;
+  background:transparent;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all .15s;
+}
+.txn-search-clear:hover{background:var(--surface);color:var(--fg)}</style>
 </head>
 <body>
+
+<!-- Boot overlay — prevents the flash of login screen while we restore session -->
+<div id="app-boot"><div class="tile">L</div></div>
 
 <!-- ═══ AUTH SCREEN ═════════════════════════════════════════ -->
 <div id="auth-screen">
@@ -965,6 +1280,11 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
                onkeydown="if(event.key==='Enter')handleSubmit()"/>
       </div>
       <div class="auth-msg" id="a-msg"></div>
+      <label class="auth-remember" for="remember-me">
+        <input type="checkbox" id="remember-me" checked/>
+        <span class="rm-box"></span>
+        <span class="rm-txt">Remember me on this device</span>
+      </label>
       <button class="auth-btn" id="a-btn" onclick="handleSubmit()"><span>Sign In</span><i data-lucide="arrow-right" class="ic-sm"></i></button>
       <div class="auth-toggle">
         <span id="a-tog-txt">Don't have an account?</span>
@@ -980,6 +1300,20 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 <div class="shell" id="shell">
 
   <aside class="sidebar">
+    <!-- Mobile-only close button (X) — sits at top-right -->
+    <button class="drawer-close" onclick="toggleMenu(false)" aria-label="Close menu"><i data-lucide="x"></i></button>
+
+    <!-- Mobile-only account card at top — opens Settings -->
+    <div class="drawer-acct" onclick="setTab('set');toggleMenu(false)">
+      <div class="drawer-acct-av" id="drawer-av">?</div>
+      <div class="drawer-acct-meta">
+        <div class="drawer-acct-nm" id="drawer-nm">—</div>
+        <div class="drawer-acct-em" id="drawer-em">—</div>
+      </div>
+      <i data-lucide="chevron-right" class="ic-sm" style="opacity:.5"></i>
+    </div>
+
+    <!-- Desktop logo (hidden on mobile) -->
     <div class="logo">
       <div class="logo-mark">TLN</div>
       <div class="logo-text">TheLittle<em>Naga</em></div>
@@ -992,8 +1326,11 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
       <div class="nav-item" id="nb-sav" onclick="setTab('sav')"><i data-lucide="piggy-bank"></i>Savings</div>
       <div class="nav-item" id="nb-bud" onclick="setTab('bud')"><i data-lucide="target"></i>Budgets</div>
       <div class="nav-item" id="nb-emi" onclick="setTab('emi')"><i data-lucide="repeat"></i>Recurring</div>
-      <div class="nav-item" id="nb-set" onclick="setTab('set')"><i data-lucide="settings"></i>Settings</div>
+      <div class="nav-item nav-item-desktop" id="nb-set" onclick="setTab('set')"><i data-lucide="settings"></i>Settings</div>
     </div>
+
+    <!-- Mobile-only: Sign out at the bottom of drawer -->
+    <button class="drawer-signout" onclick="doSignOut()"><i data-lucide="log-out" class="ic-sm"></i>Sign out</button>
 
     <div class="sidebar-foot">
       <div class="user-chip" onclick="setTab('set')">
@@ -1008,7 +1345,7 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 
   <div class="drawer-scrim" onclick="toggleMenu(false)"></div>
 
-  <div class="main-wrap" id="mainWrap">
+  <div class="main-wrap" id="mainWrap" onclick="_mainWrapTap(event)">
     <div class="main" id="mainScroll">
       <div class="topbar">
         <div class="tb-left">
@@ -1022,7 +1359,6 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
             <span class="month-lbl" id="d-mlbl">—</span>
             <button class="mbtn" onclick="chMo(1)" aria-label="Next month"><i data-lucide="chevron-right" class="ic-sm"></i></button>
           </div>
-          <button class="ghost" onclick="exportBackup()"><i data-lucide="download" class="ic-sm"></i>Backup</button>
         </div>
       </div>
       <div class="status-bar"><span id="sync-status">Connecting…</span></div>
@@ -1172,6 +1508,25 @@ function toggleMenu(force){
   const sh=document.getElementById('shell');
   if(typeof force==='boolean'){sh.classList.toggle('menu-open',force);hapticTick();return;}
   sh.classList.toggle('menu-open');hapticTick();
+  // Sync mobile drawer avatar + name on open
+  if(sh.classList.contains('menu-open')){
+    const av=document.getElementById('drawer-av');
+    const nm=document.getElementById('drawer-nm');
+    const em=document.getElementById('drawer-em');
+    if(av)av.textContent=getInitial();
+    if(nm)nm.textContent=getDisplayName();
+    if(em)em.textContent=currentUser?.email||'';
+    if(window.lucide)lucide.createIcons();
+  }
+}
+
+// When the menu is open, tapping the shrunk main-wrap closes it.
+function _mainWrapTap(ev){
+  const sh=document.getElementById('shell');
+  if(!sh.classList.contains('menu-open'))return;
+  // Only collapse on the shrunk surface — not from within normal usage
+  ev.preventDefault();ev.stopPropagation();
+  toggleMenu(false);
 }
 document.addEventListener('click',e=>{
   const ni=e.target.closest('.nav-item');
@@ -1181,9 +1536,19 @@ document.addEventListener('click',e=>{
 // ════════════════════════════════════════════════════════
 // HAPTIC + TOAST
 // ════════════════════════════════════════════════════════
-function hapticTick(){ if(navigator.vibrate) navigator.vibrate([8]); }
-function hapticTap() { if(navigator.vibrate) navigator.vibrate([4]); }
-function hapticDone(){ if(navigator.vibrate) navigator.vibrate([6,40,6]); }
+// ═══ Haptic feedback — crisp, tactile, context-aware ═══
+// Short single buzz on tap / selection (crisp).
+function hapticTick(){ if(navigator.vibrate) navigator.vibrate(12); }
+// Very short tick for passive interactions (row expand, focus change).
+function hapticTap() { if(navigator.vibrate) navigator.vibrate(6); }
+// Success pattern (save / refresh done).
+function hapticDone(){ if(navigator.vibrate) navigator.vibrate([10,45,18]); }
+// Swipe between tabs — longer, more pronounced bump.
+function hapticSwipe(){ if(navigator.vibrate) navigator.vibrate([14,30,14]); }
+// Soft double-tap for toggle switches.
+function hapticToggle(){ if(navigator.vibrate) navigator.vibrate([6,25,6]); }
+// Error / invalid input.
+function hapticError(){ if(navigator.vibrate) navigator.vibrate([30,50,30,50,30]); }
 
 let toastTimer=null;
 function showToast(msg,icon='check'){
@@ -1247,7 +1612,8 @@ function openSheet(mode){
         <div class="fg"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="s-amt" placeholder="0" min="0"/></div>
         <div class="fg"><label>Date</label><input type="date" id="s-date"/></div>
         <div class="fg"><label>Note</label><input type="text" id="s-note" placeholder="Optional…" maxlength="40"/></div>
-        <label for="s-cc" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;user-select:none;font-size:13px"><input type="checkbox" id="s-cc" style="accent-color:var(--accent);width:18px;height:18px;cursor:pointer"/><i data-lucide="credit-card" class="ic-sm"></i><span>Paid with Credit Card</span></label>
+        <label class="cc-toggle" for="s-cc"><input type="checkbox" id="s-cc" onchange="_toggleSplitPanel()"/><span class="cc-icon"><i data-lucide="credit-card"></i></span><span class="cc-toggle-label">Paid with <em>Credit Card</em></span></label>
+        <div id="s-split-wrap"></div>
         <button class="primary" onclick="addExpFromSheet()"><i data-lucide="check" class="ic-sm"></i>Save expense</button>
       </div>`;
     buildCatSelect('s-cat');
@@ -1255,7 +1621,7 @@ function openSheet(mode){
     const sel=document.getElementById('s-cat');
     if(sel && sel.options.length>0) sel.selectedIndex=0;
     const dt=document.getElementById('s-date');
-    if(dt) dt.value=new Date().toISOString().split('T')[0];
+    if(dt) dt.value=todayLocal().toISOString().split('T')[0];
     setTimeout(()=>{
       const a=document.getElementById('s-amt');
       if(a)a.focus();
@@ -1277,18 +1643,98 @@ function openSheet(mode){
 }
 function addExpFromSheet(){
   const raw=$('s-cat').value,amt=parseFloat($('s-amt').value),date=$('s-date').value,note=$('s-note').value.trim();
-  if(!raw||!amt||amt<=0||!date){[$('s-amt'),$('s-date')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});return;}
+  if(!raw||!amt||amt<=0||!date){[$('s-amt'),$('s-date')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});hapticError();return;}
   const[catId,subId]=raw.includes('|')?raw.split('|'):[raw,null];
   const d=new Date(date+'T00:00:00');
   const cc=!!($('s-cc')&&$('s-cc').checked);
+  const splitOn=!!(cc && $('s-split-toggle') && $('s-split-toggle').checked);
+
+  if(splitOn){
+    // EMI-style: spread (amt + interest) across N months as N separate CC charges
+    const months=Math.max(2,Math.min(60,parseInt($('s-split-months').value)||3));
+    const interestRate=parseFloat($('s-split-interest').value)||0; // annual %, optional
+    const total=amt*(1+(interestRate/100)*(months/12));
+    const per=Math.round(total/months*100)/100;
+    const groupId='sp_'+Date.now().toString(36);
+    for(let i=0;i<months;i++){
+      const dd=new Date(d);dd.setMonth(dd.getMonth()+i);
+      const y2=dd.getFullYear(),m2=dd.getMonth();
+      const dayStr=dd.toISOString().split('T')[0];
+      state.exps.push({
+        id:++state.uid,
+        catId,subId,
+        amount:per,
+        date:dayStr,
+        note:`${note||getCat(catId).name} · EMI ${i+1}/${months}${interestRate?` @${interestRate}%`:''}`,
+        paidWithCC:true,
+        splitOf:groupId,
+        splitTotal:amt,
+        splitInterest:interestRate,
+        splitIndex:i+1,
+        splitMonths:months,
+        mk:mk(y2,m2),
+      });
+    }
+    curY=d.getFullYear();curM=d.getMonth();
+    save();closeSheet();hapticDone();
+    showToast(`Split ${fmt(amt)} into ${months}×${fmt(per)} ✓`,'check');
+    checkBudgetNotifications();render();
+    return;
+  }
+
   state.exps.push({id:++state.uid,catId,subId,amount:amt,date,note,paidWithCC:cc,mk:mk(d.getFullYear(),d.getMonth())});
   curY=d.getFullYear();curM=d.getMonth();
-  save();
-  closeSheet();
-  hapticTick(); showToast('Expense saved ✓');
+  save();closeSheet();
+  hapticDone(); showToast('Expense saved ✓');
   checkBudgetNotifications();
   render();
 }
+
+function _toggleSplitPanel(){
+  const cc=$('s-cc'),wrap=$('s-split-wrap');
+  if(!cc||!wrap)return;
+  if(!cc.checked){wrap.innerHTML='';return;}
+  hapticToggle();
+  wrap.innerHTML=`
+    <label class="cc-toggle" for="s-split-toggle" style="--accent:var(--accent2);--accent-soft:color-mix(in srgb,var(--accent2) 18%,transparent);--accent-ink:#0b1a00">
+      <input type="checkbox" id="s-split-toggle" onchange="_updateSplitPanel()"/>
+      <span class="cc-icon"><i data-lucide="divide"></i></span>
+      <span class="cc-toggle-label">Split into <em>monthly EMIs</em></span>
+    </label>
+    <div id="s-split-details"></div>`;
+  if(window.lucide)lucide.createIcons();
+}
+function _updateSplitPanel(){
+  const on=$('s-split-toggle')&&$('s-split-toggle').checked;
+  const d=$('s-split-details');if(!d)return;
+  if(!on){d.innerHTML='';return;}
+  hapticToggle();
+  d.innerHTML=`<div class="split-panel">
+    <div class="split-panel-head"><i data-lucide="calendar-days" class="ic-sm"></i>EMI plan</div>
+    <div class="split-row">
+      <div class="fg"><label>Months</label><input type="number" id="s-split-months" min="2" max="60" value="3" oninput="_splitPreview()"/></div>
+      <div class="fg"><label>Interest % (annual)</label><input type="number" id="s-split-interest" step="0.1" min="0" value="0" oninput="_splitPreview()"/></div>
+    </div>
+    <div class="split-preview" id="s-split-preview">Enter an amount above to preview the EMI plan.</div>
+  </div>`;
+  if(window.lucide)lucide.createIcons();
+  _splitPreview();
+}
+function _splitPreview(){
+  const out=$('s-split-preview');if(!out)return;
+  const amt=parseFloat($('s-amt')?.value)||0;
+  const months=Math.max(2,Math.min(60,parseInt($('s-split-months')?.value)||3));
+  const rate=parseFloat($('s-split-interest')?.value)||0;
+  if(!amt){out.innerHTML='<span style="color:var(--dim)">Enter an amount above to preview.</span>';return;}
+  const total=amt*(1+(rate/100)*(months/12));
+  const per=total/months;
+  const extra=total-amt;
+  out.innerHTML=`<b>${months}×${fmt(per)}</b> / month${rate?` · +${fmt(extra)} interest`:''} · Total <b>${fmt(total)}</b>`;
+}
+// Re-run preview when amount changes
+document.addEventListener('input',e=>{
+  if(e.target && e.target.id==='s-amt' && document.getElementById('s-split-preview'))_splitPreview();
+});
 function closeSheet(){
   const sh=document.getElementById('sheet'),bg=document.getElementById('sheet-bg');
   sh.classList.remove('in');bg.classList.remove('on');
@@ -1349,8 +1795,8 @@ function promptAsync(label,defaultValue,opts={}){
   });
 }
 
-const TAB_ORDER=['dash','txn','an','sav','bud','emi','set'];
-let touchStart=null, touchMoved=null, ptrPulling=false;
+const TAB_ORDER=['dash','txn','an','sav','bud','emi']; // Settings kept separate — not in swipe ring
+let touchStart=null, touchMoved=null, ptrPulling=false, swipeBlocked=false;
 
 function attachGestures(){
   const scroll=document.getElementById('mainScroll');
@@ -1362,23 +1808,26 @@ function attachGestures(){
     if(e.touches.length!==1)return;
     if(document.getElementById('sheet')?.classList.contains('on'))return;
     if(document.getElementById('shell').classList.contains('menu-open'))return;
+    if(document.querySelector('.cdlg-bg'))return;
     const t=e.touches[0];
+    // Tab-swipe only from the BOTTOM HALF of the viewport (≥50%).
+    // Top half is reserved for reading balance/income/forms without accidental swipes.
+    const vh=window.innerHeight||document.documentElement.clientHeight;
+    swipeBlocked = t.clientY < vh*0.5;
     touchStart={x:t.clientX,y:t.clientY,t:Date.now(),scrollTop:scroll.scrollTop};
     touchMoved=null;ptrPulling=false;
   },{passive:true});
 
   scroll.addEventListener('touchmove',e=>{
     if(!touchStart)return;
-    if(activeTab==='set'||activeTab==='cat')return;
+    if(activeTab==='set'||activeTab==='cat'||activeTab==='cur')return;
     const t=e.touches[0];
     const dx=t.clientX-touchStart.x, dy=t.clientY-touchStart.y;
     touchMoved={dx,dy};
-    // Pull-to-refresh: scrolled to top + dragging down
+    // Pull-to-refresh: scrolled to top + dragging down (allowed from anywhere)
     if(touchStart.scrollTop<=0 && dy>0 && Math.abs(dy)>Math.abs(dx)){
       ptrPulling=true;
       const pull=Math.min(90,dy*.6);
-      // PTR is position:fixed; slide down based on pull
-      const base=document.body.classList.contains('app-mode') ? 72 : 60;
       ptr.style.transform=`translate(-50%, ${pull-20}px)`;
       ptr.classList.toggle('show',pull>14);
       if(pull>70)ptr.classList.add('spin'); else ptr.classList.remove('spin');
@@ -1389,7 +1838,6 @@ function attachGestures(){
     if(!touchStart||!touchMoved){touchStart=null;return;}
     const {dx,dy}=touchMoved;
     const dt=Date.now()-touchStart.t;
-    // Pull-to-refresh release
     if(ptrPulling){
       if(dy>90){
         ptr.classList.add('spin','show');
@@ -1404,17 +1852,17 @@ function attachGestures(){
         ptr.classList.remove('show','spin');
       }
     }
-    // Horizontal swipe between tabs
-    else if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5 && dt<500){
+    // Horizontal swipe between tabs — ONLY if gesture started in bottom half
+    else if(!swipeBlocked && Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5 && dt<500){
       const idx=TAB_ORDER.indexOf(activeTab);
       if(idx<0){touchStart=null;return;}
       const next=dx<0 ? Math.min(TAB_ORDER.length-1,idx+1) : Math.max(0,idx-1);
       if(next!==idx){
-        hapticTap();
+        hapticSwipe();
         setTab(TAB_ORDER[next]);
       }
     }
-    touchStart=null;touchMoved=null;ptrPulling=false;
+    touchStart=null;touchMoved=null;ptrPulling=false;swipeBlocked=false;
   });
 }
 setTimeout(attachGestures,300);
@@ -1427,6 +1875,29 @@ let currentUser=null,isSignUp=false,rtChannel=null;
 const getUid=()=>currentUser?.id||'anon';
 const getDisplayName=()=>currentUser?.user_metadata?.name||currentUser?.email?.split('@')[0]||'User';
 const getInitial=()=>getDisplayName().charAt(0).toUpperCase();
+
+async function editDisplayName(){
+  const cur=getDisplayName();
+  const next=await promptAsync('Update your display name',cur,{title:'Edit name',okText:'Save',maxLength:40});
+  if(!next||next===cur)return;
+  const name=next.trim();
+  if(!name){showToast('Name cannot be empty','x');hapticError();return;}
+  try{
+    if(currentUser && currentUser.id!=='demo-local' && typeof sb!=='undefined'){
+      const{error}=await sb.auth.updateUser({data:{name}});
+      if(error)throw error;
+    }
+    currentUser=currentUser||{};
+    currentUser.user_metadata=Object.assign({},currentUser.user_metadata,{name});
+    document.getElementById('sb-nm').textContent=name;
+    const el=document.getElementById('acct-name');if(el)el.textContent=name;
+    const av=document.querySelector('.acct-avatar');if(av)av.textContent=name.charAt(0).toUpperCase();
+    hapticDone();showToast('Name updated ✓','check');
+  }catch(e){
+    console.warn('Could not persist name to Supabase:',e);
+    showToast('Saved locally only','x');
+  }
+}
 
 function toggleMode(){
   isSignUp=!isSignUp;
@@ -1443,6 +1914,7 @@ function toggleMode(){
 async function handleSubmit(){
   const email=document.getElementById('a-email').value.trim();
   const pass=document.getElementById('a-pass').value;
+  const remember=document.getElementById('remember-me')?.checked!==false;
   const msg=document.getElementById('a-msg');
   msg.className='auth-msg';
   if(!email||!pass){msg.textContent='Please enter your email and password.';return;}
@@ -1452,11 +1924,19 @@ async function handleSubmit(){
   if(isSignUp){
     const name=document.getElementById('a-name')?.value.trim()||'';
     const{error}=await sb.auth.signUp({email,password:pass,options:{data:{name:name||email.split('@')[0]}}});
-    if(error){msg.textContent=error.message;}
-    else{msg.className='auth-msg ok';msg.textContent='✓ Check your email to confirm, then sign in.';}
+    if(error){msg.textContent=error.message;hapticError();}
+    else{msg.className='auth-msg ok';msg.textContent='✓ Check your email to confirm, then sign in.';hapticDone();}
   }else{
     const{error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error)msg.textContent=error.message==='Invalid login credentials'?'Wrong email or password.':error.message;
+    if(error){msg.textContent=error.message==='Invalid login credentials'?'Wrong email or password.':error.message;hapticError();}
+    else{
+      // Persist only the email (never the password) — Google/browser password managers handle that
+      try{
+        if(remember)localStorage.setItem('tln_remember_email',email);
+        else localStorage.removeItem('tln_remember_email');
+      }catch(e){}
+      hapticDone();
+    }
   }
   btn.querySelector('span').textContent=isSignUp?'Create Account':'Sign In';btn.disabled=false;
 }
@@ -1470,16 +1950,24 @@ async function doSignOut(){
 }
 async function initAuth(){
   loadTheme();
+  // Restore remembered email immediately so form appears pre-filled if we need to show it
+  try{
+    const saved=localStorage.getItem('tln_remember_email');
+    if(saved){const el=document.getElementById('email');if(el)el.value=saved;document.getElementById('remember-me').checked=true;}
+  }catch(e){}
   const{data:{session}}=await sb.auth.getSession();
   if(session?.user){currentUser=session.user;showApp();}
   else showLogin();
+  // Once we've decided, fade the boot overlay out
+  const boot=document.getElementById('app-boot');
+  if(boot){boot.classList.add('hide');setTimeout(()=>boot.remove(),300);}
   sb.auth.onAuthStateChange((_,session)=>{
     if(session?.user){currentUser=session.user;showApp();}
     else{currentUser=null;showLogin();}
   });
 }
 function showApp(){
-  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('auth-screen').classList.remove('show');
   document.getElementById('shell').classList.add('on');
   document.getElementById('sb-av').textContent=getInitial();
   document.getElementById('sb-nm').textContent=getDisplayName();
@@ -1488,7 +1976,7 @@ function showApp(){
   startListener();
 }
 function showLogin(){
-  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('auth-screen').classList.add('show');
   document.getElementById('shell').classList.remove('on');
 }
 
@@ -1496,7 +1984,7 @@ function showLogin(){
 // DEMO MODE — local-only, sample data, bypasses Supabase
 // ════════════════════════════════════════════════════════
 function enterDemo(){
-  const y=new Date().getFullYear(), m=new Date().getMonth();
+  const y=todayLocal().getFullYear(), m=todayLocal().getMonth();
   const mkey=y+'-'+String(m+1).padStart(2,'0');
   const pmkey=(d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))(new Date(y,m-1,1));
   const ppmkey=(d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))(new Date(y,m-2,1));
@@ -1515,9 +2003,9 @@ function enterDemo(){
       {id:10,catId:'care',amount:650,date:mkey+'-15',note:'Salon',mk:mkey},
       {id:11,catId:'office',amount:180,date:mkey+'-10',note:'Metro card',mk:mkey},
       {id:12,catId:'food',amount:340,date:mkey+'-11',note:'Lunch — Saravana',mk:mkey},
-      // Credit card charge (auto-creates next-month bill)
-      {id:13,catId:'credit',amount:4500,date:mkey+'-14',note:'Electronics',mk:mkey},
-      {id:14,catId:'credit',amount:1200,date:mkey+'-16',note:'Books',mk:mkey},
+      // Credit card charges (paid with CC — auto-rolls into next month's bill)
+      {id:13,catId:'apparel',amount:4500,date:mkey+'-14',note:'Electronics',paidWithCC:true,mk:mkey},
+      {id:14,catId:'entertainment',amount:1200,date:mkey+'-16',note:'Books',paidWithCC:true,mk:mkey},
       // Previous months for analytics/savings depth
       {id:13,catId:'grocery',amount:5800,date:pmkey+'-04',note:'Groceries',mk:pmkey},
       {id:14,catId:'food',amount:3100,date:pmkey+'-12',note:'Dining out',mk:pmkey},
@@ -1567,7 +2055,6 @@ const CATS=[
   {id:'tithe',name:'Tithe',color:'#b06af7'},
   {id:'entertainment',name:'Entertainment',color:'#f76aab'},
   {id:'investments',name:'Investments',color:'#6af7a2'},
-  {id:'credit',name:'Credit Cards',color:'#ffb347'},
   {id:'utilities',name:'Utilities',color:'#6ac8f7',subs:[
     {id:'wifi',name:'WiFi',color:'#6ab0f7'},
     {id:'lpg',name:'LPG',color:'#f7d06a'},
@@ -1606,7 +2093,8 @@ function allCats(){
 // STATE
 // ════════════════════════════════════════════════════════
 let state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir',creditPaid:{},customCats:[],settings:{ccCutoffDay:0,notifEnabled:false},notifState:{},catOverrides:{},customSubs:{}};
-let curY=new Date().getFullYear(),curM=new Date().getMonth();
+const _now=(function(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));}catch(e){return new Date();}})();
+let curY=_now.getFullYear(),curM=_now.getMonth();
 let activeTab='dash',selCatId=null,period='daily',anY=curY,anM=curM;
 let dChart=null,anChart=null,savChart=null,saveTimer=null;
 
@@ -1618,6 +2106,8 @@ const mk=(y=curY,m=curM)=>y+'-'+String(m+1).padStart(2,'0');
 const getCat=id=>allCats().find(c=>c.id===id)||{name:id,color:'#888'};
 const getSub=(cid,sid)=>{const c=getCat(cid);return(c.subs||[]).find(s=>s.id===sid)||null;};
 const din=(y,m)=>new Date(y,m+1,0).getDate();
+function isCCUnpaid(e){ return e.paidWithCC===true && !e.ccPaid && !e.ccPayment && !e.prepaid; }
+function todayLocal(){ try{ return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'})); }catch(e){ return new Date(); } }
 
 // ════════════════════════════════════════════════════════
 // SYNC
@@ -1695,7 +2185,11 @@ function getCarryover(toY,toM){
   let y=sy0,m=sm0-1,carry=0,n=0;
   while(y*12+m<toY*12+toM&&n++<500){
     const mkey=mk(y,m);
-    carry+=(state.salaries[mkey]||0)+state.otherIncome.filter(o=>o.mk===mkey).reduce((s,o)=>s+o.amount,0)-allExps(mkey).reduce((s,e)=>s+e.amount,0);
+    const sal=state.salaries[mkey]||0;
+    const oi=state.otherIncome.filter(o=>o.mk===mkey).reduce((s,o)=>s+o.amount,0);
+    // Only count expenses that actually left the wallet (exclude unpaid CC)
+    const spent=allExps(mkey).filter(e=>!isCCUnpaid(e)).reduce((s,e)=>s+e.amount,0);
+    carry+=sal+oi-spent;
     if(++m>11){m=0;y++;}
   }
   return carry;
@@ -1773,17 +2267,141 @@ function _ccSetPaid(mkey,amt){
   save();
 }
 function addCcPayment(mkey){
-  const inp=document.getElementById('cc-pay-input');
-  const amt=parseFloat(inp&&inp.value);
-  if(!amt||amt<=0){showToast('Enter amount','x');return;}
+  // Legacy quick-pay path (fallback). Opens the richer allocator sheet instead.
+  openCcPaymentAllocator(mkey);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEW: Credit-card payment with per-charge allocation
+// Shows all unpaid charges grouped by category so the user can
+// pick which specific purchases they're settling this cycle.
+// ═══════════════════════════════════════════════════════════════
+function openCcPaymentAllocator(mkey){
   const[yy,mm]=mkey.split('-').map(Number);
   const bill=getCreditBill(yy,mm-1);
-  const cur=bill.paidAmount;
-  _ccSetPaid(mkey,cur+amt);
-  hapticTick();
-  const after=cur+amt;
-  showToast(after>=bill.total?'Fully paid ✓':`Paid ${fmt(after)} / ${fmt(bill.total)}`,'check');
+  if(bill.total<=0){showToast('No bill to pay','x');return;}
+  // Group unpaid charges by category
+  const groups={};
+  bill.charges.forEach(c=>{
+    const cat=getCat(c.catId);
+    groups[c.catId]=groups[c.catId]||{cat,items:[],total:0};
+    groups[c.catId].items.push(c);
+    groups[c.catId].total+=c.amount;
+  });
+  const sc=$('sheet-content');sheetMode='cc-pay';
+  const billLbl=MOS3[(mm-1+11)%12]+' bill';
+  sc.innerHTML=`<div class="sheet-title">Settle <em>${billLbl}</em></div>
+    <div class="sheet-sub">Tap the purchases you're paying — amount updates live.</div>
+    <div class="ccpay-summary">
+      <div class="ccpay-row"><span>Bill total</span><b>${fmt(bill.total)}</b></div>
+      <div class="ccpay-row"><span>Already paid</span><b>${fmt(bill.paidAmount)}</b></div>
+      <div class="ccpay-row strong"><span>Remaining</span><b style="color:var(--danger)">${fmt(bill.remaining)}</b></div>
+    </div>
+    <div class="ccpay-groups">
+      ${Object.values(groups).map(g=>`
+        <div class="ccpay-group">
+          <div class="ccpay-group-head">
+            <span class="cat-dot" style="background:${g.cat.color};width:10px;height:10px;border-radius:50%;display:inline-block"></span>
+            <span class="ccpay-group-name">${g.cat.name}</span>
+            <span class="ccpay-group-total">${fmt(g.total)}</span>
+          </div>
+          <div class="ccpay-items">
+            ${g.items.map(it=>`
+              <label class="ccpay-item" for="ccp-${it.id}">
+                <input type="checkbox" id="ccp-${it.id}" data-amt="${it.amount}" data-eid="${it.id}" onchange="_ccpayUpdateTotal()"/>
+                <span class="ccpay-check"></span>
+                <div class="ccpay-item-meta">
+                  <div class="ccpay-item-note">${it.note||g.cat.name}</div>
+                  <div class="ccpay-item-date">${fmtD(it.date)}</div>
+                </div>
+                <div class="ccpay-item-amt">${fmt(it.amount)}</div>
+              </label>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="ccpay-footer">
+      <div>
+        <div class="ccpay-foot-lbl">Selected total</div>
+        <div class="ccpay-foot-amt" id="ccp-total">${fmt(0)}</div>
+      </div>
+      <button class="primary" onclick="confirmCcPayment('${mkey}')" id="ccp-confirm" disabled><i data-lucide="check" class="ic-sm"></i>Pay selected</button>
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <button class="ghost" onclick="_quickPayCc('${mkey}')" style="font-size:12px;padding:10px 14px">Or pay a custom amount…</button>
+    </div>`;
+  openSheet();
+  if(window.lucide)lucide.createIcons();
+}
+
+function _ccpayUpdateTotal(){
+  const boxes=document.querySelectorAll('#sheet-content input[type=checkbox][data-amt]');
+  let total=0,picked=0;
+  boxes.forEach(b=>{if(b.checked){total+=parseFloat(b.dataset.amt);picked++;}});
+  const lbl=document.getElementById('ccp-total');
+  if(lbl)lbl.textContent=fmt(total);
+  const btn=document.getElementById('ccp-confirm');
+  if(btn){btn.disabled=picked===0;btn.innerHTML=picked===0?'<i data-lucide="check" class="ic-sm"></i>Pay selected':`<i data-lucide="check" class="ic-sm"></i>Pay ${picked} item${picked===1?'':'s'}`;}
+  if(window.lucide)lucide.createIcons();
+  hapticTap();
+}
+
+function confirmCcPayment(mkey){
+  const boxes=document.querySelectorAll('#sheet-content input[type=checkbox][data-amt]:checked');
+  if(!boxes.length){showToast('Select at least one charge','x');hapticError();return;}
+  let total=0;const ids=[];
+  boxes.forEach(b=>{total+=parseFloat(b.dataset.amt);ids.push(parseInt(b.dataset.eid));});
+  // Mark selected charges as ccPaid so they don't roll into next month
+  ids.forEach(eid=>{
+    const e=state.exps.find(x=>x.id===eid);
+    if(e)e.ccPaid=true;
+  });
+  // Bump the paid counter
+  const cur=_ccPaidRaw(mkey);const base=cur===-1?0:cur;
+  _ccSetPaid(mkey,base+total);
+  // Insert a single repayment expense in the current month tagged with the paid item ids
+  const today=todayLocal().toISOString().split('T')[0];
+  const[yy,mm]=mkey.split('-').map(Number);
+  state.exps.push({
+    id:++state.uid,
+    catId:'misc',
+    subId:null,
+    amount:total,
+    date:today,
+    note:`CC payment · ${MOS3[(mm-1+11)%12]} bill (${ids.length} item${ids.length===1?'':'s'})`,
+    ccPayment:true,
+    ccPaidFor:ids,
+    mk:mkey,
+  });
+  save();hapticDone();closeSheet();
+  showToast(`Paid ${fmt(total)} ✓`,'check');
   render();
+}
+
+function _quickPayCc(mkey){
+  promptAsync('Amount to pay (applied to oldest unpaid charges first):','',{title:'Custom payment',okText:'Pay'}).then(raw=>{
+    if(!raw)return;
+    const amt=parseFloat(raw);
+    if(!amt||amt<=0){showToast('Invalid amount','x');hapticError();return;}
+    const[yy,mm]=mkey.split('-').map(Number);
+    const bill=getCreditBill(yy,mm-1);
+    // FIFO-fill: walk oldest→newest, mark as ccPaid until amt exhausted
+    const sorted=bill.charges.slice().sort((a,b)=>a.date.localeCompare(b.date));
+    let left=amt;
+    for(const ch of sorted){
+      if(left<=0)break;
+      if(left>=ch.amount-0.001){
+        const e=state.exps.find(x=>x.id===ch.id);if(e)e.ccPaid=true;
+        left-=ch.amount;
+      }
+    }
+    const cur=_ccPaidRaw(mkey);const base=cur===-1?0:cur;
+    _ccSetPaid(mkey,base+amt);
+    const today=todayLocal().toISOString().split('T')[0];
+    state.exps.push({id:++state.uid,catId:'misc',subId:null,amount:amt,date:today,note:`CC payment · ${MOS3[(mm-1+11)%12]} bill`,ccPayment:true,mk:mkey});
+    save();hapticDone();closeSheet();
+    showToast(`Paid ${fmt(amt)} ✓`,'check');
+    render();
+  });
 }
 async function editCcPayment(mkey){
   const bill=getCreditBill(curY,curM);
@@ -1804,10 +2422,13 @@ async function resetCcPayment(mkey){if(!await confirmAsync('Mark this entire bil
 //   charges from (prev_cutoff + 1) through (this_cutoff) inclusive.
 function getCreditBill(y,m){
   const cut=parseInt((state.settings||{}).ccCutoffDay)||0;
-  const isCC=e=>e.catId==='credit'||e.paidWithCC===true;
+  // A charge that goes on the credit-card bill:
+  //  • catId 'credit' OR paidWithCC===true
+  //  • NOT a repayment (ccPayment:true)
+  //  • NOT already marked paid-in-month (ccPaid:true)
+  const isCC=e=>(e.catId==='credit'||e.paidWithCC===true)&&!e.ccPayment&&!e.ccPaid&&!e.prepaid;
   let charges,sourceMkey;
   if(cut>=1&&cut<=28){
-    // Statement window: day (cut+1) of (m-1) → day cut of m
     const pm=prevMkey(y,m);
     const startDate=mkFromParts(...pm.split('-').map(Number))+'-'+String(cut+1).padStart(2,'0');
     const endDate=y+'-'+String(m+1).padStart(2,'0')+'-'+String(cut).padStart(2,'0');
@@ -1932,13 +2553,29 @@ let editingId=null, editingEmiId=null, editingOiId=null;
 function openEditExp(id){const e=state.exps.find(x=>x.id===id);if(!e)return;editingId=id;if($('drill-bg').classList.contains('on'))closeDrill();
   const sh=document.getElementById('sheet'),bg=document.getElementById('sheet-bg'),sc=document.getElementById('sheet-content');
   const val=e.subId?`${e.catId}|${e.subId}`:e.catId;
+  // Split-group info
+  let splitBanner='';
+  if(e.splitOf){
+    const group=state.exps.filter(x=>x.splitOf===e.splitOf).sort((a,b)=>a.splitIndex-b.splitIndex);
+    const paidCount=group.filter(g=>g.ccPaid||g.prepaid).length;
+    const remaining=group.filter(g=>!g.ccPaid && !g.prepaid && g.id!==e.id);
+    const remainingTotal=remaining.reduce((s,g)=>s+g.amount,0);
+    const canPrepay = remaining.length>0;
+    splitBanner=`<div class="split-banner">
+      <div class="split-banner-head"><i data-lucide="divide" class="ic-sm"></i><span>EMI <b>${e.splitIndex}</b> of <b>${e.splitMonths}</b>${e.splitInterest?` · @${e.splitInterest}%`:''}</span></div>
+      <div class="split-banner-meta">${paidCount}/${e.splitMonths} paid · ${remaining.length} installment${remaining.length===1?'':'s'} ahead · <b>${fmt(remainingTotal)}</b> remaining</div>
+      ${canPrepay?`<button class="primary" style="margin-top:10px;padding:10px 14px;width:100%;justify-content:center" onclick="prepayRemainingSplit('${e.splitOf}',${e.id})"><i data-lucide="fast-forward" class="ic-sm"></i>Prepay remaining ${remaining.length} installment${remaining.length===1?'':'s'}</button>`:'<div style="margin-top:8px;font-size:11.5px;color:var(--accent2);font-weight:600">✓ Fully paid across all months</div>'}
+    </div>`;
+  }
   sc.innerHTML=`<div class="sheet-title">Edit <em>expense</em></div><div class="sheet-sub">Change anything, tap save</div>
     <div class="sheet-form">
+      ${splitBanner}
       <div class="fg"><label>Category</label><select id="s-cat"></select></div>
       <div class="fg"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="s-amt" value="${e.amount}"/></div>
       <div class="fg"><label>Date</label><input type="date" id="s-date" value="${e.date}"/></div>
       <div class="fg"><label>Note</label><input type="text" id="s-note" value="${(e.note||'').replace(/"/g,'&quot;')}" placeholder="Optional…" maxlength="40"/></div>
-      <label for="s-cc" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;user-select:none;font-size:13px"><input type="checkbox" id="s-cc" ${e.paidWithCC?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;cursor:pointer"/><i data-lucide="credit-card" class="ic-sm"></i><span>Paid with Credit Card</span></label>
+      <label class="cc-toggle" for="s-cc"><input type="checkbox" id="s-cc" ${e.paidWithCC?'checked':''}/><span class="cc-icon"><i data-lucide="credit-card"></i></span><span class="cc-toggle-label">Paid with <em>Credit Card</em></span></label>
+      ${e.paidWithCC?`<label class="cc-toggle" for="s-ccpaid" style="--accent:var(--accent2);--accent-soft:color-mix(in srgb,var(--accent2) 18%,transparent);--accent-ink:#0b1a00;border-color:color-mix(in srgb,var(--accent2) 40%,var(--border));background:color-mix(in srgb,var(--accent2) 6%,var(--surface))"><input type="checkbox" id="s-ccpaid" ${e.ccPaid?'checked':''}/><span class="cc-icon"><i data-lucide="check-circle"></i></span><span class="cc-toggle-label">Settled <em>within this month</em> — count towards Spent &amp; skip next month's bill</span></label>`:''}
       <div style="display:flex;gap:10px">
         <button class="ghost" style="flex:1;justify-content:center;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 30%,var(--border))" onclick="deleteEditing()"><i data-lucide="trash-2" class="ic-sm"></i>Delete</button>
         <button class="primary" style="flex:2;justify-content:center;padding:14px;border-radius:16px" onclick="saveEditing()"><i data-lucide="check" class="ic-sm"></i>Save changes</button>
@@ -1950,6 +2587,40 @@ function openEditExp(id){const e=state.exps.find(x=>x.id===id);if(!e)return;edit
   if(window.lucide)lucide.createIcons();
   hapticTap();
 }
+
+async function prepayRemainingSplit(groupId,currentId){
+  const group=state.exps.filter(x=>x.splitOf===groupId).sort((a,b)=>a.splitIndex-b.splitIndex);
+  if(!group.length)return;
+  const remaining=group.filter(g=>!g.ccPaid && !g.prepaid && g.id!==currentId);
+  if(!remaining.length){showToast('Already paid ✓','check');return;}
+  const total=remaining.reduce((s,g)=>s+g.amount,0);
+  const current=group.find(g=>g.id===currentId);
+  const catId=current?.catId||'misc';
+  const note=current?.note?.split('·')[0]?.trim()||'Prepayment';
+  const ok=await confirmAsync(`This will fold ${remaining.length} future installment${remaining.length===1?'':'s'} (${fmt(total)} total) into a single charge dated today. The future EMI rows will be marked as prepaid and will stop appearing in their respective months.`,{title:'Prepay remaining EMIs',okText:'Prepay '+fmt(total),cancelText:'Cancel'});
+  if(!ok)return;
+  // Mark remaining rows as prepaid (don't delete — keeps history)
+  remaining.forEach(r=>{r.prepaid=true;});
+  // Create a consolidated charge in the current month, tagged as CC but already settled
+  const today=todayLocal().toISOString().split('T')[0];
+  const d=todayLocal();
+  state.exps.push({
+    id:++state.uid,
+    catId,
+    subId:null,
+    amount:total,
+    date:today,
+    note:`${note} · Prepaid ${remaining.length} EMI${remaining.length===1?'':'s'}`,
+    paidWithCC:true,
+    ccPaid:true,         // settled within this month
+    splitPrepayOf:groupId,
+    prepaidEmiIds:remaining.map(r=>r.id),
+    mk:mk(d.getFullYear(),d.getMonth()),
+  });
+  closeSheet();save();hapticDone();
+  showToast(`Prepaid ${fmt(total)} ✓`,'check');
+  render();
+}
 function saveEditing(){
   const raw=$('s-cat').value,amt=parseFloat($('s-amt').value),date=$('s-date').value,note=$('s-note').value.trim();
   if(!raw||!amt||amt<=0||!date){showToast('Missing fields','x');return;}
@@ -1958,7 +2629,10 @@ function saveEditing(){
   if(!e)return;
   const d=new Date(date+'T00:00:00');
   const cc=!!($('s-cc')&&$('s-cc').checked);
+  const ccPaid=!!($('s-ccpaid')&&$('s-ccpaid').checked);
   e.catId=catId;e.subId=subId;e.amount=amt;e.date=date;e.note=note;e.paidWithCC=cc;
+  // Only keep ccPaid if the entry is still a CC charge
+  e.ccPaid = cc ? ccPaid : false;
   e.mk=mk(d.getFullYear(),d.getMonth());
   editingId=null;
   closeSheet();save();hapticTick();showToast('Saved ✓');render();
@@ -2080,13 +2754,27 @@ function chMo(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}s
 function chAnP(d){if(period==='yearly')return;anM+=d;if(anM>11){anM=0;anY++;}if(anM<0){anM=11;anY--;}renderAn();}
 function setPeriod(p){period=p;['daily','weekly','monthly','yearly'].forEach(id=>{const el=$('pt-'+id);if(el)el.classList.toggle('on',id===p);});renderAn();}
 function setCurrency(code){state.currency=code;save();render();}
+async function pickNewCatColor(){
+  const current=state._pendingCatColor||'#a8e063';
+  const picked=await promptAsync('Pick a colour for this category',current,{title:'Category colour',type:'color'});
+  if(!picked)return;
+  state._pendingCatColor=picked;
+  const btn=document.getElementById('cc-color-btn');
+  if(btn){
+    btn.style.setProperty('--swatch',picked);
+    btn.querySelector('.lbl').textContent=picked;
+  }
+  hapticTick();
+}
 function addCustomCat(){
-  const name=$('cc-name').value.trim(),color=$('cc-color').value||'#a8e063';
-  if(!name){showToast('Enter a name','x');$('cc-name').classList.add('err');setTimeout(()=>$('cc-name').classList.remove('err'),800);return;}
+  const name=$('cc-name').value.trim(),color=state._pendingCatColor||'#a8e063';
+  if(!name){showToast('Enter a name','x');$('cc-name').classList.add('err');setTimeout(()=>$('cc-name').classList.remove('err'),800);hapticError();return;}
   state.customCats=state.customCats||[];
   const id='c_'+Date.now().toString(36);
   state.customCats.push({id,name,color});
-  $('cc-name').value='';save();hapticTick();showToast(`"${name}" added ✓`);render();
+  $('cc-name').value='';
+  delete state._pendingCatColor;
+  save();hapticDone();showToast(`"${name}" added ✓`);render();
 }
 function delCustomCat(id){
   if(!confirm('Delete this category? Existing transactions will still reference it.'))return;
@@ -2152,7 +2840,7 @@ async function deleteSubcategory(parentId,subId){if(!await confirmAsync('This su
 function setTab(t){
   const inner=()=>{
     activeTab=t;
-    const titles={dash:'Home',txn:'<span class="ital">Transactions</span>',an:'<span class="ital">Analytics</span>',sav:'<span class="ital">Savings</span>',bud:'<span class="ital">Budgets</span>',emi:'<span class="ital">Recurring</span>',set:'<span class="ital">Settings</span>',cat:'<span class="ital">Categories</span>'};
+    const titles={dash:'Home',txn:'<span class="ital">Transactions</span>',an:'<span class="ital">Analytics</span>',sav:'<span class="ital">Savings</span>',bud:'<span class="ital">Budgets</span>',emi:'<span class="ital">Recurring</span>',set:'<span class="ital">Settings</span>',cat:'<span class="ital">Categories</span>',cur:'<span class="ital">Currency</span>'};
     $('tab-title').innerHTML=titles[t]||t;
     ['dash','txn','an','sav','bud','emi','set'].forEach(id=>{
       const nb=$('nb-'+id),mb=$('mb-'+id);
@@ -2175,7 +2863,7 @@ function makeTList(list){
   return[...list].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>{
     const c=getCat(e.catId),sub=e.subId?getSub(e.catId,e.subId):null,dot=sub?sub.color:c.color;
     const lbl=e.note||(sub?sub.name:c.name);
-    return`<div class="ti" data-tid="${e.id}" ${e.isEmi?'':`onclick="if(!event.target.closest('.tdel'))openEditExp(${e.id})"`}><div class="tidot" style="background:${dot}"></div><div class="tib"><div class="tin">${lbl}${e.isEmi?'<span class="emi-tag">EMI</span>':''}${e.paidWithCC?'<span class="cc-tag" title="Paid with Credit Card">💳</span>':''}</div><div class="tis">${sub?sub.name+' · ':c.name+' · '}${fmtD(e.date)}</div></div><div class="tia">${fmt(e.amount)}</div>${e.isEmi?'':`<button class="tdel" onclick="event.stopPropagation();delExp(${e.id})" aria-label="Delete">✕</button>`}</div>`;
+    return`<div class="ti${isCCUnpaid(e)?' cc-unpaid':''}" data-tid="${e.id}" ${e.isEmi?'':`onclick="if(!event.target.closest('.tdel'))openEditExp(${e.id})"`}><div class="tidot" style="background:${dot}"></div><div class="tib"><div class="tin">${lbl}${e.isEmi?'<span class="emi-tag">EMI</span>':''}${e.paidWithCC?'<span class="cc-tag" title="Paid with Credit Card">💳</span>':''}${isCCUnpaid(e)?'<span class="cc-tag" style="background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Booked on credit, not yet settled">UNPAID</span>':''}${e.ccPayment?'<span class="cc-tag" style="background:var(--accent-soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Payment applied to credit-card bill">CC PAYMENT</span>':''}</div><div class="tis">${sub?sub.name+' · ':c.name+' · '}${fmtD(e.date)}</div></div><div class="tia">${fmt(e.amount)}</div>${e.isEmi?'':`<button class="tdel" onclick="event.stopPropagation();delExp(${e.id})" aria-label="Delete">✕</button>`}</div>`;
   }).join('');
 }
 function buildCatSelect(id,val){
@@ -2202,19 +2890,26 @@ function quoteForBalance(rem,avail){
 // DASHBOARD
 // ════════════════════════════════════════════════════════
 function renderDash(){
-  const mkey=mk(),me=curExps(),total=me.reduce((s,e)=>s+e.amount,0);
+  const mkey=mk(),me=curExps();
+  // "Actually spent" = excludes unpaid CC entries (not yet deducted from wallet)
+  const meSettled=me.filter(e=>!isCCUnpaid(e));
+  const total=meSettled.reduce((s,e)=>s+e.amount,0);
+  const ccBooked=me.filter(isCCUnpaid).reduce((s,e)=>s+e.amount,0);
   const sal=state.salaries[mkey]||0,carry=getCarryover(curY,curM);
   const oi=state.otherIncome.filter(o=>o.mk===mkey).reduce((s,o)=>s+o.amount,0);
   const avail=sal+carry+oi,rem=avail-total;
   const oiList=state.otherIncome.filter(o=>o.mk===mkey);
   let catGridHTML='';
   allCats().forEach((c,idx)=>{
-    const ce=me.filter(e=>e.catId===c.id),cs=ce.reduce((a,e)=>a+e.amount,0);
+    const ce=me.filter(e=>e.catId===c.id);
+    // Category breakdown counts settled + unpaid separately but visible tile uses settled cash only
+    const ceSettled=ce.filter(e=>!isCCUnpaid(e));
+    const cs=ceSettled.reduce((a,e)=>a+e.amount,0);
     const bgt=state.budgets[c.id]||0,pct=bgt?Math.min(100,Math.round((cs/bgt)*100)):0,over=bgt&&cs>bgt;
     catGridHTML+=`<div class="cat-card${selCatId===c.id?' sel':''}" data-cat="${c.id}" style="animation-delay:${idx*22}ms" onclick="selCat('${c.id}')"><div class="cat-top"><div class="cat-dot" style="background:${c.color}"></div><span class="cat-nm" title="${c.name}">${c.name}</span></div><div class="cat-amt">${fmt(cs)}</div><div class="cat-sub"><span class="cat-cnt">${ce.length}×</span>${bgt?`<span class="cat-pct" style="color:${over?'var(--danger)':'var(--muted)'}">${pct}%</span>`:''}</div>${bgt?`<div class="bpw"><div class="bpb" style="width:${pct}%;background:${over?'var(--danger)':c.color}"></div></div>`:''}</div>`;
   });
-  const active=allCats().filter(c=>me.some(e=>e.catId===c.id));
-  const cdata=active.map(c=>me.filter(e=>e.catId===c.id).reduce((s,e)=>s+e.amount,0));
+  const active=allCats().filter(c=>meSettled.some(e=>e.catId===c.id));
+  const cdata=active.map(c=>meSettled.filter(e=>e.catId===c.id).reduce((s,e)=>s+e.amount,0));
 
   $('main-content').innerHTML=`
     <!-- Hero balance card -->
@@ -2241,18 +2936,18 @@ function renderDash(){
       <div class="inc-row"><span>Salary ${sym()}</span><input type="number" inputmode="decimal" step="any" id="d-sal" placeholder="Enter salary…" min="0" style="flex:1;min-width:140px"/><span class="inc-meta" id="d-carry"></span></div>
       <div class="inc-div"></div>
       <div class="kicker" style="margin-bottom:10px">Others received</div>
-      <div class="oi-row"><div class="fg" style="max-width:120px"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="oi-amt" placeholder="50" min="0"/></div><div class="fg" style="flex:2"><label>From / Note</label><input type="text" id="oi-note" placeholder="e.g. Rahul — chai" maxlength="40"/></div><div class="fg" style="max-width:160px"><label>Date</label><input type="date" id="oi-date"/></div><div class="fg0"><button class="primary" onclick="addOI()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
+      <div class="oi-row"><div class="fg" style="max-width:120px"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="oi-amt" placeholder="50" min="0"/></div><div class="fg" style="flex:2"><label>From / Note</label><input type="text" id="oi-note" placeholder="e.g. Rahul — chai" maxlength="40"/></div><div class="fg" style="min-width:150px;flex:0 0 auto"><label>Date</label><input type="date" id="oi-date" style="min-width:140px"/></div><div class="fg0"><button class="primary" onclick="addOI()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
       <div class="oi-list">${oiList.map(o=>`<div class="oi-item" data-oid="${o.id}" onclick="if(!event.target.closest('.oi-del'))openEditOI(${o.id})" style="cursor:pointer"><span class="oi-note">${o.note} · ${fmtD(o.date)}</span><span class="oi-amt">+${fmt(o.amount)}</span><button class="oi-del" onclick="event.stopPropagation();delOI(${o.id})">✕</button></div>`).join('')}</div>
     </div>
     <div class="metric-row">
       <div class="metric"><div class="metric-l">Salary + Carry</div><div class="metric-v">${fmt(sal+carry)}</div></div>
       <div class="metric"><div class="metric-l">Others</div><div class="metric-v pos">+${fmt(oi)}</div></div>
       <div class="metric"><div class="metric-l">Available</div><div class="metric-v">${fmt(avail)}</div></div>
-      <div class="metric"><div class="metric-l">Spent</div><div class="metric-v">${fmt(total)}</div></div>
+      <div class="metric"><div class="metric-l">Spent</div><div class="metric-v">${fmt(total)}</div>${ccBooked>0?`<div class="metric-v sm" style="color:var(--danger);margin-top:4px" title="Booked on credit card, not yet settled">+ ${fmt(ccBooked)} on credit</div>`:''}</div>
       <div class="metric"><div class="metric-l">Remaining</div><div class="metric-v ${rem>=0?'pos':'neg'}">${fmt(rem)}</div></div>
     </div>
     <div class="add-box"><div class="sec-title"><i data-lucide="plus-circle" class="ic-sm"></i>Add Expense</div>
-      <div class="add-row"><div class="fg"><label>Category</label><select id="i-cat"></select></div><div class="fg"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="i-amt" placeholder="0" min="0"/></div><div class="fg"><label>Date</label><input type="date" id="i-date"/></div><div class="fg" style="flex:2"><label>Note</label><input type="text" id="i-note" placeholder="Optional…" maxlength="40"/></div><div class="fg0" style="display:flex;align-items:center;gap:10px"><label for="i-cc" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap"><input type="checkbox" id="i-cc" style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer"/><i data-lucide="credit-card" class="ic-sm"></i>Paid with CC</label><button class="primary" onclick="addExp()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
+      <div class="add-row"><div class="fg"><label>Category</label><select id="i-cat"></select></div><div class="fg"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="i-amt" placeholder="0" min="0"/></div><div class="fg"><label>Date</label><input type="date" id="i-date"/></div><div class="fg" style="flex:2"><label>Note</label><input type="text" id="i-note" placeholder="Optional…" maxlength="40"/></div><div class="fg0" style="display:flex;align-items:center;gap:10px"><label class="cc-toggle inline" for="i-cc"><input type="checkbox" id="i-cc"/><span class="cc-icon"><i data-lucide="credit-card"></i></span><span class="cc-toggle-label">Paid with CC</span></label><button class="primary" onclick="addExp()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
     </div>
     <div class="cat-grid-header"><i data-lucide="layout-grid" class="ic-sm"></i>Spending by category</div>
     <div class="cat-grid">${catGridHTML}</div>
@@ -2281,8 +2976,7 @@ function renderDash(){
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
           ${bill.remaining>0?`
-            <input id="cc-pay-input" type="number" inputmode="decimal" step="any" min="0" placeholder="${fmt(bill.remaining).replace(/[^\\d.,]/g,'')}" style="flex:1;min-width:120px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:13px"/>
-            <button class="primary" onclick="addCcPayment('${bill.mkey}')" style="padding:10px 14px;font-size:12px"><i data-lucide="plus" class="ic-sm"></i>Add Payment</button>
+            <button class="primary" onclick="openCcPaymentAllocator('${bill.mkey}')" style="padding:10px 16px;font-size:13px;flex:1;min-width:160px"><i data-lucide="credit-card" class="ic-sm"></i>Settle bill…</button>
           `:''}
           <button class="ghost" onclick="editCcPayment('${bill.mkey}')" style="padding:10px 12px;font-size:12px"><i data-lucide="pencil" class="ic-sm"></i>Edit</button>
           ${bill.paidAmount>0?`<button class="ghost" onclick="resetCcPayment('${bill.mkey}')" style="padding:10px 12px;font-size:12px;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 30%,var(--border))"><i data-lucide="rotate-ccw" class="ic-sm"></i>Reset</button>`:''}
@@ -2294,7 +2988,11 @@ function renderDash(){
         <div class="leg">${active.length?active.map((c,i)=>`<span class="li"><span class="ld" style="background:${c.color}"></span>${c.name} ${total?Math.round((cdata[i]/total)*100):0}%</span>`).join(''):'<span style="font-size:12px;color:var(--dim)">No data yet</span>'}</div>
         <div style="position:relative;width:100%;height:200px"><canvas id="d-ch"></canvas></div>
       </div>
-      <div class="panel"><div class="panel-t" style="display:flex;align-items:center;justify-content:space-between"><span><i data-lucide="receipt" class="ic-sm"></i>Recent Transactions</span><button class="ghost" style="padding:4px 10px;font-size:11px" onclick="setTab('txn')"><span>View all</span><i data-lucide="arrow-right" class="ic-sm"></i></button></div><div class="tlist">${makeTList(me.slice(0,5))}</div></div>
+      <div class="panel"><div class="panel-t" style="display:flex;align-items:center;justify-content:space-between"><span><i data-lucide="receipt" class="ic-sm"></i>Recent Transactions</span><button class="ghost" style="padding:4px 10px;font-size:11px" onclick="setTab('txn')"><span>View all</span><i data-lucide="arrow-right" class="ic-sm"></i></button></div><div class="tlist">${makeTList([...me].sort((a,b)=>{
+        // Sort by date DESC, then by id DESC so latest entries appear first
+        const d=new Date(b.date)-new Date(a.date);
+        return d!==0 ? d : (b.id||0)-(a.id||0);
+      }).slice(0,5))}</div></div>
     </div>`;
 
   const si=$('d-sal');
@@ -2304,8 +3002,8 @@ function renderDash(){
   if(carry!==0)ce.innerHTML=`Carry-in <b style="color:${carry>=0?'var(--accent2)':'var(--danger)'}">${carry>=0?'+':''}${fmt(carry)}</b>`;
   else ce.textContent=sal?'':'Enter salary to start';
   buildCatSelect('i-cat');
-  $('i-date').value=new Date().toISOString().split('T')[0];
-  $('oi-date').value=new Date().toISOString().split('T')[0];
+  $('i-date').value=todayLocal().toISOString().split('T')[0];
+  $('oi-date').value=todayLocal().toISOString().split('T')[0];
   if(dChart){dChart.destroy();dChart=null;}
   if(active.length)dChart=new Chart($('d-ch'),{type:'doughnut',data:{labels:active.map(c=>c.name),datasets:[{data:cdata,backgroundColor:active.map(c=>c.color),borderWidth:2,borderColor:chartBorder()}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(Math.round(ctx.parsed))}}},cutout:'66%'}});
   if(window.lucide)lucide.createIcons();
@@ -2334,7 +3032,7 @@ function renderAn(){
     labels=Array.from({length:dm},(_,i)=>i+1);
     const ac=allCats().filter(c=>me.some(e=>e.catId===c.id));
     datasets=ac.map(c=>({label:c.name,data:labels.map(d=>me.filter(e=>e.catId===c.id&&e.date===mkey+'-'+String(d).padStart(2,'0')).reduce((s,e)=>s+e.amount,0)),backgroundColor:c.color,stack:'s',borderRadius:2}));
-    tot=me.reduce((s,e)=>s+e.amount,0);cnt=me.length;days=dm;
+    exp=allExps(mkey).reduce((s,e)=>s+e.amount,0);
   }else if(period==='weekly'){
     const mkey=mk(anY,anM),me=allExps(mkey),dm=din(anY,anM);
     if($('an-mlbl'))$('an-mlbl').textContent=MOS3[anM]+' '+anY;
@@ -2424,10 +3122,32 @@ function renderSav(){
 // ════════════════════════════════════════════════════════
 let txnFilter='all';
 function setTxnFilter(f){txnFilter=f;renderTxn();}
+let txnSearch='';
+function setTxnSearch(v){txnSearch=(v||'').toLowerCase();renderTxn();}
+function clearTxnSearch(){txnSearch='';renderTxn();const el=document.getElementById('txn-search');if(el)el.focus();}
+
 function renderTxn(){
   const me=curExps();
   let filtered=me;
-  if(txnFilter!=='all') filtered=me.filter(e=>e.catId===txnFilter);
+  if(txnFilter!=='all') filtered=filtered.filter(e=>e.catId===txnFilter);
+  // Full-text search across note, category, sub-category, amount, date
+  if(txnSearch){
+    const q=txnSearch;
+    filtered=filtered.filter(e=>{
+      const cat=getCat(e.catId);
+      const sub=e.subId?(cat.subs||[]).find(s=>s.id===e.subId):null;
+      const hay=[
+        e.note||'',
+        cat.name,
+        sub?.name||'',
+        String(e.amount),
+        fmt(e.amount),
+        e.date,
+        fmtD(e.date),
+      ].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
   const byDate={};
   [...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e=>{
     (byDate[e.date]=byDate[e.date]||[]).push(e);
@@ -2437,13 +3157,18 @@ function renderTxn(){
   const filters=[{id:'all',name:'All'},...usedCats.map(id=>{const c=getCat(id);return{id,name:c.name,color:c.color};})];
   $('main-content').innerHTML=`
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap">
-      <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${filtered.length} transaction${filtered.length===1?'':'s'} · ${fmt(total)}</div></div>
+      <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${filtered.length} transaction${filtered.length===1?'':'s'} · ${fmt(total)}${txnSearch?` · matching "${txnSearch}"`:''}</div></div>
+    </div>
+    <div class="txn-search-wrap">
+      <i data-lucide="search" class="ic-sm txn-search-icon"></i>
+      <input type="text" id="txn-search" class="txn-search" placeholder="Search by note, category, amount, or date…" value="${txnSearch.replace(/"/g,'&quot;')}" oninput="setTxnSearch(this.value)" autocomplete="off"/>
+      ${txnSearch?`<button class="txn-search-clear" onclick="clearTxnSearch()" aria-label="Clear"><i data-lucide="x" class="ic-sm"></i></button>`:''}
     </div>
     <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch">
       ${filters.map(f=>`<button class="ptab${txnFilter===f.id?' on':''}" style="flex-shrink:0;white-space:nowrap" onclick="setTxnFilter('${f.id}')">${f.color?`<span class="ld" style="background:${f.color};margin-right:6px;display:inline-block;vertical-align:2px"></span>`:''}${f.name}</button>`).join('')}
     </div>
     <div class="panel" style="padding:10px 16px">
-      ${Object.keys(byDate).length===0?'<div class="empty">No transactions for this filter</div>':
+      ${Object.keys(byDate).length===0?`<div class="empty">${txnSearch?'No matches — try a different search':'No transactions for this filter'}</div>`:
         Object.entries(byDate).map(([date,items])=>{
           const dTot=items.reduce((s,e)=>s+e.amount,0);
           return `<div style="padding:12px 0 4px;border-bottom:1px solid var(--border)">
@@ -2458,6 +3183,8 @@ function renderTxn(){
     </div>
     <div style="text-align:center;margin-top:16px;font-size:14px;color:var(--dim);font-style:italic;font-family:'Instrument Serif',serif">Tap any transaction to edit · long-press on mobile</div>`;
   if(window.lucide)lucide.createIcons();
+  // Restore focus if user was typing in search (so input doesn't blur on re-render)
+  if(document.activeElement?.tagName!=='INPUT'){const s=document.getElementById('txn-search');if(s&&txnSearch){s.focus();s.setSelectionRange(txnSearch.length,txnSearch.length);}}
 }
 
 // ════════════════════════════════════════════════════════
@@ -2542,7 +3269,7 @@ function renderEmi(){
     </div><div class="emi-list">${emiHTML}</div>`;
   const es=$('e-cat');
   if(es){allCats().forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;if(c.id==='emi')o.selected=true;es.appendChild(o);});}
-  $('e-start').value=new Date().toISOString().slice(0,7);
+  $('e-start').value=todayLocal().toISOString().slice(0,7);
   if(window.lucide)lucide.createIcons();
 }
 // ════════════════════════════════════════════════════════
@@ -2553,7 +3280,7 @@ function renderCat(){
     <div style="margin-bottom:18px;font-size:13px;color:var(--muted);max-width:520px;line-height:1.55">Rename, recolor, or add sub-categories. Custom categories can be deleted — built-in ones can be renamed but not removed.</div>
     <div class="add-row" style="margin-bottom:18px;padding:14px;background:var(--elev);border:1px solid var(--border);border-radius:14px">
       <div class="fg"><label>Add new category</label><input type="text" id="cc-name" placeholder="e.g. Pet Care" maxlength="24"/></div>
-      <div class="fg" style="max-width:120px"><label>Color</label><input type="color" id="cc-color" value="#a8e063" style="height:38px;padding:3px;cursor:pointer"/></div>
+      <div class="fg" style="max-width:140px"><label>Color</label><button type="button" id="cc-color-btn" onclick="pickNewCatColor()" class="color-swatch-btn" style="--swatch:${state._pendingCatColor||'#a8e063'}"><span class="sw"></span><span class="lbl">${state._pendingCatColor||'#a8e063'}</span></button></div>
       <div class="fg0"><button class="primary" onclick="addCustomCat()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div>
     </div>
     <div class="cat-mgr">
@@ -2580,6 +3307,23 @@ function renderCat(){
   `;
   if(window.lucide)lucide.createIcons();
 }
+
+function renderCur(){
+  $('main-content').innerHTML=`
+    <div style="margin-bottom:18px;font-size:13px;color:var(--muted);max-width:520px;line-height:1.55">All amounts will display in the currency you pick. ${CURRENCIES.length} options · your choice syncs across all your devices.</div>
+    <div class="cur-grid">${CURRENCIES.map(c=>`
+      <div class="cur-card${state.currency===c.code?' active':''}" onclick="setCurrency('${c.code}')">
+        <div class="cur-sym">${c.symbol}</div>
+        <div class="cur-info">
+          <div class="cur-code">${c.code}</div>
+          <div class="cur-name">${c.name}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:18px"><button class="ghost" onclick="setTab('set')"><i data-lucide="arrow-left" class="ic-sm"></i>Back to Settings</button></div>
+  `;
+  if(window.lucide)lucide.createIcons();
+}
 // ════════════════════════════════════════════════════════
 // SETTINGS
 // ════════════════════════════════════════════════════════
@@ -2593,6 +3337,24 @@ function renderSet(){
   ];
   $('main-content').innerHTML=`
     <div class="set-grid">
+      <div class="set-section account-card" style="grid-column:1/-1">
+        <div class="acct-head">
+          <div class="acct-avatar">${getInitial()}</div>
+          <div class="acct-meta">
+            <div class="acct-name-row">
+              <div class="acct-name" id="acct-name">${getDisplayName()}</div>
+              <button class="mbtn sm" onclick="editDisplayName()" title="Edit name"><i data-lucide="pencil" class="ic-sm"></i></button>
+            </div>
+            <div class="acct-email">${currentUser?.email||'—'}</div>
+          </div>
+          <button class="ghost acct-signout" onclick="doSignOut()" title="Sign out"><i data-lucide="log-out" class="ic-sm"></i><span>Sign out</span></button>
+        </div>
+        <div class="acct-sync">
+          <i data-lucide="cloud-check" class="ic-sm" style="color:var(--accent2)"></i>
+          <span>Data syncs encrypted via Supabase — no export needed.</span>
+        </div>
+      </div>
+
       <div class="set-section">
         <div class="set-h"><em>Atmosphere</em></div>
         <div class="set-sub">Pick a theme. Your choice syncs across all your devices.</div>
@@ -2610,16 +3372,12 @@ function renderSet(){
 
       <div class="set-section">
         <div class="set-h"><em>Currency</em></div>
-        <div class="set-sub">All amounts will display in this currency. ${CURRENCIES.length} options.</div>
-        <div class="cur-grid">${CURRENCIES.map(c=>`
-          <div class="cur-card${state.currency===c.code?' active':''}" onclick="setCurrency('${c.code}')">
-            <div class="cur-sym">${c.symbol}</div>
-            <div class="cur-info">
-              <div class="cur-code">${c.code}</div>
-              <div class="cur-name">${c.name}</div>
-            </div>
-          </div>`).join('')}
-        </div>
+        <div class="set-sub">Pick the currency amounts display in. ${CURRENCIES.length} options.</div>
+        <button class="ghost" style="width:100%;justify-content:center;padding:16px;font-size:14px;border-radius:14px" onclick="setTab('cur')">
+          <i data-lucide="coins" class="ic-sm"></i>
+          Manage Currency · <span style="color:var(--accent);font-weight:600">${CUR().code} ${CUR().symbol}</span>
+          <i data-lucide="chevron-right" class="ic-sm" style="margin-left:auto"></i>
+        </button>
       </div>
 
       <div class="set-section" style="grid-column:1/-1">
@@ -2643,7 +3401,7 @@ function renderSet(){
 
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>Notifications</em></div>
-        <div class="set-sub">Get nudged when you cross budget thresholds (50% · 80% · 100%) and when your credit-card bill needs attention. Notifications fire while Ledger is open in a tab or installed as a PWA.</div>
+        <div class="set-sub">Get nudged when you cross budget thresholds (50% · 80% · 100%) and when your credit-card bill needs attention. Notifications fire while TheLittleNaga is open in a tab or installed as a PWA.</div>
         <div class="set-row">
           <div>
             <div class="set-rl">Budget & bill alerts</div>
@@ -2657,7 +3415,7 @@ function renderSet(){
         ${state.settings?.notifEnabled?`
         <div class="set-row">
           <div><div class="set-rl">Test notification</div><div class="set-rs">Send a sample to verify it works on your device.</div></div>
-          <button class="ghost" onclick="_fireNotif('Ledger test','If you see this, notifications work ✓','test-'+Date.now())?showToast('Sent ✓'):showToast('Failed','x')"><i data-lucide="zap" class="ic-sm"></i>Send test</button>
+          <button class="ghost" onclick="_fireNotif('TheLittleNaga test','If you see this, notifications work ✓','test-'+Date.now())?showToast('Sent ✓'):showToast('Failed','x')"><i data-lucide="zap" class="ic-sm"></i>Send test</button>
         </div>`:''}
         <div class="set-row">
           <div><div class="set-rl">Reset alert history</div><div class="set-rs">Clear fired flags so alerts can re-trigger for this month.</div></div>
@@ -2666,22 +3424,9 @@ function renderSet(){
       </div>
 
       <div class="set-section" style="grid-column:1/-1">
-        <div class="set-h"><em>Account</em></div>
-        <div class="set-sub">You're signed in to your private Ledger. Data syncs encrypted via Supabase.</div>
+        <div class="set-h"><em>About</em></div>
         <div class="set-row">
-          <div><div class="set-rl">${getDisplayName()}</div><div class="set-rs">${currentUser?.email||''}</div></div>
-          <button class="ghost" onclick="exportBackup()"><i data-lucide="download" class="ic-sm"></i>Backup data</button>
-        </div>
-        <div class="set-row">
-          <div><div class="set-rl">Self-host the app</div><div class="set-rs">Download the latest single-file build (HTML + service worker + manifest) to host on your own server.</div></div>
-          <a class="ghost" href="ledger-dist.zip" download="ledger.zip" style="text-decoration:none"><i data-lucide="package" class="ic-sm"></i>Download bundle (.zip)</a>
-        </div>
-        <div class="set-row">
-          <div><div class="set-rl">Sign out</div><div class="set-rs">You can sign back in anytime — your data stays in sync.</div></div>
-          <button class="ghost" onclick="doSignOut()" style="color:var(--danger);border-color:color-mix(in srgb,var(--danger) 30%,var(--border))"><i data-lucide="log-out" class="ic-sm"></i>Sign out</button>
-        </div>
-        <div class="set-row">
-          <div><div class="set-rl">About Ledger</div><div class="set-rs">v2.0 · Built for clarity. Your money, quietly tracked.</div></div>
+          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.1 · Built for clarity. Your money, quietly tracked.</div></div>
         </div>
       </div>
     </div>`;
@@ -2703,6 +3448,7 @@ function render(){
   else if(activeTab==='emi')renderEmi();
    else if(activeTab==='set')renderSet();
    else if(activeTab==='cat')renderCat();
+   else if(activeTab==='cur')renderCur();
   // Fire queued notifications (guarded, debounced via internal flags)
   if(typeof runAllNotifChecks==='function')setTimeout(runAllNotifChecks,50);
 }
