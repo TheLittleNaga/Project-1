@@ -382,9 +382,12 @@ button,.mbtn,.primary,.ghost,.auth-btn,.th-card,.nav-item,.cat-card,.ptab,.dock-
 /* Drawer (mobile sidebar overlay) */
 .drawer-scrim{display:none}
 .shell.menu-open .drawer-scrim{
-  display:block;position:fixed;inset:0;z-index:3;cursor:pointer;background:transparent;
+  display:block;position:fixed;inset:0;z-index:55;cursor:pointer;background:transparent;
 }
-body.app-mode .shell.menu-open .drawer-scrim{z-index:4}
+body.app-mode .shell.menu-open .drawer-scrim{z-index:55}
+/* Hide dock and FAB (outside .shell) when drawer is open */
+body.app-mode .shell.menu-open ~ .dock{opacity:0;pointer-events:none;transition:opacity .3s}
+body.app-mode .shell.menu-open ~ .fab{opacity:0;pointer-events:none;transition:opacity .3s}
 
 /* ═══════════════════════════════════════════════════════════
    HERO BALANCE CARD
@@ -754,7 +757,7 @@ button.primary:active{transform:translateY(0) scale(.97)}
    APP MODE — Mobile native-feeling UI
    ═══════════════════════════════════════════════════════════ */
 body.app-mode .sidebar{
-  position:fixed;inset:0;z-index:2;width:100%;max-width:100%;
+  position:fixed;inset:0;z-index:60;width:100%;max-width:100%;
   background:linear-gradient(160deg, #0a1a12 0%, #0a0f0c 40%, #050807 100%);
   opacity:0;pointer-events:none;
   transition:opacity .38s cubic-bezier(.2,.85,.25,1);
@@ -938,14 +941,14 @@ body.app-mode .dock{display:block}
 
 /* Bottom sheet */
 .sheet-bg{
-  display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);
+  display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.55);
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   animation:bgIn .25s ease both;
 }
 @keyframes bgIn{from{opacity:0}to{opacity:1}}
 .sheet-bg.on{display:block}
 .sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:61;
+  position:fixed;left:0;right:0;bottom:0;z-index:71;
   background:var(--surface);border-radius:28px 28px 0 0;
   border-top:1px solid var(--border-strong);
   padding:14px 18px max(20px,env(safe-area-inset-bottom)) 18px;
@@ -1537,18 +1540,21 @@ document.addEventListener('click',e=>{
 // HAPTIC + TOAST
 // ════════════════════════════════════════════════════════
 // ═══ Haptic feedback — crisp, tactile, context-aware ═══
+// NOTE for APK: add <uses-permission android:name="android.permission.VIBRATE"/>
+// to android/app/src/main/AndroidManifest.xml or haptics will silently fail.
+function _vibe(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 // Short single buzz on tap / selection (crisp).
-function hapticTick(){ if(navigator.vibrate) navigator.vibrate(12); }
+function hapticTick(){ _vibe(30); }
 // Very short tick for passive interactions (row expand, focus change).
-function hapticTap() { if(navigator.vibrate) navigator.vibrate(6); }
+function hapticTap() { _vibe(12); }
 // Success pattern (save / refresh done).
-function hapticDone(){ if(navigator.vibrate) navigator.vibrate([10,45,18]); }
+function hapticDone(){ _vibe([20,60,35]); }
 // Swipe between tabs — longer, more pronounced bump.
-function hapticSwipe(){ if(navigator.vibrate) navigator.vibrate([14,30,14]); }
+function hapticSwipe(){ _vibe([18,40,18]); }
 // Soft double-tap for toggle switches.
-function hapticToggle(){ if(navigator.vibrate) navigator.vibrate([6,25,6]); }
+function hapticToggle(){ _vibe([10,30,10]); }
 // Error / invalid input.
-function hapticError(){ if(navigator.vibrate) navigator.vibrate([30,50,30,50,30]); }
+function hapticError(){ _vibe([40,60,40,60,40]); }
 
 let toastTimer=null;
 function showToast(msg,icon='check'){
@@ -1797,76 +1803,92 @@ function promptAsync(label,defaultValue,opts={}){
 
 const TAB_ORDER=['dash','txn','an','sav','bud','emi']; // Settings kept separate — not in swipe ring
 let touchStart=null, touchMoved=null, ptrPulling=false, swipeBlocked=false;
+let _gesturesAttached=false;
 
 function attachGestures(){
   const scroll=document.getElementById('mainScroll');
   const ptr=document.getElementById('ptr');
-  if(!scroll||!ptr)return;
+  if(!scroll||!ptr||_gesturesAttached)return;
+  _gesturesAttached=true;
 
-  scroll.addEventListener('touchstart',e=>{
+  function onTouchStart(e){
     if(!document.body.classList.contains('app-mode'))return;
     if(e.touches.length!==1)return;
     if(document.getElementById('sheet')?.classList.contains('on'))return;
     if(document.getElementById('shell').classList.contains('menu-open'))return;
-    if(document.querySelector('.cdlg-bg'))return;
+    if(document.querySelector('.cdlg-bg.on'))return;
     const t=e.touches[0];
-    // Tab-swipe only from the BOTTOM HALF of the viewport (≥50%).
-    // Top half is reserved for reading balance/income/forms without accidental swipes.
     const vh=window.innerHeight||document.documentElement.clientHeight;
+    // Block TAB swipe from top half — PTR is still allowed from anywhere when at top
     swipeBlocked = t.clientY < vh*0.5;
     touchStart={x:t.clientX,y:t.clientY,t:Date.now(),scrollTop:scroll.scrollTop};
     touchMoved=null;ptrPulling=false;
-  },{passive:true});
+  }
 
-  scroll.addEventListener('touchmove',e=>{
+  function onTouchMove(e){
     if(!touchStart)return;
     if(activeTab==='set'||activeTab==='cat'||activeTab==='cur')return;
     const t=e.touches[0];
     const dx=t.clientX-touchStart.x, dy=t.clientY-touchStart.y;
     touchMoved={dx,dy};
-    // Pull-to-refresh: scrolled to top + dragging down (allowed from anywhere)
-    if(touchStart.scrollTop<=0 && dy>0 && Math.abs(dy)>Math.abs(dx)){
+    // Pull-to-refresh: at scroll top, dragging down, mostly vertical
+    if(touchStart.scrollTop<=2 && dy>8 && Math.abs(dy)>Math.abs(dx)*0.8){
       ptrPulling=true;
-      const pull=Math.min(90,dy*.6);
-      ptr.style.transform=`translate(-50%, ${pull-20}px)`;
-      ptr.classList.toggle('show',pull>14);
-      if(pull>70)ptr.classList.add('spin'); else ptr.classList.remove('spin');
+      const pull=Math.min(80,dy*0.55);
+      ptr.style.transform=`translate(-50%, ${pull-10}px)`;
+      ptr.classList.toggle('show',pull>12);
+      if(pull>60)ptr.classList.add('spin'); else ptr.classList.remove('spin');
     }
-  },{passive:true});
+  }
 
-  scroll.addEventListener('touchend',()=>{
-    if(!touchStart||!touchMoved){touchStart=null;return;}
-    const {dx,dy}=touchMoved;
+  function onTouchEnd(){
+    if(!touchStart){return;}
+    const moved=touchMoved||{dx:0,dy:0};
+    const{dx,dy}=moved;
     const dt=Date.now()-touchStart.t;
+
     if(ptrPulling){
-      if(dy>90){
+      // Trigger refresh if pulled far enough (real dy > 80px)
+      if(dy>80){
         ptr.classList.add('spin','show');
-        ptr.style.transform='translate(-50%, 20px)';
+        ptr.style.transform='translate(-50%, 30px)';
         hapticDone();
-        const done=()=>{ showToast('Refreshed ✓','check'); setTimeout(resetPTR,500); };
-        if(currentUser && currentUser.id!=='demo-local') refreshFromSupabase().finally(done);
-        else { setSyncStatus('ok','Demo · refreshed'); render(); done(); }
-      } else resetPTR();
-      function resetPTR(){
-        ptr.style.transform='translate(-50%, -120%)';
+        const done=()=>{
+          showToast('Refreshed ✓','check');
+          setTimeout(()=>{
+            ptr.style.transform='translate(-50%,-120%)';
+            ptr.classList.remove('show','spin');
+          },500);
+        };
+        if(currentUser && currentUser.id!=='demo-local'){
+          refreshFromSupabase().finally(done);
+        } else {
+          setSyncStatus('ok','Demo · refreshed');
+          render();
+          done();
+        }
+      } else {
+        ptr.style.transform='translate(-50%,-120%)';
         ptr.classList.remove('show','spin');
       }
     }
-    // Horizontal swipe between tabs — ONLY if gesture started in bottom half
-    else if(!swipeBlocked && Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5 && dt<500){
+    // Horizontal tab swipe — only from bottom half, fast enough, clearly horizontal
+    else if(!swipeBlocked && Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.8 && dt<450){
       const idx=TAB_ORDER.indexOf(activeTab);
-      if(idx<0){touchStart=null;return;}
-      const next=dx<0 ? Math.min(TAB_ORDER.length-1,idx+1) : Math.max(0,idx-1);
-      if(next!==idx){
-        hapticSwipe();
-        setTab(TAB_ORDER[next]);
+      if(idx>=0){
+        const next=dx<0 ? Math.min(TAB_ORDER.length-1,idx+1) : Math.max(0,idx-1);
+        if(next!==idx){ hapticSwipe(); setTab(TAB_ORDER[next]); }
       }
     }
     touchStart=null;touchMoved=null;ptrPulling=false;swipeBlocked=false;
-  });
+  }
+
+  scroll.addEventListener('touchstart', onTouchStart, {passive:true});
+  scroll.addEventListener('touchmove',  onTouchMove,  {passive:true});
+  scroll.addEventListener('touchend',   onTouchEnd,   {passive:true});
 }
-setTimeout(attachGestures,300);
-window.addEventListener('resize',()=>{ if(!document._ga){document._ga=true;attachGestures();} });
+// Run after shell is in DOM — short delay to ensure mainScroll exists
+setTimeout(attachGestures, 400);
 
 // ════════════════════════════════════════════════════════
 // AUTH
