@@ -1352,7 +1352,7 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
     <div class="main" id="mainScroll">
       <div class="topbar">
         <div class="tb-left">
-          <button class="hamb" onclick="toggleMenu()" aria-label="Menu"><i data-lucide="menu"></i></button>
+          <button class="hamb" onclick="toggleMenu();event.stopPropagation()" aria-label="Menu"><i data-lucide="menu"></i></button>
           <div class="topbar-title" id="tab-title">Home</div>
         </div>
         <div class="topbar-right">
@@ -1525,9 +1525,14 @@ function toggleMenu(force){
 
 // When the menu is open, tapping the shrunk main-wrap closes it.
 function _mainWrapTap(ev){
+  // Walk up from ev.target to check for .hamb — handles SVG child elements in Capacitor WebView
+  let el=ev.target;
+  while(el && el!==document.body){
+    if(el.classList && el.classList.contains('hamb'))return;
+    el=el.parentElement;
+  }
   const sh=document.getElementById('shell');
   if(!sh.classList.contains('menu-open'))return;
-  // Only collapse on the shrunk surface — not from within normal usage
   ev.preventDefault();ev.stopPropagation();
   toggleMenu(false);
 }
