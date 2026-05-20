@@ -758,12 +758,11 @@ button.primary:active{transform:translateY(0) scale(.97)}
    ═══════════════════════════════════════════════════════════ */
 body.app-mode .sidebar{
   position:fixed;inset:0;z-index:60;width:100%;max-width:100%;
-  background:linear-gradient(160deg, #0a1a12 0%, #0a0f0c 40%, #050807 100%);
+  background:var(--bg);
   opacity:0;pointer-events:none;
   transition:opacity .38s cubic-bezier(.2,.85,.25,1);
-  padding:max(56px,calc(env(safe-area-inset-top) + 42px)) 24px 36px;
+  padding:max(16px,calc(env(safe-area-inset-top) + 12px)) 24px 36px;
   display:flex;flex-direction:column;gap:8px;
-  --accent:#3fb37f; --accent-soft:rgba(63,179,127,.18); --accent-ink:#05110b;
 }
 body.app-mode .shell.menu-open .sidebar{opacity:1;pointer-events:auto}
 
@@ -796,10 +795,10 @@ body.app-mode .sidebar .nav-item-desktop{display:none}
 
 body.app-mode .drawer-close{
   display:flex;align-items:center;justify-content:center;
-  position:absolute;top:max(14px,calc(env(safe-area-inset-top) + 8px));right:18px;
-  width:42px;height:42px;border-radius:14px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  color:#e9f6ee;cursor:pointer;
+  position:absolute;top:max(16px,calc(env(safe-area-inset-top) + 12px));right:16px;
+  width:38px;height:38px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border-strong);
+  color:var(--text);cursor:pointer;
   transition:all .2s;z-index:10;
 }
 body.app-mode .drawer-close:hover{background:rgba(255,255,255,.12);transform:rotate(90deg)}
@@ -807,48 +806,48 @@ body.app-mode .drawer-close [data-lucide]{width:20px;height:20px}
 
 body.app-mode .drawer-acct{
   display:flex;align-items:center;gap:14px;
-  padding:16px 18px;margin-bottom:22px;
-  background:linear-gradient(135deg, rgba(63,179,127,.15), rgba(63,179,127,.05));
-  border:1px solid rgba(63,179,127,.25);
+  padding:16px 18px;margin-bottom:22px;margin-top:64px;
+  background:linear-gradient(135deg, var(--accent-soft), rgba(0,0,0,0));
+  border:1px solid var(--border-strong);
   border-radius:18px;cursor:pointer;
   transition:all .2s cubic-bezier(.3,.85,.35,1);
 }
-body.app-mode .drawer-acct:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(63,179,127,.2);border-color:rgba(63,179,127,.4)}
+body.app-mode .drawer-acct:hover{transform:translateY(-1px);box-shadow:0 8px 24px var(--accent-soft);border-color:var(--border-strong)}
 .drawer-acct-av{
   width:52px;height:52px;border-radius:16px;flex-shrink:0;
-  background:linear-gradient(135deg, #3fb37f, #2d8c5f);color:#05110b;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));color:var(--accent-ink);
   display:flex;align-items:center;justify-content:center;
   font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;font-weight:600;
-  box-shadow:0 4px 12px rgba(63,179,127,.3);
+  box-shadow:0 4px 12px var(--accent-soft);
 }
 .drawer-acct-meta{flex:1;min-width:0}
-.drawer-acct-nm{font-family:'Instrument Serif',serif;font-size:20px;line-height:1.1;color:#e9f6ee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.drawer-acct-em{font-size:11.5px;color:#7ba895;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+.drawer-acct-nm{font-family:'Instrument Serif',serif;font-size:20px;line-height:1.1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer-acct-em{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
 
 body.app-mode .sidebar .nav-items{gap:4px}
 body.app-mode .sidebar .nav-item{
   padding:14px 16px;border-radius:12px;font-size:14px;
-  color:#b5d4c3;transition:all .18s;
+  color:var(--muted);transition:all .18s;
   font-weight:500;letter-spacing:-.005em;
 }
-body.app-mode .sidebar .nav-item [data-lucide]{color:#7ba895;width:18px;height:18px}
-body.app-mode .sidebar .nav-item:hover{background:rgba(63,179,127,.08);color:#e9f6ee}
-body.app-mode .sidebar .nav-item:hover [data-lucide]{color:#3fb37f}
+body.app-mode .sidebar .nav-item [data-lucide]{color:var(--dim);width:18px;height:18px}
+body.app-mode .sidebar .nav-item:hover{background:var(--accent-soft);color:var(--text)}
+body.app-mode .sidebar .nav-item:hover [data-lucide]{color:var(--accent)}
 body.app-mode .sidebar .nav-item.on{
-  background:rgba(63,179,127,.18);color:#e9f6ee;
-  box-shadow:inset 0 0 0 1px rgba(63,179,127,.3);
+  background:var(--accent-soft);color:var(--text);
+  box-shadow:inset 0 0 0 1px var(--border-strong);
 }
-body.app-mode .sidebar .nav-item.on [data-lucide]{color:#3fb37f}
+body.app-mode .sidebar .nav-item.on [data-lucide]{color:var(--accent)}
 
 body.app-mode .drawer-signout{
   display:flex;align-items:center;justify-content:center;gap:8px;
   margin-top:auto;padding:14px 18px;width:100%;
-  background:transparent;border:1px solid rgba(255,110,110,.3);
-  color:#ff8f8f;border-radius:14px;cursor:pointer;
+  background:transparent;border:1px solid rgba(var(--danger),0.3);
+  color:var(--danger);border-radius:14px;cursor:pointer;
   font-family:inherit;font-size:13px;font-weight:500;
-  transition:all .2s;
+  transition:all .2s;opacity:.85;
 }
-body.app-mode .drawer-signout:hover{background:rgba(255,110,110,.1);border-color:rgba(255,110,110,.5);transform:translateY(-1px)}
+body.app-mode .drawer-signout:hover{background:color-mix(in srgb, var(--danger) 10%, transparent);border-color:var(--danger);opacity:1;transform:translateY(-1px)}
 body.app-mode .drawer-signout:active{transform:translateY(0) scale(.98)}
 
 body.app-mode .hamb{display:inline-flex}
@@ -1307,7 +1306,7 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
     <button class="drawer-close" onclick="toggleMenu(false)" aria-label="Close menu"><i data-lucide="x"></i></button>
 
     <!-- Mobile-only account card at top — opens Settings -->
-    <div class="drawer-acct" onclick="setTab('set');toggleMenu(false)">
+    <div class="drawer-acct" onclick="toggleMenu(false);setTimeout(()=>setTab('set'),60)">
       <div class="drawer-acct-av" id="drawer-av">?</div>
       <div class="drawer-acct-meta">
         <div class="drawer-acct-nm" id="drawer-nm">—</div>
@@ -1413,6 +1412,65 @@ const SUPABASE_URL = "https://eqjfijbqlfkpauzhjdiv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxamZpamJxbGZrcGF1emhqZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjkyMjksImV4cCI6MjA5MTY0NTIyOX0.VWKJ0gooMIXNnNTyY0dpxlYL14zReTMpB3yq8WNtNqg";
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+// ════════════════════════════════════════════════════════
+// WEB PUSH — VAPID public key
+// Generate your own pair with: npx web-push generate-vapid-keys
+// Paste the PUBLIC key here; paste the PRIVATE key into your
+// Supabase Edge Function environment as VAPID_PRIVATE_KEY.
+// ════════════════════════════════════════════════════════
+const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+
+// Convert VAPID base64url key → Uint8Array (required by pushManager.subscribe)
+function _vapidKeyToUint8(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=window.atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+
+// Subscribe this device to Web Push and store the subscription in Supabase
+// so the Edge Function can reach it later.
+async function registerPushSubscription(){
+  if(!('serviceWorker'in navigator)||!('PushManager'in window))return;
+  if(VAPID_PUBLIC_KEY==='YOUR_VAPID_PUBLIC_KEY_HERE')return; // not configured yet
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    // Re-use existing subscription if already subscribed
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:_vapidKeyToUint8(VAPID_PUBLIC_KEY)
+      });
+    }
+    if(!sub||!currentUser)return;
+    // Persist subscription endpoint + keys to Supabase push_subscriptions table
+    const uid=getUid();
+    const payload={
+      user_id:uid,
+      endpoint:sub.endpoint,
+      p256dh:btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
+      auth:btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')))),
+      updated_at:new Date().toISOString()
+    };
+    await sb.from('push_subscriptions').upsert(payload,{onConflict:'user_id'});
+  }catch(e){
+    // Permission denied or SW not ready — silent fail, app works fine without push
+    console.warn('Push subscription failed:',e);
+  }
+}
+
+// Unsubscribe this device when user signs out
+async function unregisterPushSubscription(){
+  if(!('serviceWorker'in navigator)||!('PushManager'in window))return;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    const sub=await reg.pushManager.getSubscription();
+    if(sub)await sub.unsubscribe();
+    if(currentUser)await sb.from('push_subscriptions').delete().eq('user_id',getUid());
+  }catch(e){}
+}
 
 // ════════════════════════════════════════════════════════
 // CURRENCY ENGINE
@@ -1536,9 +1594,48 @@ function _mainWrapTap(ev){
   ev.preventDefault();ev.stopPropagation();
   toggleMenu(false);
 }
+
+// Swipe-to-close drawer: swipe left on BOTTOM HALF of screen only
+(function(){
+  let sx=0,sy=0,startTime=0,fromBottomHalf=false;
+  document.addEventListener('touchstart',e=>{
+    const sh=document.getElementById('shell');
+    if(!sh||!sh.classList.contains('menu-open'))return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;startTime=Date.now();
+    const vh=window.innerHeight||document.documentElement.clientHeight;
+    fromBottomHalf=sy>=vh*0.5;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    const sh=document.getElementById('shell');
+    if(!sh||!sh.classList.contains('menu-open'))return;
+    if(!fromBottomHalf)return;
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=e.changedTouches[0].clientY-sy;
+    const dt=Date.now()-startTime;
+    // Left swipe: dx<-50, mostly horizontal (abs(dx)>abs(dy)*1.3), fast enough
+    if(dx<-50 && Math.abs(dx)>Math.abs(dy)*1.3 && dt<400){
+      toggleMenu(false);
+    }
+    fromBottomHalf=false;
+  },{passive:true});
+})();
 document.addEventListener('click',e=>{
   const ni=e.target.closest('.nav-item');
-  if(ni && document.body.classList.contains('app-mode')){ toggleMenu(false); }
+  if(ni && document.body.classList.contains('app-mode')){
+    const sh=document.getElementById('shell');
+    if(sh.classList.contains('menu-open')){
+      const onclick=ni.getAttribute('onclick')||'';
+      const match=onclick.match(/setTab\('(\w+)'\)/);
+      if(match){
+        e.preventDefault();
+        const tab=match[1];
+        toggleMenu(false);
+        setTimeout(()=>setTab(tab),80);
+        return;
+      }
+    }
+    toggleMenu(false);
+  }
 });
 
 // ════════════════════════════════════════════════════════
@@ -1549,17 +1646,17 @@ document.addEventListener('click',e=>{
 // to android/app/src/main/AndroidManifest.xml or haptics will silently fail.
 function _vibe(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 // Short single buzz on tap / selection (crisp).
-function hapticTick(){ _vibe(30); }
+function hapticTick(){ _vibe(6); }
 // Very short tick for passive interactions (row expand, focus change).
-function hapticTap() { _vibe(12); }
+function hapticTap() { _vibe(4); }
 // Success pattern (save / refresh done).
-function hapticDone(){ _vibe([20,60,35]); }
+function hapticDone(){ _vibe([8,40,12]); }
 // Swipe between tabs — longer, more pronounced bump.
-function hapticSwipe(){ _vibe([18,40,18]); }
+function hapticSwipe(){ _vibe([6,30,6]); }
 // Soft double-tap for toggle switches.
-function hapticToggle(){ _vibe([10,30,10]); }
+function hapticToggle(){ _vibe([4,20,4]); }
 // Error / invalid input.
-function hapticError(){ _vibe([40,60,40,60,40]); }
+function hapticError(){ _vibe([10,40,10,40,10]); }
 
 let toastTimer=null;
 function showToast(msg,icon='check'){
@@ -1968,19 +2065,60 @@ async function handleSubmit(){
   btn.querySelector('span').textContent=isSignUp?'Create Account':'Sign In';btn.disabled=false;
 }
 async function doSignOut(){
+  // Close the drawer first so the confirm dialog appears over a clean screen
+  toggleMenu(false);
   if(!await confirmAsync('You can sign back in anytime — your data stays in sync.',{title:'Sign out',okText:'Sign out',cancelText:'Cancel'}))return;
-  if(rtChannel){sb.removeChannel(rtChannel);rtChannel=null;}
-  state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir'};
-  [dChart,anChart,savChart].forEach(c=>{if(c)c.destroy();});
+  hapticTick();
+  const isDemo=(currentUser?.id==='demo-local');
+  // Tear down real-time channel
+  if(rtChannel && typeof sb!=='undefined'){try{sb.removeChannel(rtChannel);}catch(e){}rtChannel=null;}
+  // Reset all state
+  state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir',creditPaid:{},customCats:[],settings:{ccCutoffDay:0,notifEnabled:false},notifState:{},catOverrides:{},customSubs:{}};
+  [dChart,anChart,savChart].forEach(c=>{if(c){try{c.destroy();}catch(e){}}});
   dChart=anChart=savChart=null;
-  await sb.auth.signOut();
+  currentUser=null;
+  // Restore the real showLogin/save/startListener in case demo mode overrode them
+  window.showLogin=function(){
+    document.getElementById('auth-screen').classList.add('show');
+    document.getElementById('shell').classList.remove('on');
+  };
+  window.save=function(){
+    setSyncStatus('syncing','Saving…');
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async()=>{
+      try{
+        const uid=getUid();
+        const{error}=await sb.from('tracker').upsert(
+          {id:uid,data:JSON.stringify({...state,curY,curM}),updated_at:new Date().toISOString()},
+          {onConflict:'id'}
+        );
+        if(error)throw error;
+        setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString(CUR().locale,{hour:'2-digit',minute:'2-digit'}));
+        try{localStorage.setItem('et_'+uid,JSON.stringify({...state,curY,curM}));}catch(e){}
+      }catch(e){
+        setSyncStatus('err','Sync failed — saved locally');
+        try{localStorage.setItem('et_'+getUid(),JSON.stringify({...state,curY,curM}));}catch(le){}
+      }
+    },800);
+  };
+  window.startListener=startListener;
+  if(isDemo){showLogin();return;}
+  try{
+    await unregisterPushSubscription();
+    await sb.auth.signOut();
+    // onAuthStateChange fires showLogin — call explicitly as safety net
+    showLogin();
+  }catch(e){
+    console.warn('signOut error:',e);
+    showLogin();
+  }
 }
 async function initAuth(){
   loadTheme();
   // Restore remembered email immediately so form appears pre-filled if we need to show it
   try{
     const saved=localStorage.getItem('tln_remember_email');
-    if(saved){const el=document.getElementById('email');if(el)el.value=saved;document.getElementById('remember-me').checked=true;}
+    if(saved){const el=document.getElementById('a-email');if(el)el.value=saved;const rm=document.getElementById('remember-me');if(rm)rm.checked=true;}
   }catch(e){}
   const{data:{session}}=await sb.auth.getSession();
   if(session?.user){currentUser=session.user;showApp();}
@@ -2001,6 +2139,8 @@ function showApp(){
   document.getElementById('sb-em').textContent=currentUser?.email||'';
   if(window.lucide)lucide.createIcons();
   startListener();
+  // Re-subscribe push (no-op if already subscribed or VAPID not configured)
+  if((state.settings||{}).notifEnabled) registerPushSubscription();
 }
 function showLogin(){
   document.getElementById('auth-screen').classList.add('show');
@@ -2180,6 +2320,7 @@ async function startListener(){
     setSyncStatus('err','Offline — using local data');
     try{const p=JSON.parse(localStorage.getItem('et_'+uid)||'{}');if(p.exps)state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{}};}catch(le){}
   }
+  pruneNotifState();
   render();
   if(rtChannel){sb.removeChannel(rtChannel);}
   rtChannel=sb.channel('tr-'+uid)
@@ -2480,10 +2621,36 @@ function mkFromParts(y,m){return y+'-'+String(m).padStart(2,'0');}
 // ════════════════════════════════════════════════════════
 // NOTIFICATIONS (Level 1 · local, fires when app is open)
 // ════════════════════════════════════════════════════════
-function notifSupported(){return('Notification'in window)&&typeof Notification.requestPermission==='function';}
-function notifReady(){return notifSupported()&&Notification.permission==='granted'&&((state.settings||{}).notifEnabled);}
+// ── Notification capability detection ──────────────────────────────────────
+// Three tiers:
+//   'capacitor' — Capacitor APK / file:// WebView (no Web Notification API)
+//                 → deliver via in-app toast banners (no OS permission needed)
+//   'browser'   — Chrome/Firefox with Notification API available
+//   'none'      — environment that genuinely doesn't support any alert channel
+function _notifTier(){
+  const isCapacitor=!!(window.Capacitor)||document.URL.startsWith('file://');
+  if(isCapacitor)return'capacitor';
+  if('Notification'in window&&typeof Notification.requestPermission==='function')return'browser';
+  return'none';
+}
+function notifSupported(){return _notifTier()!=='none';}
+function notifReady(){
+  const t=_notifTier();
+  if(t==='capacitor')return!!((state.settings||{}).notifEnabled);
+  if(t==='browser')return Notification.permission==='granted'&&!!((state.settings||{}).notifEnabled);
+  return false;
+}
 async function requestNotifPermission(){
-  if(!notifSupported()){showToast('Notifications not supported on this device','x');return false;}
+  const t=_notifTier();
+  if(t==='none'){showToast('Alerts not supported on this device','x');return false;}
+  if(t==='capacitor'){
+    // No OS permission needed — alerts delivered as in-app banners
+    state.settings=state.settings||{};
+    state.settings.notifEnabled=true;save();hapticTick();
+    showToast('Budget alerts enabled ✓','check');
+    return true;
+  }
+  // browser tier
   if(Notification.permission==='denied'){showToast('Enable notifications in your browser settings','x');return false;}
   if(Notification.permission!=='granted'){
     const p=await Notification.requestPermission();
@@ -2492,9 +2659,11 @@ async function requestNotifPermission(){
   state.settings=state.settings||{};
   state.settings.notifEnabled=true;save();hapticTick();
   showToast('Notifications enabled ✓','check');
+  // Subscribe this device to Web Push so the Edge Function can reach it
+  registerPushSubscription();
   return true;
 }
-function disableNotifs(){state.settings=state.settings||{};state.settings.notifEnabled=false;save();showToast('Notifications off');render();}
+function disableNotifs(){state.settings=state.settings||{};state.settings.notifEnabled=false;save();showToast('Alerts turned off');render();}
 function setCcCutoff(val){
   const n=parseInt(val);
   state.settings=state.settings||{};
@@ -2503,16 +2672,91 @@ function setCcCutoff(val){
   showToast(state.settings.ccCutoffDay?`Cut-off set to day ${state.settings.ccCutoffDay}`:'Using calendar month','check');
   render();
 }
-async function resetNotifState(){if(!await confirmAsync('Alert history for all months will be cleared. Alerts will re-fire when thresholds are next crossed.',{title:'Reset alerts',danger:true,okText:'Reset',cancelText:'Cancel'}))return;
-  state.notifState={};save();hapticTick();showToast('Alert history cleared');render();
+async function resetNotifState(){if(!await confirmAsync('This will clear alert flags for the current month so they can fire again.',{title:'Reset alerts',danger:false,okText:'Reset',cancelText:'Cancel'}))return;
+  const mkey=mk();
+  state.notifState=state.notifState||{};
+  delete state.notifState[mkey];
+  save();hapticTick();showToast('Alert history cleared');render();
+}
+
+// Auto-prune notifState: keep only the last 2 months to avoid indefinite growth
+function pruneNotifState(){
+  if(!state.notifState||typeof state.notifState!=='object')return;
+  const now=new Date();
+  const keep=new Set();
+  for(let i=0;i<2;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    keep.add(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+  }
+  let pruned=false;
+  Object.keys(state.notifState).forEach(k=>{if(!keep.has(k)){delete state.notifState[k];pruned=true;}});
+  if(pruned)save();
 }
 function _fireNotif(title,body,tag){
   if(!notifReady())return false;
+  // Capacitor APK — no Web Notification API, use a persistent in-app banner instead
+  if(_notifTier()==='capacitor'){
+    _showAlertBanner(title,body,tag);
+    return true;
+  }
+  // Browser — real OS notification
   try{
-    const n=new Notification(title,{body,tag:tag||'ledger-'+Date.now(),icon:'/manifest-icon.png',badge:'/manifest-icon.png',silent:false});
+    const n=new Notification(title,{body,tag:tag||'ledger-'+Date.now(),icon:'icons/icon-192.png',badge:'icons/icon-192.png',silent:false});
     n.onclick=()=>{window.focus();n.close();};
     return true;
   }catch(e){return false;}
+}
+
+// ── In-app alert banner (Capacitor fallback) ────────────────────────────────
+// Shows a dismissible card at the top of the screen, above the topbar.
+// Multiple alerts stack; each auto-dismisses after 6 s.
+let _bannerQueue=[];
+function _showAlertBanner(title,body,tag){
+  // Dedupe by tag within this session
+  if(tag&&_bannerQueue.includes(tag))return;
+  if(tag)_bannerQueue.push(tag);
+
+  const id='alrt-'+Date.now();
+  const wrap=document.createElement('div');
+  wrap.id=id;
+  wrap.style.cssText=`
+    position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;
+    z-index:9999;background:var(--card);border:1px solid var(--border-strong);
+    border-left:3px solid var(--accent);border-radius:16px;
+    padding:13px 14px 13px 16px;
+    box-shadow:0 12px 40px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3);
+    display:flex;align-items:flex-start;gap:12px;
+    animation:alertIn .35s cubic-bezier(.34,1.2,.44,1) both;
+    font-family:'Geist',sans-serif;
+  `;
+  wrap.innerHTML=`
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.3">${title}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.4">${body}</div>
+    </div>
+    <button onclick="document.getElementById('${id}')?.remove()" style="
+      background:transparent;border:none;cursor:pointer;color:var(--dim);
+      padding:2px 4px;border-radius:6px;font-size:16px;line-height:1;flex-shrink:0;margin-top:-1px;
+    ">×</button>
+  `;
+
+  // Add keyframe if not yet injected
+  if(!document.getElementById('alert-kf')){
+    const s=document.createElement('style');
+    s.id='alert-kf';
+    s.textContent='@keyframes alertIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}';
+    document.head.appendChild(s);
+  }
+
+  // Stack below any existing banners
+  const existing=document.querySelectorAll('[id^="alrt-"]');
+  let topOffset=Math.max(12,parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat')||'0')||12);
+  existing.forEach(el=>{ topOffset+=el.offsetHeight+8; });
+  if(existing.length>0) wrap.style.top=topOffset+'px';
+
+  document.body.appendChild(wrap);
+  hapticTick();
+  setTimeout(()=>{ wrap.style.transition='opacity .4s,transform .4s'; wrap.style.opacity='0'; wrap.style.transform='translateY(-8px)'; setTimeout(()=>wrap.remove(),420); },6000);
 }
 function _notifFlag(path,val){
   state.notifState=state.notifState||{};
@@ -2876,6 +3120,9 @@ function setTab(t){
     selCatId=null;anY=curY;anM=curM;hapticTap();
     const fab=document.getElementById('fab-btn');
     if(fab)fab.classList.toggle('home-only',t==='dash');
+    // Always reset scroll to top on tab switch
+    const ms=document.getElementById('mainScroll');
+    if(ms)ms.scrollTop=0;
     render();
   };
   if(document.startViewTransition) document.startViewTransition(inner);
@@ -3376,10 +3623,6 @@ function renderSet(){
           </div>
           <button class="ghost acct-signout" onclick="doSignOut()" title="Sign out"><i data-lucide="log-out" class="ic-sm"></i><span>Sign out</span></button>
         </div>
-        <div class="acct-sync">
-          <i data-lucide="cloud-check" class="ic-sm" style="color:var(--accent2)"></i>
-          <span>Data syncs encrypted via Supabase — no export needed.</span>
-        </div>
       </div>
 
       <div class="set-section">
@@ -3428,11 +3671,22 @@ function renderSet(){
 
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>Notifications</em></div>
-        <div class="set-sub">Get nudged when you cross budget thresholds (50% · 80% · 100%) and when your credit-card bill needs attention. Notifications fire while TheLittleNaga is open in a tab or installed as a PWA.</div>
+        <div class="set-sub">${_notifTier()==='capacitor'
+          ? 'Budget & bill alerts appear as in-app banners while the app is open. No extra permissions needed.'
+          : 'Get nudged when you cross budget thresholds (50% · 80% · 100%) and when your credit-card bill needs attention. Notifications fire while TheLittleNaga is open in a tab or installed as a PWA.'
+        }</div>
         <div class="set-row">
           <div>
             <div class="set-rl">Budget & bill alerts</div>
-            <div class="set-rs">${notifSupported()?(Notification.permission==='granted'?(state.settings?.notifEnabled?'✓ Enabled · permission granted':'Permission granted, toggle on to receive'):(Notification.permission==='denied'?'Blocked — enable in browser settings':'Not requested yet')):'Not supported on this device'}</div>
+            <div class="set-rs">${(()=>{
+              const t=_notifTier();
+              if(t==='none')return'Not supported on this device';
+              if(t==='capacitor')return state.settings?.notifEnabled?'✓ Enabled — alerts show as in-app banners':'Disabled — tap Enable to turn on';
+              // browser
+              if(Notification.permission==='granted')return state.settings?.notifEnabled?'✓ Enabled · permission granted':'Permission granted — tap Enable to turn on';
+              if(Notification.permission==='denied')return'Blocked — enable in your browser settings first';
+              return'Not requested yet';
+            })()}</div>
           </div>
           ${notifSupported()?(state.settings?.notifEnabled
             ? `<button class="ghost" onclick="disableNotifs()"><i data-lucide="bell-off" class="ic-sm"></i>Turn off</button>`
@@ -3441,19 +3695,23 @@ function renderSet(){
         </div>
         ${state.settings?.notifEnabled?`
         <div class="set-row">
-          <div><div class="set-rl">Test notification</div><div class="set-rs">Send a sample to verify it works on your device.</div></div>
-          <button class="ghost" onclick="_fireNotif('TheLittleNaga test','If you see this, notifications work ✓','test-'+Date.now())?showToast('Sent ✓'):showToast('Failed','x')"><i data-lucide="zap" class="ic-sm"></i>Send test</button>
+          <div><div class="set-rl">Background push</div><div class="set-rs">${VAPID_PUBLIC_KEY==='YOUR_VAPID_PUBLIC_KEY_HERE'?'⚠ VAPID key not configured — see setup guide below':'✓ VAPID configured · Edge Function sends alerts even when app is closed'}</div></div>
+          ${VAPID_PUBLIC_KEY!=='YOUR_VAPID_PUBLIC_KEY_HERE'?`<button class="ghost" onclick="registerPushSubscription().then(()=>showToast('Subscription refreshed ✓','check'))"><i data-lucide="radio" class="ic-sm"></i>Re-subscribe</button>`:''}
+        </div>
+        <div class="set-row">
+          <div><div class="set-rl">Test in-app alert</div><div class="set-rs">Fires an alert right now — works even without the Edge Function.</div></div>
+          <button class="ghost" onclick="_fireNotif('TheLittleNaga test','If you see this, alerts work ✓','test-'+Date.now())?showToast('Sent ✓'):showToast('Failed','x')"><i data-lucide="zap" class="ic-sm"></i>Send test</button>
         </div>`:''}
         <div class="set-row">
-          <div><div class="set-rl">Reset alert history</div><div class="set-rs">Clear fired flags so alerts can re-trigger for this month.</div></div>
-          <button class="ghost" onclick="resetNotifState()"><i data-lucide="rotate-ccw" class="ic-sm"></i>Reset</button>
+          <div><div class="set-rl">Reset alert history</div><div class="set-rs">Each budget alert fires once per month — resetting lets them fire again this month. Clears automatically at the start of each new month.</div></div>
+          <button class="ghost" onclick="resetNotifState()"><i data-lucide="rotate-ccw" class="ic-sm"></i>Reset now</button>
         </div>
       </div>
 
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>About</em></div>
         <div class="set-row">
-          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.1 · Built for clarity. Your money, quietly tracked.</div></div>
+          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.2</div></div>
         </div>
       </div>
     </div>`;
