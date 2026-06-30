@@ -2,7 +2,7 @@
 
 > A personal finance tracker built because free apps never had exactly what I needed — so I built my own.
 
-Current version: **v3.2**
+Current version: **v3.3**
 
 ---
 
@@ -174,6 +174,9 @@ Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` 
 ---
 
 ## Changelog
+
+### v3.3
+- **Cancelling a recurring entry no longer erases history** — removing a subscription/EMI (e.g. stopping Netflix autopay) now only stops *future* charges. If the current month was already billed, it stays; if not yet billed this month, it stops as of last month. Past months are never touched. The entry is only fully deleted if it never actually got billed (e.g. removed before its start date).
 
 ### v3.2
 - **Background push notifications** — real OS-level alerts via Web Push + Supabase Edge Function, even when the app is closed. Works on Chrome PWA with no Firebase Console needed — just VAPID keys and one Edge Function deploy.
