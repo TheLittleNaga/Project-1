@@ -947,15 +947,22 @@ body.app-mode .dock{display:block}
 @keyframes bgIn{from{opacity:0}to{opacity:1}}
 .sheet-bg.on{display:block}
 .sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:71;
-  background:var(--surface);border-radius:28px 28px 0 0;
-  border-top:1px solid var(--border-strong);
+  /* Anchored from the TOP so it never has to jump when the on-screen keyboard
+     opens/closes — the keyboard only ever eats into the BOTTOM of the viewport,
+     so a top-anchored floating panel stays exactly where it is regardless. */
+  position:fixed;left:12px;right:12px;
+  top:max(64px, calc(env(safe-area-inset-top) + 54px));
+  bottom:auto;z-index:71;margin:0 auto;max-width:460px;
+  background:var(--surface);border-radius:24px;
+  border:1px solid var(--border-strong);
   padding:14px 18px max(20px,env(safe-area-inset-bottom)) 18px;
-  transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.85,.25,1);
-  max-height:88vh;overflow-y:auto;display:none;
+  transform:translateY(-18px) scale(.97);opacity:0;
+  transition:transform .3s cubic-bezier(.2,.85,.25,1),opacity .25s ease;
+  max-height:min(640px, calc(100vh - 140px));overflow-y:auto;display:none;
+  box-shadow:0 30px 80px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3);
 }
 .sheet.on{display:block}
-.sheet.in{transform:translateY(0)}
+.sheet.in{transform:translateY(0) scale(1);opacity:1}
 .sheet-handle{width:44px;height:4px;background:var(--border-strong);border-radius:4px;margin:4px auto 14px}
 .sheet-title{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.1;margin-bottom:4px}
 .sheet-title em{font-style:italic;color:var(--accent)}
@@ -1306,7 +1313,7 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
     <button class="drawer-close" onclick="toggleMenu(false)" aria-label="Close menu"><i data-lucide="x"></i></button>
 
     <!-- Mobile-only account card at top — opens Settings -->
-    <div class="drawer-acct" onclick="toggleMenu(false);setTimeout(()=>setTab('set'),60)">
+    <div class="drawer-acct" onclick="toggleMenu(false);setTimeout(()=>setTab('set',{silent:true}),420)">
       <div class="drawer-acct-av" id="drawer-av">?</div>
       <div class="drawer-acct-meta">
         <div class="drawer-acct-nm" id="drawer-nm">—</div>
@@ -1322,13 +1329,13 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
     </div>
 
     <div class="nav-items">
-      <div class="nav-item on" id="nb-dash" onclick="setTab('dash')"><i data-lucide="layout-dashboard"></i>Home<span class="sync-dot" id="sync-dot"></span></div>
-      <div class="nav-item" id="nb-txn" onclick="setTab('txn')"><i data-lucide="receipt"></i>Transactions</div>
-      <div class="nav-item" id="nb-an"  onclick="setTab('an')"><i data-lucide="trending-up"></i>Analytics</div>
-      <div class="nav-item" id="nb-sav" onclick="setTab('sav')"><i data-lucide="piggy-bank"></i>Savings</div>
-      <div class="nav-item" id="nb-bud" onclick="setTab('bud')"><i data-lucide="target"></i>Budgets</div>
-      <div class="nav-item" id="nb-emi" onclick="setTab('emi')"><i data-lucide="repeat"></i>Recurring</div>
-      <div class="nav-item nav-item-desktop" id="nb-set" onclick="setTab('set')"><i data-lucide="settings"></i>Settings</div>
+      <div class="nav-item on" id="nb-dash" data-tab="dash"><i data-lucide="layout-dashboard"></i>Home<span class="sync-dot" id="sync-dot"></span></div>
+      <div class="nav-item" id="nb-txn" data-tab="txn"><i data-lucide="receipt"></i>Transactions</div>
+      <div class="nav-item" id="nb-an"  data-tab="an"><i data-lucide="trending-up"></i>Analytics</div>
+      <div class="nav-item" id="nb-sav" data-tab="sav"><i data-lucide="piggy-bank"></i>Savings</div>
+      <div class="nav-item" id="nb-bud" data-tab="bud"><i data-lucide="target"></i>Budgets</div>
+      <div class="nav-item" id="nb-emi" data-tab="emi"><i data-lucide="repeat"></i>Recurring</div>
+      <div class="nav-item nav-item-desktop" id="nb-set" data-tab="set"><i data-lucide="settings"></i>Settings</div>
     </div>
 
     <!-- Mobile-only: Sign out at the bottom of drawer -->
@@ -1355,6 +1362,7 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
           <div class="topbar-title" id="tab-title">Home</div>
         </div>
         <div class="topbar-right">
+          <button class="mbtn" id="notif-bell" onclick="setTab('notif')" style="position:relative" aria-label="Notifications"><i data-lucide="bell" class="ic-sm"></i><span class="notif-badge" style="display:none;position:absolute;top:2px;right:2px;min-width:14px;height:14px;padding:0 3px;border-radius:8px;background:var(--danger);color:#fff;font-size:9px;line-height:14px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700"></span></button>
           <div class="month-mob" onclick="openSheet('month')"><i data-lucide="calendar" class="ic-sm"></i><span id="month-mob-lbl">—</span></div>
           <div class="month-nav">
             <button class="mbtn" onclick="chMo(-1)" aria-label="Previous month"><i data-lucide="chevron-left" class="ic-sm"></i></button>
@@ -1567,10 +1575,15 @@ detectAppMode();
 // ════════════════════════════════════════════════════════
 function toggleMenu(force){
   const sh=document.getElementById('shell');
-  if(typeof force==='boolean'){sh.classList.toggle('menu-open',force);hapticTick();return;}
+  if(typeof force==='boolean'){
+    sh.classList.toggle('menu-open',force);hapticTick();
+    if(force)_navPushGuardIfNeeded();
+    return;
+  }
   sh.classList.toggle('menu-open');hapticTick();
   // Sync mobile drawer avatar + name on open
   if(sh.classList.contains('menu-open')){
+    _navPushGuardIfNeeded();
     const av=document.getElementById('drawer-av');
     const nm=document.getElementById('drawer-nm');
     const em=document.getElementById('drawer-em');
@@ -1619,23 +1632,29 @@ function _mainWrapTap(ev){
     fromBottomHalf=false;
   },{passive:true});
 })();
+// Single source of truth for nav-item clicks (sidebar AND mobile drawer share
+// this markup). Previously each nav-item ALSO had an inline onclick="setTab(...)"
+// which fired independently of this delegated listener, so a single tap ran
+// setTab() 2-3 times (double render + double/triple vibration + visible flicker).
+// Nav items now carry only a data-tab attribute — this is the only place that
+// calls setTab() for them.
 document.addEventListener('click',e=>{
   const ni=e.target.closest('.nav-item');
-  if(ni && document.body.classList.contains('app-mode')){
+  if(!ni)return;
+  const tab=ni.dataset.tab;
+  if(!tab)return;
+  e.preventDefault();
+  if(document.body.classList.contains('app-mode')){
     const sh=document.getElementById('shell');
-    if(sh.classList.contains('menu-open')){
-      const onclick=ni.getAttribute('onclick')||'';
-      const match=onclick.match(/setTab\('(\w+)'\)/);
-      if(match){
-        e.preventDefault();
-        const tab=match[1];
-        toggleMenu(false);
-        setTimeout(()=>setTab(tab),80);
-        return;
-      }
+    if(sh && sh.classList.contains('menu-open')){
+      // Let the drawer's own close animation finish (420ms) before switching
+      // tabs, so the page-flip view-transition doesn't run mid-animation.
+      toggleMenu(false);
+      setTimeout(()=>setTab(tab,{silent:true}),420);
+      return;
     }
-    toggleMenu(false);
   }
+  setTab(tab);
 });
 
 // ════════════════════════════════════════════════════════
@@ -1698,6 +1717,7 @@ function openDrill(catId){
     <div class="tlist" style="max-height:50vh">${makeTList(ce)}</div>`;
   bg.classList.add('on');md.classList.add('on');
   document.body.style.overflow='hidden';
+  _navPushGuardIfNeeded();
   if(window.lucide)lucide.createIcons();
   hapticTap();
 }
@@ -1747,6 +1767,7 @@ function openSheet(mode){
   }
   bg.classList.add('on');sh.classList.add('on');
   requestAnimationFrame(()=>{sh.classList.add('in');});
+  _navPushGuardIfNeeded();
   if(window.lucide)lucide.createIcons();
 }
 function addExpFromSheet(){
@@ -2073,7 +2094,7 @@ async function doSignOut(){
   // Tear down real-time channel
   if(rtChannel && typeof sb!=='undefined'){try{sb.removeChannel(rtChannel);}catch(e){}rtChannel=null;}
   // Reset all state
-  state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir',creditPaid:{},customCats:[],settings:{ccCutoffDay:0,notifEnabled:false},notifState:{},catOverrides:{},customSubs:{}};
+  state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir',creditPaid:{},customCats:[],settings:{ccCutoffDay:0,notifEnabled:false},notifState:{},catOverrides:{},customSubs:{},notifLog:[]};
   [dChart,anChart,savChart].forEach(c=>{if(c){try{c.destroy();}catch(e){}}});
   dChart=anChart=savChart=null;
   currentUser=null;
@@ -2259,7 +2280,7 @@ function allCats(){
 // ════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════
-let state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir',creditPaid:{},customCats:[],settings:{ccCutoffDay:0,notifEnabled:false},notifState:{},catOverrides:{},customSubs:{}};
+let state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:'INR',theme:'noir',creditPaid:{},customCats:[],settings:{ccCutoffDay:0,notifEnabled:false},notifState:{},catOverrides:{},customSubs:{},notifLog:[]};
 const _now=(function(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));}catch(e){return new Date();}})();
 let curY=_now.getFullYear(),curM=_now.getMonth();
 let activeTab='dash',selCatId=null,period='daily',anY=curY,anM=curM;
@@ -2311,14 +2332,14 @@ async function startListener(){
     if(error&&error.code!=='PGRST116')throw error;
     if(data?.data){
       const p=JSON.parse(data.data);
-      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{}};
+      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
       if(p.curY)curY=p.curY;if(p.curM!==undefined)curM=p.curM;
       if(state.theme && state.theme!==localStorage.getItem('theme')) applyTheme(state.theme);
     }
     setSyncStatus('ok',data?'Synced':'Ready — add your first expense');
   }catch(e){
     setSyncStatus('err','Offline — using local data');
-    try{const p=JSON.parse(localStorage.getItem('et_'+uid)||'{}');if(p.exps)state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{}};}catch(le){}
+    try{const p=JSON.parse(localStorage.getItem('et_'+uid)||'{}');if(p.exps)state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};}catch(le){}
   }
   pruneNotifState();
   render();
@@ -2327,7 +2348,7 @@ async function startListener(){
     .on('postgres_changes',{event:'*',schema:'public',table:'tracker',filter:`id=eq.${uid}`},pl=>{
       if(!pl.new?.data)return;
       const p=JSON.parse(pl.new.data);
-      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{}};
+      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
       if(p.curY)curY=p.curY;if(p.curM!==undefined)curM=p.curM;
       setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString(CUR().locale,{hour:'2-digit',minute:'2-digit'}));
       // Skip render if user is mid-input — don't wipe their typing
@@ -2336,6 +2357,20 @@ async function startListener(){
       if(document.getElementById('sheet')?.classList.contains('on'))return;
       render();
     }).subscribe(s=>{if(s==='SUBSCRIBED')setSyncStatus('ok','Live sync active');});
+}
+async function wipeAllData(){
+  const step1=await confirmAsync('This permanently deletes every expense, income entry, budget, recurring/EMI charge, and custom category — on this device and in the cloud. Your sign-in, theme, and currency choice are kept. This cannot be undone.',{title:'Wipe all data?',danger:true,okText:'Continue',cancelText:'Cancel'});
+  if(!step1)return;
+  const typed=await promptAsync('Type WIPE (all caps) to confirm.','',{title:'Final confirmation',okText:'Wipe everything'});
+  if(typed!=='WIPE'){showToast('Cancelled — nothing was deleted');return;}
+  const uid=getUid();
+  state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:state.currency,theme:state.theme,creditPaid:{},customCats:[],settings:Object.assign({},state.settings,{notifEnabled:false}),notifState:{},catOverrides:{},customSubs:{},notifLog:[]};
+  const nowIst=(function(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));}catch(e){return new Date();}})();
+  curY=nowIst.getFullYear();curM=nowIst.getMonth();
+  try{localStorage.removeItem('et_'+uid);}catch(e){}
+  save();
+  hapticDone();showToast('All data wiped ✓','check');
+  render();
 }
 function exportBackup(){
   const a=document.createElement('a');
@@ -2716,71 +2751,101 @@ function pruneNotifState(){
   Object.keys(state.notifState).forEach(k=>{if(!keep.has(k)){delete state.notifState[k];pruned=true;}});
   if(pruned)save();
 }
-function _fireNotif(title,body,tag){
+function _logNotif(title,body,tag,meta){
+  state.notifLog=state.notifLog||[];
+  meta=meta||{};
+  // Dedupe by tag — a tag firing twice (e.g. re-check on re-render) just
+  // refreshes the timestamp/unread state rather than adding a duplicate row.
+  if(tag){
+    const existing=state.notifLog.find(n=>n.tag===tag);
+    if(existing){ existing.ts=Date.now(); existing.read=false; save(); return; }
+  }
+  state.notifLog.unshift({id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title,body,tag:tag||null,kind:meta.kind||null,catId:meta.catId||null,mkey:meta.mkey||mk(),read:false,ts:Date.now()});
+  if(state.notifLog.length>60)state.notifLog.length=60;
+  save();
+}
+function _fireNotif(title,body,tag,meta){
   if(!notifReady())return false;
+  _logNotif(title,body,tag,meta);
   // Capacitor APK — no Web Notification API, use a persistent in-app banner instead
   if(_notifTier()==='capacitor'){
     _showAlertBanner(title,body,tag);
+    _updateNotifBadge();
     return true;
   }
   // Browser — real OS notification
   try{
     const n=new Notification(title,{body,tag:tag||'ledger-'+Date.now(),icon:'icons/icon-192.png',badge:'icons/icon-192.png',silent:false});
     n.onclick=()=>{window.focus();n.close();};
+    _updateNotifBadge();
     return true;
   }catch(e){return false;}
 }
 
 // ── In-app alert banner (Capacitor fallback) ────────────────────────────────
-// Shows a dismissible card at the top of the screen, above the topbar.
-// Multiple alerts stack; each auto-dismisses after 6 s.
-let _bannerQueue=[];
+// Shows ONE compact, tappable banner at a time (queued, not stacked) — tapping
+// it opens the Notifications tab. This replaces the old version which stacked
+// every alert as its own full card and got congested fast when several fired
+// at once.
+let _bannerSeenTags=[],_bannerQueue=[],_bannerShowing=false;
 function _showAlertBanner(title,body,tag){
-  // Dedupe by tag within this session
-  if(tag&&_bannerQueue.includes(tag))return;
-  if(tag)_bannerQueue.push(tag);
-
-  const id='alrt-'+Date.now();
+  if(tag&&_bannerSeenTags.includes(tag))return; // dedupe within this session
+  if(tag)_bannerSeenTags.push(tag);
+  _bannerQueue.push({title,body,tag});
+  if(!_bannerShowing)_drainBannerQueue();
+}
+function _drainBannerQueue(){
+  const next=_bannerQueue.shift();
+  if(!next){ _bannerShowing=false; return; }
+  _bannerShowing=true;
+  const{title,body,tag}=next;
+  const id='alrt-active';
+  document.getElementById(id)?.remove();
   const wrap=document.createElement('div');
   wrap.id=id;
+  wrap.onclick=()=>{ wrap.remove(); setTab('notif'); };
   wrap.style.cssText=`
     position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;
     z-index:9999;background:var(--card);border:1px solid var(--border-strong);
-    border-left:3px solid var(--accent);border-radius:16px;
-    padding:13px 14px 13px 16px;
-    box-shadow:0 12px 40px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3);
-    display:flex;align-items:flex-start;gap:12px;
-    animation:alertIn .35s cubic-bezier(.34,1.2,.44,1) both;
-    font-family:'Geist',sans-serif;
+    border-radius:14px;padding:11px 12px;cursor:pointer;
+    box-shadow:0 12px 40px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.28);
+    display:flex;align-items:center;gap:10px;
+    animation:alertIn .3s cubic-bezier(.34,1.2,.44,1) both;
+    font-family:'Geist',sans-serif;max-width:460px;margin:0 auto;
   `;
   wrap.innerHTML=`
+    <div style="width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="bell" class="ic-sm" style="color:var(--accent)"></i></div>
     <div style="flex:1;min-width:0">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.3">${title}</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.4">${body}</div>
+      <div style="font-size:12.5px;font-weight:600;color:var(--text);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</div>
+      <div style="font-size:11.5px;color:var(--muted);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${body}</div>
     </div>
-    <button onclick="document.getElementById('${id}')?.remove()" style="
+    <button onclick="event.stopPropagation();document.getElementById('${id}')?.remove();_drainBannerQueue()" style="
       background:transparent;border:none;cursor:pointer;color:var(--dim);
-      padding:2px 4px;border-radius:6px;font-size:16px;line-height:1;flex-shrink:0;margin-top:-1px;
+      padding:4px;border-radius:6px;font-size:15px;line-height:1;flex-shrink:0;
     ">×</button>
   `;
-
-  // Add keyframe if not yet injected
   if(!document.getElementById('alert-kf')){
     const s=document.createElement('style');
     s.id='alert-kf';
-    s.textContent='@keyframes alertIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}';
+    s.textContent='@keyframes alertIn{from{opacity:0;transform:translateY(-10px) scale(.97)}to{opacity:1;transform:none}}';
     document.head.appendChild(s);
   }
-
-  // Stack below any existing banners
-  const existing=document.querySelectorAll('[id^="alrt-"]');
-  let topOffset=Math.max(12,parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat')||'0')||12);
-  existing.forEach(el=>{ topOffset+=el.offsetHeight+8; });
-  if(existing.length>0) wrap.style.top=topOffset+'px';
-
   document.body.appendChild(wrap);
+  if(window.lucide)lucide.createIcons();
   hapticTick();
-  setTimeout(()=>{ wrap.style.transition='opacity .4s,transform .4s'; wrap.style.opacity='0'; wrap.style.transform='translateY(-8px)'; setTimeout(()=>wrap.remove(),420); },6000);
+  setTimeout(()=>{
+    if(!document.getElementById(id))return; // already dismissed manually
+    wrap.style.transition='opacity .35s,transform .35s';
+    wrap.style.opacity='0';wrap.style.transform='translateY(-8px)';
+    setTimeout(()=>{ wrap.remove(); _drainBannerQueue(); },360);
+  },3800);
+}
+function _updateNotifBadge(){
+  const n=(state.notifLog||[]).filter(x=>!x.read).length;
+  document.querySelectorAll('.notif-badge').forEach(el=>{
+    el.textContent=n>9?'9+':String(n);
+    el.style.display=n>0?'flex':'none';
+  });
 }
 function _notifFlag(path,val){
   state.notifState=state.notifState||{};
@@ -2806,7 +2871,7 @@ function checkBudgetNotifications(){
         const msg=st.pct===100
           ?`${cat.name} is over budget · ${fmt(spent)} / ${fmt(limit)}`
           :`${cat.name} at ${Math.round(pct)}% · ${fmt(spent)} / ${fmt(limit)}`;
-        _fireNotif(st.lbl+' — '+cat.name,msg,'bud-'+catId+'-'+st.k+'-'+mkey);
+        _fireNotif(st.lbl+' — '+cat.name,msg,'bud-'+catId+'-'+st.k+'-'+mkey,{kind:'budget',catId,mkey});
       }
     });
   });
@@ -2820,7 +2885,7 @@ function checkCcNotifications(){
   // Stage 1 — bill appeared (first time we see a non-zero bill this month)
   if(!_notifFlag(`${mkey}.cc.appear`)){
     _notifFlag(`${mkey}.cc.appear`,true);
-    _fireNotif('Credit Card bill is ready',`${fmt(bill.total)} from last month · ${bill.charges.length} charge${bill.charges.length===1?'':'s'}`,'cc-appear-'+mkey);
+    _fireNotif('Credit Card bill is ready',`${fmt(bill.total)} from last month · ${bill.charges.length} charge${bill.charges.length===1?'':'s'}`,'cc-appear-'+mkey,{kind:'cc',mkey});
   }
   // Stage 2 — near-due reminder (fires when we're within 5 days of the cut-off or month-end and bill is still unpaid)
   if(bill.remaining>0){
@@ -2832,12 +2897,61 @@ function checkCcNotifications(){
     if(daysLeft>=0&&daysLeft<=5&&today.getFullYear()===curY&&today.getMonth()===curM){
       if(!_notifFlag(`${mkey}.cc.due`)){
         _notifFlag(`${mkey}.cc.due`,true);
-        _fireNotif('Credit Card bill due soon',`${fmt(bill.remaining)} remaining · ${daysLeft===0?'due today':daysLeft+' day'+(daysLeft===1?'':'s')+' left'}`,'cc-due-'+mkey);
+        _fireNotif('Credit Card bill due soon',`${fmt(bill.remaining)} remaining · ${daysLeft===0?'due today':daysLeft+' day'+(daysLeft===1?'':'s')+' left'}`,'cc-due-'+mkey,{kind:'cc',mkey});
       }
     }
   }
 }
 function runAllNotifChecks(){checkBudgetNotifications();checkCcNotifications();}
+
+// ════════════════════════════════════════════════════════
+// NOTIFICATION CENTER — tap the bell to see every alert one at a time,
+// tap an alert to jump straight to settling/reviewing it.
+// ════════════════════════════════════════════════════════
+function renderNotif(){
+  const list=(state.notifLog||[]).slice().sort((a,b)=>b.ts-a.ts);
+  const rows=list.length?list.map(n=>`
+    <div class="ti" style="cursor:pointer${n.read?'':';background:var(--accent-soft)'}" onclick="openNotifItem('${n.id}')">
+      <div class="tidot" style="background:${n.kind==='cc'?'var(--danger)':'var(--accent)'}"></div>
+      <div class="tib">
+        <div class="tin">${n.title}${n.read?'':' <span class="cc-tag" style="background:var(--accent);color:var(--accent-ink,#0b1a00);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:700">NEW</span>'}</div>
+        <div class="tis">${n.body} · ${fmtD(n.mkey?n.mkey+'-01':todayLocal().toISOString().split('T')[0])}</div>
+      </div>
+      <button class="tdel" onclick="event.stopPropagation();dismissNotif('${n.id}')" aria-label="Dismiss">✕</button>
+    </div>`).join(''):'<div class="empty">No notifications yet</div>';
+  $('main-content').innerHTML=`
+    <div class="set-section" style="grid-column:1/-1">
+      <div class="set-h"><em>Notifications</em></div>
+      <div class="set-sub">Tap one to jump straight to it — settle a bill, or review a budget.</div>
+      ${list.length?`<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="ghost" style="padding:8px 14px;font-size:12px" onclick="clearAllNotifs()"><i data-lucide="trash-2" class="ic-sm"></i>Clear all</button></div>`:''}
+      <div class="tlist">${rows}</div>
+    </div>`;
+  if(window.lucide)lucide.createIcons();
+}
+function openNotifItem(id){
+  const item=(state.notifLog||[]).find(n=>n.id===id);
+  if(!item)return;
+  item.read=true;save();_updateNotifBadge();hapticTap();
+  const mkey=item.mkey||mk();
+  const[yy,mm]=mkey.split('-').map(Number);
+  if(item.kind==='cc'){
+    curY=yy;curM=mm-1;
+    setTab('dash',{silent:true});
+    setTimeout(()=>openCcPaymentAllocator(mkey),300);
+  } else if(item.kind==='budget'){
+    curY=yy;curM=mm-1;
+    setTab('bud',{silent:true});
+  } else {
+    renderNotif();
+  }
+}
+function dismissNotif(id){
+  state.notifLog=(state.notifLog||[]).filter(n=>n.id!==id);
+  save();hapticTick();renderNotif();_updateNotifBadge();
+}
+function clearAllNotifs(){
+  state.notifLog=[];save();hapticTick();showToast('Notifications cleared');renderNotif();_updateNotifBadge();
+}
 
 
 
@@ -3138,16 +3252,18 @@ async function deleteSubcategory(parentId,subId){if(!await confirmAsync('This su
   save();hapticTick();showToast('Removed');render();
 }
 
-function setTab(t){
+function setTab(t,opts){
+  opts=opts||{};
   const inner=()=>{
     activeTab=t;
-    const titles={dash:'Home',txn:'<span class="ital">Transactions</span>',an:'<span class="ital">Analytics</span>',sav:'<span class="ital">Savings</span>',bud:'<span class="ital">Budgets</span>',emi:'<span class="ital">Recurring</span>',set:'<span class="ital">Settings</span>',cat:'<span class="ital">Categories</span>',cur:'<span class="ital">Currency</span>'};
+    const titles={dash:'Home',txn:'<span class="ital">Transactions</span>',an:'<span class="ital">Analytics</span>',sav:'<span class="ital">Savings</span>',bud:'<span class="ital">Budgets</span>',emi:'<span class="ital">Recurring</span>',set:'<span class="ital">Settings</span>',cat:'<span class="ital">Categories</span>',cur:'<span class="ital">Currency</span>',notif:'<span class="ital">Notifications</span>'};
     $('tab-title').innerHTML=titles[t]||t;
     ['dash','txn','an','sav','bud','emi','set'].forEach(id=>{
       const nb=$('nb-'+id),mb=$('mb-'+id);
       if(nb)nb.classList.toggle('on',id===t);if(mb)mb.classList.toggle('on',id===t);
     });
-    selCatId=null;anY=curY;anM=curM;hapticTap();
+    selCatId=null;anY=curY;anM=curM;
+    if(!opts.silent)hapticTap();
     const fab=document.getElementById('fab-btn');
     if(fab)fab.classList.toggle('home-only',t==='dash');
     // Always reset scroll to top on tab switch
@@ -3155,9 +3271,57 @@ function setTab(t){
     if(ms)ms.scrollTop=0;
     render();
   };
-  if(document.startViewTransition) document.startViewTransition(inner);
+  if(!opts.silent && document.startViewTransition) document.startViewTransition(inner);
   else inner();
+  _navHistorySync(t,opts.fromPop);
 }
+
+// ── Back-gesture / hardware-back handling ───────────────────────────────
+// The app never used to push any history entries, so a swipe-back on Android
+// (or the browser back button) had nothing to go back TO — it just closed the
+// app straight away, from any tab. We now keep a single extra history entry
+// whenever we leave Home ("away"); popping it lands back on Home. Pressing
+// back again from Home has nothing left to pop, so the OS/browser's normal
+// close/minimize behaviour takes over — i.e. a second back exits, as intended.
+let _navAway=false,_navSuppressPop=false,_navGuardPushed=false;
+function _navPushGuardIfNeeded(){
+  // Makes sure there's always at least one history entry to pop, so a back
+  // press can be intercepted (to close an overlay) even when the user is
+  // still on Home and hasn't "left" it yet.
+  if(_navAway||_navGuardPushed)return;
+  history.pushState({tln:1,tab:'home',guard:true},'');
+  _navGuardPushed=true;
+}
+function _navHistorySync(t,fromPop){
+  if(fromPop)return; // this call came FROM popstate — don't push/replace again
+  if(t==='dash'){
+    if(_navAway){ history.replaceState({tln:1,tab:'home'},''); _navAway=false; _navGuardPushed=false; }
+  } else {
+    if(!_navAway){ history.pushState({tln:1,tab:'away'},''); _navAway=true; _navGuardPushed=false; }
+  }
+}
+window.addEventListener('popstate',()=>{
+  if(_navSuppressPop){ _navSuppressPop=false; return; }
+  // Close whatever overlay is on top first; re-arm one history entry so the
+  // NEXT back press is still available to do the next step.
+  const sheetOpen=document.getElementById('sheet')?.classList.contains('on');
+  const drawerOpen=document.getElementById('shell')?.classList.contains('menu-open');
+  const drillOpen=document.getElementById('drill-modal')?.classList.contains('on');
+  if(sheetOpen||drawerOpen||drillOpen){
+    if(sheetOpen)closeSheet();
+    if(drawerOpen)toggleMenu(false);
+    if(drillOpen)closeDrill();
+    _navSuppressPop=true;_navGuardPushed=true;
+    history.pushState({tln:1,tab:_navAway?'away':'home'},'');
+    return;
+  }
+  _navAway=false;_navGuardPushed=false;
+  if(activeTab!=='dash'){
+    setTab('dash',{fromPop:true,silent:true});
+  }
+  // else: no overlay, already on Home, nothing pushed — let the back
+  // navigation proceed naturally (app exits/minimizes).
+});
 
 // ════════════════════════════════════════════════════════
 // HELPERS
@@ -3738,10 +3902,19 @@ function renderSet(){
         </div>
       </div>
 
+      <div class="set-section" style="grid-column:1/-1;border-color:color-mix(in srgb,var(--danger) 30%,var(--border-strong))">
+        <div class="set-h" style="color:var(--danger)"><em>Danger Zone</em></div>
+        <div class="set-sub">Permanently erase every expense, income entry, budget, recurring charge, and custom category — locally and in the cloud.</div>
+        <div class="set-row">
+          <div><div class="set-rl">Wipe all data</div><div class="set-rs">Starts you over from scratch. Your sign-in, theme, and currency are kept.</div></div>
+          <button class="ghost" style="border-color:var(--danger);color:var(--danger)" onclick="wipeAllData()"><i data-lucide="trash-2" class="ic-sm"></i>Wipe data…</button>
+        </div>
+      </div>
+
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>About</em></div>
         <div class="set-row">
-          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.2</div></div>
+          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.3</div></div>
         </div>
       </div>
     </div>`;
@@ -3764,6 +3937,8 @@ function render(){
    else if(activeTab==='set')renderSet();
    else if(activeTab==='cat')renderCat();
    else if(activeTab==='cur')renderCur();
+   else if(activeTab==='notif')renderNotif();
+  _updateNotifBadge();
   // Fire queued notifications (guarded, debounced via internal flags)
   if(typeof runAllNotifChecks==='function')setTimeout(runAllNotifChecks,50);
 }
@@ -3772,6 +3947,7 @@ function render(){
 // INIT
 // ════════════════════════════════════════════════════════
 anY=curY;anM=curM;
+try{ history.replaceState({tln:1,tab:'home'},''); }catch(e){}
 if(window.lucide)lucide.createIcons();
 initAuth();
 
@@ -3787,7 +3963,7 @@ async function refreshFromSupabase(){
     const{data,error}=await sb.from('tracker').select('data').eq('id',getUid()).single();
     if(error||!data?.data)return;
     const p=JSON.parse(data.data);
-    state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{}};
+    state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
     if(p.curY)curY=p.curY;if(p.curM!==undefined)curM=p.curM;
     setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString(CUR().locale,{hour:'2-digit',minute:'2-digit'}));
     if(isTyping||sheetOpen)return; // skip render — keep user's input intact
