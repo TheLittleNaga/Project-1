@@ -2511,7 +2511,7 @@ async function wipeAllData(){
   // Demo mode / not signed in — nothing lives in the cloud, just clear locally.
   if(uid==='anon'||currentUser?.id==='demo-local'){
     state=wiped;curY=wipeY;curM=wipeM;
-    try{localStorage.removeItem('et_'+uid);}catch(e){}
+    try{localStorage.removeItem('et_'+uid);localStorage.removeItem('et_demo');}catch(e){}
     hapticDone();showToast('All data wiped ✓','check');
     setTab('dash',{silent:true});
     return;
