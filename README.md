@@ -82,7 +82,12 @@ CREATE POLICY "users_own_sub" ON push_subscriptions
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 ```
 
-### 3. Plug your keys into `index.html`
+### 3. Enable OTP-style password reset emails
+By default, Supabase's "Reset Password" email template only contains a clickable link. For the in-app 6-digit code flow to work:
+- Go to **Authentication → Email Templates → Reset Password** in your Supabase dashboard
+- Make sure the template body includes `{{ .Token }}` somewhere (e.g. "Your code is: {{ .Token }}") — that's the 6-digit code the app expects the user to type in. You can keep the link too if you want, it just won't be needed.
+
+### 4. Plug your keys into `index.html`
 Open `index.html` and find:
 ```js
 const SUPABASE_URL = 'YOUR_SUPABASE_URL';
@@ -90,7 +95,7 @@ const SUPABASE_KEY = 'YOUR_ANON_KEY';
 ```
 Replace with your values.
 
-### 4. Host it
+### 5. Host it
 **Option A — GitHub Pages (recommended, free):**
 - Push `index.html` + `manifest.json` + `sw.js` + `icons/` folder to a GitHub repo
 - Settings → Pages → Deploy from branch `main` / `(root)`
@@ -174,6 +179,11 @@ Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` 
 ---
 
 ## Changelog
+
+### v3.4
+- **Forgot password (OTP)** — login screen now has a "Forgot password?" link. Enter your email, get a 6-digit code, type it in with a new password — no clicking a link that dumps you somewhere unexpected. Requires your Supabase "Reset Password" email template to include `{{ .Token }}` (see Setup below).
+- **Change password from Settings** — new "Security" section lets you change your password while signed in; you must re-enter your current password first.
+- **Wipe data fixed** — the wipe now writes to Supabase and *waits* for confirmation before it tells you it worked. Previously it used the same debounced autosave as normal edits, which could fail silently (flaky connection, etc.) and let your old cloud data sync right back in, making it look like the wipe "didn't work."
 
 ### v3.3
 - **Cancelling a recurring entry no longer erases history** — removing a subscription/EMI (e.g. stopping Netflix autopay) now only stops *future* charges. If the current month was already billed, it stays; if not yet billed this month, it stops as of last month. Past months are never touched. The entry is only fully deleted if it never actually got billed (e.g. removed before its start date).

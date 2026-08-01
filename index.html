@@ -1288,6 +1288,8 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
         <input type="password" id="a-pass" placeholder="••••••••" autocomplete="current-password"
                onkeydown="if(event.key==='Enter')handleSubmit()"/>
       </div>
+      <button type="button" class="auth-toggle-btn" id="a-forgot" onclick="openForgotPassword()"
+              style="align-self:flex-end;margin-top:-8px;font-size:12.5px">Forgot password?</button>
       <div class="auth-msg" id="a-msg"></div>
       <label class="auth-remember" for="remember-me">
         <input type="checkbox" id="remember-me" checked/>
@@ -1924,6 +1926,134 @@ function promptAsync(label,defaultValue,opts={}){
   });
 }
 
+// ── Forgot password (OTP-based) ─────────────────────────────────────────
+// Step 1: user enters their email, we call resetPasswordForEmail() which
+// sends Supabase's "Reset Password" email — configure that template in the
+// Supabase dashboard to include {{ .Token }} so it contains a 6-digit code,
+// not just a link. Step 2: user enters that code + a new password; we
+// verifyOtp() (type:'recovery') to authenticate them, then updateUser() to
+// actually set the new password. No link-click needed.
+function openForgotPassword(){
+  const prefill=document.getElementById('a-email')?.value.trim()||'';
+  _fpRenderStep1(prefill);
+}
+function _fpRenderStep1(prefill){
+  $('cdlg-box').innerHTML=`
+    <div class="cdlg-title">Reset your password</div>
+    <div class="cdlg-msg">Enter the email on your account. We'll send you a code to reset your password — no link to click, just type it in here.</div>
+    <input class="cdlg-input" id="fp-email" type="email" placeholder="you@email.com" value="${(prefill||'').replace(/"/g,'&quot;')}" autocomplete="email"/>
+    <div class="cdlg-msg" id="fp-err" style="display:none;color:var(--danger);margin:10px 0 0"></div>
+    <div class="cdlg-btns"><button class="cdlg-cancel" id="fp-cancel">Cancel</button><button class="cdlg-ok" id="fp-send">Send code</button></div>`;
+  $('cdlg-bg').classList.add('on');
+  setTimeout(()=>{const inp=$('fp-email');if(inp){inp.focus();if(prefill)inp.select();}},100);
+  $('fp-cancel').onclick=()=>_closeCdlg();
+  $('fp-email').onkeydown=e=>{if(e.key==='Enter')$('fp-send').click();};
+  $('fp-send').onclick=async()=>{
+    const email=$('fp-email').value.trim();
+    const err=$('fp-err');err.style.display='none';
+    if(!email){err.textContent='Enter your email first.';err.style.display='';return;}
+    const btn=$('fp-send');btn.disabled=true;btn.textContent='Sending…';
+    try{
+      const{error}=await sb.auth.resetPasswordForEmail(email);
+      if(error)throw error;
+      hapticDone();
+      _fpRenderStep2(email);
+    }catch(e){
+      hapticError();
+      err.textContent=e.message||'Could not send the code. Try again.';err.style.display='';
+      btn.disabled=false;btn.textContent='Send code';
+    }
+  };
+}
+function _fpRenderStep2(email){
+  $('cdlg-box').innerHTML=`
+    <div class="cdlg-title">Enter the code</div>
+    <div class="cdlg-msg">We sent a code to <b>${email}</b>. Enter it below with your new password.</div>
+    <input class="cdlg-input" id="fp-otp" inputmode="numeric" maxlength="8" placeholder="Code from email" style="text-align:center;letter-spacing:6px;font-family:'JetBrains Mono',monospace"/>
+    <input class="cdlg-input" id="fp-newpass" type="password" placeholder="New password (min 6 chars)" style="margin-top:10px" autocomplete="new-password"/>
+    <input class="cdlg-input" id="fp-newpass2" type="password" placeholder="Confirm new password" style="margin-top:10px" autocomplete="new-password"/>
+    <div class="cdlg-msg" id="fp-err2" style="display:none;color:var(--danger);margin:10px 0 0"></div>
+    <div class="cdlg-btns"><button class="cdlg-cancel" id="fp-back">Back</button><button class="cdlg-ok" id="fp-reset">Reset password</button></div>
+    <div style="text-align:center;margin-top:12px"><button type="button" class="auth-toggle-btn" id="fp-resend" style="font-size:12px">Resend code</button></div>`;
+  $('cdlg-bg').classList.add('on');
+  setTimeout(()=>{const inp=$('fp-otp');if(inp)inp.focus();},100);
+  $('fp-back').onclick=()=>_fpRenderStep1(email);
+  $('fp-resend').onclick=async()=>{
+    const btn=$('fp-resend');btn.disabled=true;btn.textContent='Sending…';
+    try{await sb.auth.resetPasswordForEmail(email);showToast('Code resent ✓','check');}
+    catch(e){showToast('Could not resend','x');}
+    btn.disabled=false;btn.textContent='Resend code';
+  };
+  $('fp-reset').onclick=async()=>{
+    const otp=$('fp-otp').value.trim();
+    const p1=$('fp-newpass').value, p2=$('fp-newpass2').value;
+    const err=$('fp-err2');err.style.display='none';
+    if(otp.length<6||otp.length>8){err.textContent='Enter the code from your email.';err.style.display='';return;}
+    if(p1.length<6){err.textContent='New password must be at least 6 characters.';err.style.display='';return;}
+    if(p1!==p2){err.textContent="Passwords don't match.";err.style.display='';return;}
+    const btn=$('fp-reset');btn.disabled=true;btn.textContent='Resetting…';
+    try{
+      const{error:vErr}=await sb.auth.verifyOtp({email,token:otp,type:'recovery'});
+      if(vErr)throw vErr;
+      const{error:uErr}=await sb.auth.updateUser({password:p1});
+      if(uErr)throw uErr;
+      hapticDone();_closeCdlg();showToast('Password reset ✓ You\'re signed in','check');
+    }catch(e){
+      hapticError();
+      const isCurPassIssue=/current[_ ]password/i.test(e.message||'');
+      err.textContent=isCurPassIssue
+        ? "Your Supabase project is set to require the current password even on recovery — turn off 'Require current password when updating' in Authentication → Email settings, or reset from Settings while logged in instead."
+        : (e.message||'That code is wrong or expired.');
+      err.style.display='';
+      btn.disabled=false;btn.textContent='Reset password';
+    }
+  };
+}
+
+// ── Change password (from Settings, requires current password) ─────────
+function openChangePassword(){
+  $('cdlg-box').innerHTML=`
+    <div class="cdlg-title">Change password</div>
+    <div class="cdlg-msg">Enter your current password and choose a new one.</div>
+    <input class="cdlg-input" id="cp-old" type="password" placeholder="Current password" autocomplete="current-password"/>
+    <input class="cdlg-input" id="cp-new" type="password" placeholder="New password (min 6 chars)" style="margin-top:10px" autocomplete="new-password"/>
+    <input class="cdlg-input" id="cp-new2" type="password" placeholder="Confirm new password" style="margin-top:10px" autocomplete="new-password"/>
+    <div class="cdlg-msg" id="cp-err" style="display:none;color:var(--danger);margin:10px 0 0"></div>
+    <div class="cdlg-btns"><button class="cdlg-cancel" id="cp-cancel">Cancel</button><button class="cdlg-ok" id="cp-save">Update password</button></div>`;
+  $('cdlg-bg').classList.add('on');
+  setTimeout(()=>{const inp=$('cp-old');if(inp)inp.focus();},100);
+  $('cp-cancel').onclick=()=>_closeCdlg();
+  $('cp-save').onclick=async()=>{
+    const oldPass=$('cp-old').value, p1=$('cp-new').value, p2=$('cp-new2').value;
+    const err=$('cp-err');err.style.display='none';
+    const email=currentUser?.email;
+    if(!oldPass){err.textContent='Enter your current password.';err.style.display='';return;}
+    if(p1.length<6){err.textContent='New password must be at least 6 characters.';err.style.display='';return;}
+    if(p1!==p2){err.textContent="Passwords don't match.";err.style.display='';return;}
+    if(p1===oldPass){err.textContent='New password must be different from the current one.';err.style.display='';return;}
+    const btn=$('cp-save');btn.disabled=true;btn.textContent='Checking…';
+    try{
+      // Reauthenticate with the current password first — refreshes the
+      // session so it counts as "recently logged in" (satisfies your
+      // Secure password change setting), and gives a clean "wrong password"
+      // error before we even try the update.
+      const{error:sErr}=await sb.auth.signInWithPassword({email,password:oldPass});
+      if(sErr)throw new Error('Current password is incorrect.');
+      btn.textContent='Updating…';
+      // current_password is required here because "Require current password
+      // when updating" is turned on in your Supabase Auth settings — without
+      // it, updateUser() rejects the request even with a fresh session.
+      const{error:uErr}=await sb.auth.updateUser({password:p1,current_password:oldPass});
+      if(uErr)throw uErr;
+      hapticDone();_closeCdlg();showToast('Password updated ✓','check');
+    }catch(e){
+      hapticError();
+      err.textContent=e.message||'Could not update your password.';err.style.display='';
+      btn.disabled=false;btn.textContent='Update password';
+    }
+  };
+}
+
 const TAB_ORDER=['dash','txn','an','sav','bud','emi']; // Settings kept separate — not in swipe ring
 let touchStart=null, touchMoved=null, ptrPulling=false, swipeBlocked=false;
 let _gesturesAttached=false;
@@ -2053,6 +2183,7 @@ function toggleMode(){
   document.getElementById('a-btn').querySelector('span').textContent=isSignUp?'Create Account':'Sign In';
   document.getElementById('a-tog-txt').textContent=isSignUp?'Already have an account?':"Don't have an account?";
   document.getElementById('a-tog-btn').textContent=isSignUp?'Sign In':'Sign Up';
+  const fg=document.getElementById('a-forgot');if(fg)fg.style.display=isSignUp?'none':'';
   document.getElementById('a-msg').textContent='';
   document.getElementById('a-msg').className='auth-msg';
 }
@@ -2363,14 +2494,53 @@ async function wipeAllData(){
   if(!step1)return;
   const typed=await promptAsync('Type WIPE (all caps) to confirm.','',{title:'Final confirmation',okText:'Wipe everything'});
   if(typed!=='WIPE'){showToast('Cancelled — nothing was deleted');return;}
+
   const uid=getUid();
-  state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:state.currency,theme:state.theme,creditPaid:{},customCats:[],settings:Object.assign({},state.settings,{notifEnabled:false}),notifState:{},catOverrides:{},customSubs:{},notifLog:[]};
+  const wiped={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:state.currency,theme:state.theme,creditPaid:{},customCats:[],settings:Object.assign({},state.settings,{notifEnabled:false}),notifState:{},catOverrides:{},customSubs:{},notifLog:[]};
   const nowIst=(function(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));}catch(e){return new Date();}})();
-  curY=nowIst.getFullYear();curM=nowIst.getMonth();
-  try{localStorage.removeItem('et_'+uid);}catch(e){}
-  save();
-  hapticDone();showToast('All data wiped ✓','check');
-  render();
+  const wipeY=nowIst.getFullYear(), wipeM=nowIst.getMonth();
+
+  // Close anything that might be holding a reference to a soon-to-be-deleted
+  // item (an open bottom sheet, the drawer) before we swap the state out.
+  try{closeSheet();}catch(e){}
+  try{toggleMenu(false);}catch(e){}
+  // Kill any pending debounced autosave of the OLD (pre-wipe) data — otherwise
+  // it can fire *after* the wipe and silently re-upload the old numbers.
+  clearTimeout(saveTimer);
+
+  // Demo mode / not signed in — nothing lives in the cloud, just clear locally.
+  if(uid==='anon'||currentUser?.id==='demo-local'){
+    state=wiped;curY=wipeY;curM=wipeM;
+    try{localStorage.removeItem('et_'+uid);}catch(e){}
+    hapticDone();showToast('All data wiped ✓','check');
+    setTab('dash',{silent:true});
+    return;
+  }
+
+  showToast('Wiping…');
+  try{
+    // Write the wipe straight to Supabase and WAIT for confirmation — this is
+    // the fix. The old code called the debounced save() and immediately told
+    // you it was done; if that background save failed (flaky connection,
+    // Android cold-network hiccup, etc.) it failed silently and the untouched
+    // row in Supabase would sync your old data straight back down — via the
+    // realtime listener, or the next time the app loads.
+    const{error}=await sb.from('tracker').upsert(
+      {id:uid,data:JSON.stringify({...wiped,curY:wipeY,curM:wipeM}),updated_at:new Date().toISOString()},
+      {onConflict:'id'}
+    );
+    if(error)throw error;
+    state=wiped;curY=wipeY;curM=wipeM;
+    try{localStorage.setItem('et_'+uid,JSON.stringify({...state,curY,curM}));}catch(e){}
+    setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString(CUR().locale,{hour:'2-digit',minute:'2-digit'}));
+    hapticDone();showToast('All data wiped ✓','check');
+  }catch(e){
+    console.warn('Wipe failed to sync to cloud:',e);
+    hapticError();
+    showToast('Wipe failed — check your connection and try again','x');
+    return; // don't touch local state/UI — old data is still the truth until the cloud write succeeds
+  }
+  setTab('dash',{silent:true});
 }
 function exportBackup(){
   const a=document.createElement('a');
@@ -3819,6 +3989,15 @@ function renderSet(){
         </div>
       </div>
 
+      <div class="set-section" style="grid-column:1/-1">
+        <div class="set-h"><em>Security</em></div>
+        <div class="set-sub">${currentUser?.id==='demo-local'?'Demo mode has no real account — sign up for one to manage a password.':'Change your password. You\'ll need to confirm your current one first.'}</div>
+        <div class="set-row">
+          <div><div class="set-rl">Password</div><div class="set-rs">••••••••</div></div>
+          ${currentUser?.id==='demo-local'?'':`<button class="ghost" onclick="openChangePassword()"><i data-lucide="key-round" class="ic-sm"></i>Change password…</button>`}
+        </div>
+      </div>
+
       <div class="set-section">
         <div class="set-h"><em>Atmosphere</em></div>
         <div class="set-sub">Pick a theme. Your choice syncs across all your devices.</div>
@@ -3914,7 +4093,7 @@ function renderSet(){
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>About</em></div>
         <div class="set-row">
-          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.3</div></div>
+          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v3.4</div></div>
         </div>
       </div>
     </div>`;
