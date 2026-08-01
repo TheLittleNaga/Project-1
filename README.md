@@ -2,7 +2,7 @@
 
 > A personal finance tracker built because free apps never had exactly what I needed — so I built my own.
 
-Current version: **v3.3**
+Current version: **v4.0**
 
 ---
 
@@ -22,6 +22,7 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 | Feature | Details |
 |---|---|
 | 🔐 **Login + Accounts** | Email/password auth via Supabase, each user's data fully isolated |
+| 🔑 **Forgot / Change Password** | Forgot password → email OTP code + set a new one, no link-click needed. Signed in? Change it from Settings with your current password. |
 | 👤 **Editable Profile** | Change your display name right from Settings · Name, email, and avatar visible at the top of Settings |
 | 📲 **Stays Logged In** | Session persists until you sign out — no re-typing credentials |
 | 🎨 **5 Dynamic Themes** | Noir, Paper, Lagoon, Sunset, Monet — saved per device, instant theme switching |
@@ -83,9 +84,12 @@ CREATE POLICY "users_own_sub" ON push_subscriptions
 ```
 
 ### 3. Enable OTP-style password reset emails
-By default, Supabase's "Reset Password" email template only contains a clickable link. For the in-app 6-digit code flow to work:
+By default, Supabase's "Reset Password" email template only contains a clickable link. For the in-app code flow to work:
 - Go to **Authentication → Email Templates → Reset Password** in your Supabase dashboard
-- Make sure the template body includes `{{ .Token }}` somewhere (e.g. "Your code is: {{ .Token }}") — that's the 6-digit code the app expects the user to type in. You can keep the link too if you want, it just won't be needed.
+- Make sure the template body includes `{{ .Token }}` somewhere (e.g. "Your code is: {{ .Token }}") — that's the code the app expects the user to type in. You can keep the link too if you want, it just won't be needed.
+- Under **Authentication → Sign In / Providers → Email**, "Email OTP length" controls how many digits that code is (default 6) — the app accepts anywhere from 6–8 digits, so this is safe to change.
+
+Two more toggles in that same Email settings panel affect the **Settings → Change password** flow specifically (not forgot-password): **"Secure password change"** (requires a recent sign-in, handled automatically) and **"Require current password when updating"** (the app already sends your current password along with the update, so this is safe to leave on).
 
 ### 4. Plug your keys into `index.html`
 Open `index.html` and find:
@@ -180,10 +184,11 @@ Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` 
 
 ## Changelog
 
-### v3.4
-- **Forgot password (OTP)** — login screen now has a "Forgot password?" link. Enter your email, get a 6-digit code, type it in with a new password — no clicking a link that dumps you somewhere unexpected. Requires your Supabase "Reset Password" email template to include `{{ .Token }}` (see Setup below).
-- **Change password from Settings** — new "Security" section lets you change your password while signed in; you must re-enter your current password first.
-- **Wipe data fixed** — the wipe now writes to Supabase and *waits* for confirmation before it tells you it worked. Previously it used the same debounced autosave as normal edits, which could fail silently (flaky connection, etc.) and let your old cloud data sync right back in, making it look like the wipe "didn't work."
+### v4.0
+- **Forgot password (OTP)** — login screen now has a "Forgot password?" link. Enter your email, get a code, type it in with a new password — no clicking a link that dumps you somewhere unexpected. Requires your Supabase "Reset Password" email template to include `{{ .Token }}` (see Setup above).
+- **Change password from Settings** — new "Security" section lets you change your password while signed in; you must re-enter your current password first. Sends `current_password` on the update request so it works whether or not your project has "Require current password when updating" turned on.
+- **Wipe data actually wipes now — root cause fixed.** The themed "Type WIPE to confirm" dialog (`promptAsync`) closed itself and *then* tried to read what you'd typed from the now-deleted input field. That threw an error before `resolve()` ever ran, so the confirmation promise never resolved and `wipeAllData()` just hung silently forever — no error shown, no wipe, nothing. This affected every use of that themed prompt dialog, not just wipe. Fixed by reading the typed value before closing the dialog.
+- **Wipe data hardened on top of that fix** — now writes directly to Supabase and waits for confirmation instead of relying on the normal debounced autosave (which fails silently on a flaky connection); shows an honest "Wipe failed" toast if the cloud write doesn't succeed instead of a false "wiped ✓"; closes any open sheet/drawer first so nothing holds a stale reference; and properly clears demo mode's local storage key too.
 
 ### v3.3
 - **Cancelling a recurring entry no longer erases history** — removing a subscription/EMI (e.g. stopping Netflix autopay) now only stops *future* charges. If the current month was already billed, it stays; if not yet billed this month, it stops as of last month. Past months are never touched. The entry is only fully deleted if it never actually got billed (e.g. removed before its start date).
