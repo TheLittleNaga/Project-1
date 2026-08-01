@@ -1919,7 +1919,7 @@ function promptAsync(label,defaultValue,opts={}){
       $('cdlg-box').innerHTML=`<div class="cdlg-title">${opts.title||'Input'}</div><div class="cdlg-msg">${label}</div><input class="cdlg-input" id="cdlg-inp" value="${(defaultValue||'').replace(/"/g,'&quot;')}"/><div class="cdlg-btns"><button class="cdlg-cancel" id="cdlg-no">Cancel</button><button class="cdlg-ok" id="cdlg-yes">${opts.okText||'OK'}</button></div>`;
       $('cdlg-bg').classList.add('on');
       setTimeout(()=>{const inp=$('cdlg-inp');if(inp){inp.focus();inp.select();}},100);
-      $('cdlg-yes').onclick=()=>{_closeCdlg();resolve($('cdlg-inp').value.trim());};
+      $('cdlg-yes').onclick=()=>{const v=$('cdlg-inp').value.trim();_closeCdlg();resolve(v);};
       $('cdlg-no').onclick=()=>{_closeCdlg();resolve(null);};
       $('cdlg-bg').onclick=e=>{if(e.target===$('cdlg-bg')){_closeCdlg();resolve(null);}};
     }
