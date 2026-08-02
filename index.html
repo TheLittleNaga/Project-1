@@ -521,6 +521,19 @@ button.primary:active{transform:translateY(0) scale(.97)}
 
 /* Transactions */
 .tlist{max-height:300px;overflow-y:auto;padding-right:4px}
+.notif-sub{font-size:13px;color:var(--muted);margin:2px 0 20px;line-height:1.55;max-width:560px}
+.notif-toolbar{display:flex;justify-content:flex-end;margin-bottom:16px}
+.notif-scroll{display:flex;flex-direction:column;gap:12px}
+.notif-card{display:flex;align-items:flex-start;gap:13px;padding:16px 18px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);cursor:pointer;position:relative}
+.notif-card.unread{border-color:color-mix(in srgb,var(--accent) 45%,var(--border))}
+.notif-card.unread::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--accent)}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.notif-body{flex:1;min-width:0}
+.notif-title{font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.3}
+.notif-desc{font-size:12px;color:var(--muted);margin-top:5px;font-family:'JetBrains Mono',monospace;line-height:1.5}
+.notif-del{background:transparent;border:none;cursor:pointer;color:var(--dim);padding:6px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.notif-del:hover{background:var(--border)}
+.notif-empty{padding:60px 20px;text-align:center;color:var(--muted);font-size:13.5px}
 .ti{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border)}
 .ti:last-child{border-bottom:none}
 .tidot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -1251,7 +1264,20 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
   display:flex;align-items:center;justify-content:center;
   color:var(--muted);transition:all .15s;
 }
-.txn-search-clear:hover{background:var(--surface);color:var(--fg)}</style>
+.txn-search-clear:hover{background:var(--surface);color:var(--fg)}
+.txn-cat-dd{position:relative;margin-bottom:14px;width:100%}
+.txn-cat-dd-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border:1px solid var(--border);border-radius:14px;background:var(--card);color:var(--fg);font-family:inherit;font-size:13.5px;cursor:pointer;text-align:left}
+.txn-cat-dd-btn:hover{border-color:var(--accent)}
+.txn-cat-dd-btn .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.txn-cat-dd-backdrop{position:fixed;inset:0;z-index:29;background:transparent}
+.txn-cat-dd-panel{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;max-height:min(60vh,420px);display:flex;flex-direction:column}
+.txn-cat-dd-search{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--elev);color:var(--fg);font-family:inherit;font-size:13px;outline:none;margin-bottom:10px;flex-shrink:0}
+.txn-cat-dd-search:focus{border-color:var(--accent)}
+.txn-cat-dd-list{overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.txn-cat-dd-opt{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:9px;cursor:pointer;font-size:13.5px}
+.txn-cat-dd-opt:hover{background:var(--surface)}
+.txn-cat-dd-opt input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0}
+.txn-cat-dd-actions{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-shrink:0}</style>
 </head>
 <body>
 
@@ -2072,8 +2098,12 @@ function attachGestures(){
     if(document.querySelector('.cdlg-bg.on'))return;
     const t=e.touches[0];
     const vh=window.innerHeight||document.documentElement.clientHeight;
-    // Block TAB swipe from top half — PTR is still allowed from anywhere when at top
-    swipeBlocked = t.clientY < vh*0.5;
+    // Block TAB swipe from top half — PTR is still allowed from anywhere when at top.
+    // Also block it entirely inside elements marked .no-tab-swipe (e.g. the Savings
+    // chart and horizontally-scrollable table), no matter where on screen they sit,
+    // so scrolling/panning those doesn't accidentally flip to the next tab.
+    const exemptZone = e.target.closest && e.target.closest('.no-tab-swipe');
+    swipeBlocked = exemptZone ? true : (t.clientY < vh*0.5);
     touchStart={x:t.clientX,y:t.clientY,t:Date.now(),scrollTop:scroll.scrollTop};
     touchMoved=null;ptrPulling=false;
   }
@@ -2371,7 +2401,7 @@ const CATS=[
   {id:'food',name:'Food & Dining',color:'#f7a26a'},
   {id:'travel',name:'Travel',color:'#6ab0f7'},
   {id:'office',name:'Office Commute',color:'#f7d06a'},
-  {id:'tithe',name:'Tithe',color:'#b06af7'},
+  {id:'tithe',name:'Tithe',color:'#b06af7',excludeFromBudget:true},
   {id:'entertainment',name:'Entertainment',color:'#f76aab'},
   {id:'investments',name:'Investments',color:'#6af7a2'},
   {id:'utilities',name:'Utilities',color:'#6ac8f7',subs:[
@@ -2401,6 +2431,7 @@ function allCats(){
       name:ov.name||c.name,
       color:ov.color||c.color,
       subs:subs.length?subs:undefined,
+      excludeFromBudget:ov.excludeFromBudget!==undefined?ov.excludeFromBudget:!!c.excludeFromBudget,
     };
   };
   const builtIns=CATS.map(apply);
@@ -2415,6 +2446,11 @@ let state={exps:[],budgets:{},emis:[],salaries:{},otherIncome:[],uid:0,currency:
 const _now=(function(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));}catch(e){return new Date();}})();
 let curY=_now.getFullYear(),curM=_now.getMonth();
 let activeTab='dash',selCatId=null,period='daily',anY=curY,anM=curM;
+let anChartType='bar'; // 'bar' | 'line' | 'pie' | 'doughnut'
+function setAnChartType(t){anChartType=t;renderAn();}
+let anBkdSearch='',anBkdExpanded=false;
+function setAnBkdSearch(v){anBkdSearch=(v||'').toLowerCase();renderAn();const el=document.getElementById('an-bkd-search');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}}
+function toggleAnBkdExpand(){anBkdExpanded=!anBkdExpanded;renderAn();}
 let dChart=null,anChart=null,savChart=null,saveTimer=null;
 
 const MOS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2569,7 +2605,18 @@ function getCarryover(toY,toM){
 }
 function getEmiExps(mkey){
   const[ys,ms]=mkey.split('-').map(Number),mo=ms-1,ci=ys*12+mo;
-  return state.emis.filter(e=>{const si=e.sy*12+e.sm;return ci>=si&&ci<si+e.months;}).map(e=>({
+  // If mkey is the real-world CURRENT month, a recurring charge whose due day
+  // hasn't arrived yet shouldn't be deducted from the balance today — e.g. a
+  // due-day-4 subscription shouldn't already show as spent on the 1st.
+  // Past months and months already fully elapsed always include it (it happened);
+  // future months (browsing ahead) show it as a forecast either way.
+  const today=todayLocal(),realCi=today.getFullYear()*12+today.getMonth(),isRealCurrentMonth=(ci===realCi);
+  return state.emis.filter(e=>{
+    const si=e.sy*12+e.sm;
+    if(ci<si||ci>=si+e.months)return false;
+    if(isRealCurrentMonth&&e.day>today.getDate())return false;
+    return true;
+  }).map(e=>({
     id:'emi_'+e.id+'_'+mkey,catId:e.catId,subId:null,amount:e.amount,
     date:mkey+'-'+String(e.day).padStart(2,'0'),note:e.name,mk:mkey,isEmi:true
   }));
@@ -2608,11 +2655,15 @@ function addOI(){
 function delOI(id){state.otherIncome=state.otherIncome.filter(o=>o.id!==id);save();render();}
 function addEmi(){
   const name=$('e-name').value.trim(),amt=parseFloat($('e-amt').value),cat=$('e-cat').value,
-        start=$('e-start').value,months=parseInt($('e-months').value),day=parseInt($('e-day').value)||1;
-  if(!name||!amt||!start||!months){[$('e-name'),$('e-amt'),$('e-start'),$('e-months')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});return;}
+        start=$('e-start').value,monthsRaw=$('e-months').value.trim(),day=parseInt($('e-day').value)||1;
+  // Months is optional — leave it blank for open-ended subs (Netflix, UPI autopay,
+  // gym, etc.) that don't have a fixed end date; we treat that as 999 (ongoing).
+  const months=monthsRaw?parseInt(monthsRaw):999;
+  if(!name||!amt||!start||!months||months<1){[$('e-name'),$('e-amt'),$('e-start')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});return;}
   const[sy,sm]=start.split('-').map(Number);
   state.emis.push({id:++state.uid,name,catId:cat,amount:amt,sy,sm:sm-1,months:Math.min(999,months),day});
   $('e-name').value='';$('e-amt').value='';$('e-months').value='';save();hapticTick();showToast('Recurring added ✓');render();
+  clearEmiDraft();
 }
 // Cancelling a recurring entry should stop FUTURE billing only — any month that
 // already happened (this month included, if today's date is past the due day)
@@ -3081,20 +3132,19 @@ function runAllNotifChecks(){checkBudgetNotifications();checkCcNotifications();}
 function renderNotif(){
   const list=(state.notifLog||[]).slice().sort((a,b)=>b.ts-a.ts);
   const rows=list.length?list.map(n=>`
-    <div class="ti" style="cursor:pointer${n.read?'':';background:var(--accent-soft)'}" onclick="openNotifItem('${n.id}')">
-      <div class="tidot" style="background:${n.kind==='cc'?'var(--danger)':'var(--accent)'}"></div>
-      <div class="tib">
-        <div class="tin">${n.title}${n.read?'':' <span class="cc-tag" style="background:var(--accent);color:var(--accent-ink,#0b1a00);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:700">NEW</span>'}</div>
-        <div class="tis">${n.body} · ${fmtD(n.mkey?n.mkey+'-01':todayLocal().toISOString().split('T')[0])}</div>
+    <div class="notif-card${n.read?'':' unread'}" onclick="openNotifItem('${n.id}')">
+      <div class="notif-dot" style="background:${n.kind==='cc'?'var(--danger)':'var(--accent)'}"></div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}${n.read?'':' <span class="cc-tag" style="background:var(--accent);color:var(--accent-ink,#0b1a00);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:700">NEW</span>'}</div>
+        <div class="notif-desc">${n.body} · ${fmtD(n.mkey?n.mkey+'-01':todayLocal().toISOString().split('T')[0])}</div>
       </div>
-      <button class="tdel" onclick="event.stopPropagation();dismissNotif('${n.id}')" aria-label="Dismiss">✕</button>
-    </div>`).join(''):'<div class="empty">No notifications yet</div>';
+      <button class="notif-del" onclick="event.stopPropagation();dismissNotif('${n.id}')" aria-label="Dismiss"><i data-lucide="x" class="ic-sm"></i></button>
+    </div>`).join(''):'<div class="notif-empty">No notifications yet — you\'re all caught up.</div>';
   $('main-content').innerHTML=`
-    <div class="set-section" style="grid-column:1/-1">
-      <div class="set-h"><em>Notifications</em></div>
-      <div class="set-sub">Tap one to jump straight to it — settle a bill, or review a budget.</div>
-      ${list.length?`<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="ghost" style="padding:8px 14px;font-size:12px" onclick="clearAllNotifs()"><i data-lucide="trash-2" class="ic-sm"></i>Clear all</button></div>`:''}
-      <div class="tlist">${rows}</div>
+    <div style="grid-column:1/-1;max-width:720px">
+      <div class="notif-sub">Tap one to jump straight to it — settle a bill, or review a budget.</div>
+      ${list.length?`<div class="notif-toolbar"><button class="ghost" style="padding:8px 14px;font-size:12px" onclick="clearAllNotifs()"><i data-lucide="trash-2" class="ic-sm"></i>Clear all</button></div>`:''}
+      <div class="notif-scroll">${rows}</div>
     </div>`;
   if(window.lucide)lucide.createIcons();
 }
@@ -3385,6 +3435,19 @@ async function resetCategoryOverride(id){if(!await confirmAsync('Reset this cate
   if(state.catOverrides){delete state.catOverrides[id];}
   save();hapticTick();showToast('Reset');render();
 }
+function toggleCatBudget(id){
+  const cat=allCats().find(c=>c.id===id);
+  if(!cat)return;
+  const next=!cat.excludeFromBudget;
+  if(cat.custom){
+    const c=state.customCats.find(x=>x.id===id);
+    if(c)c.excludeFromBudget=next;
+  } else {
+    state.catOverrides=state.catOverrides||{};
+    state.catOverrides[id]=Object.assign({},state.catOverrides[id],{excludeFromBudget:next});
+  }
+  save();hapticTick();showToast(next?'Hidden from Budgets tab':'Now shown on Budgets tab','check');render();
+}
 function deleteCategoryEntirely(id){
   const cat=allCats().find(c=>c.id===id);
   if(!cat||!cat.custom){showToast('Built-in categories cannot be deleted. You can rename them instead.','x');return;}
@@ -3447,30 +3510,41 @@ function setTab(t,opts){
 }
 
 // ── Back-gesture / hardware-back handling ───────────────────────────────
-// The app never used to push any history entries, so a swipe-back on Android
-// (or the browser back button) had nothing to go back TO — it just closed the
-// app straight away, from any tab. We now keep a single extra history entry
-// whenever we leave Home ("away"); popping it lands back on Home. Pressing
-// back again from Home has nothing left to pop, so the OS/browser's normal
-// close/minimize behaviour takes over — i.e. a second back exits, as intended.
-let _navAway=false,_navSuppressPop=false,_navGuardPushed=false;
+// Every tab is one of three depths:
+//   0 = Home (dash)
+//   1 = any top-level tab (txn, an, sav, bud, emi, set, notif)
+//   2 = a page nested INSIDE Settings (cat, cur)
+// A single back-press/swipe always moves exactly one depth shallower:
+// depth2 -> depth1 (its parent, currently always 'set') -> depth0 (Home) ->
+// (nothing left to pop) OS/browser handles exit/minimize, as intended.
+let _navDepth=0,_navSuppressPop=false,_navGuardPushed=false;
+function _navTabDepth(t){ return (t==='cat'||t==='cur') ? 2 : (t==='dash' ? 0 : 1); }
+function _navParentOf(t){ return (t==='cat'||t==='cur') ? 'set' : 'dash'; }
 function _navPushGuardIfNeeded(){
   // Makes sure there's always at least one history entry to pop, so a back
   // press can be intercepted (to close an overlay) even when the user is
   // still on Home and hasn't "left" it yet.
-  if(_navAway||_navGuardPushed)return;
-  history.pushState({tln:1,tab:'home',guard:true},'');
+  if(_navDepth>0||_navGuardPushed)return;
+  history.pushState({tln:1,tab:'dash',guard:true},'');
   _navGuardPushed=true;
 }
 function _navHistorySync(t,fromPop){
   if(fromPop)return; // this call came FROM popstate — don't push/replace again
-  if(t==='dash'){
-    if(_navAway){ history.replaceState({tln:1,tab:'home'},''); _navAway=false; _navGuardPushed=false; }
-  } else {
-    if(!_navAway){ history.pushState({tln:1,tab:'away'},''); _navAway=true; _navGuardPushed=false; }
+  const d=_navTabDepth(t);
+  if(d===0){
+    if(_navDepth>0) history.replaceState({tln:1,tab:'dash'},'');
+    _navDepth=0;_navGuardPushed=false;
+  } else if(d===1){
+    if(_navDepth===0) history.pushState({tln:1,tab:t},'');
+    else history.replaceState({tln:1,tab:t},''); // moving between siblings / up from depth2
+    _navDepth=1;_navGuardPushed=false;
+  } else { // d===2 — nested inside Settings
+    if(_navDepth<2) history.pushState({tln:1,tab:t},'');
+    else history.replaceState({tln:1,tab:t},''); // cat <-> cur, stay at depth 2
+    _navDepth=2;_navGuardPushed=false;
   }
 }
-window.addEventListener('popstate',()=>{
+window.addEventListener('popstate',(e)=>{
   if(_navSuppressPop){ _navSuppressPop=false; return; }
   // Close whatever overlay is on top first; re-arm one history entry so the
   // NEXT back press is still available to do the next step.
@@ -3482,15 +3556,18 @@ window.addEventListener('popstate',()=>{
     if(drawerOpen)toggleMenu(false);
     if(drillOpen)closeDrill();
     _navSuppressPop=true;_navGuardPushed=true;
-    history.pushState({tln:1,tab:_navAway?'away':'home'},'');
+    history.pushState({tln:1,tab:activeTab},'');
     return;
   }
-  _navAway=false;_navGuardPushed=false;
-  if(activeTab!=='dash'){
-    setTab('dash',{fromPop:true,silent:true});
+  // Land on whichever tab this history entry actually represents. Falls back
+  // to Home for the initial guard entry (which has no meaningful tab).
+  const targetTab=(e.state&&e.state.tab&&!e.state.guard)?e.state.tab:'dash';
+  _navDepth=_navTabDepth(targetTab);_navGuardPushed=false;
+  if(activeTab!==targetTab){
+    setTab(targetTab,{fromPop:true,silent:true});
   }
-  // else: no overlay, already on Home, nothing pushed — let the back
-  // navigation proceed naturally (app exits/minimizes).
+  // else: no overlay, nothing meaningful changed — let the back
+  // navigation proceed naturally (app exits/minimizes) when already Home.
 });
 
 // ════════════════════════════════════════════════════════
@@ -3661,7 +3738,13 @@ function renderAn(){
       <div class="metric"><div class="metric-l">Avg / Day</div><div class="metric-v" id="an-avg">—</div></div>
       <div class="metric"><div class="metric-l">Transactions</div><div class="metric-v" id="an-cnt">—</div></div>
     </div>
-    <div class="panel" style="margin-bottom:14px"><div class="leg" id="an-leg" style="margin-bottom:14px"></div><div style="position:relative;width:100%;height:300px"><canvas id="an-ch"></canvas></div></div>
+    <div class="panel" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+        <div class="leg" id="an-leg"></div>
+        <div style="display:flex;gap:4px;flex-shrink:0">${[['bar','Bar'],['line','Line'],['pie','Pie'],['doughnut','Doughnut']].map(([id,lbl])=>`<button class="ptab${anChartType===id?' on':''}" style="padding:6px 12px;font-size:11px" onclick="setAnChartType('${id}')">${lbl}</button>`).join('')}</div>
+      </div>
+      <div style="position:relative;width:100%;height:300px"><canvas id="an-ch"></canvas></div>
+    </div>
     <div class="panel"><div class="panel-t"><i data-lucide="layers" class="ic-sm"></i>Category Breakdown</div><div id="an-bkd"></div></div>`;
   if(period==='daily'){
     const mkey=mk(anY,anM),me=allExps(mkey),dm=din(anY,anM);
@@ -3703,9 +3786,27 @@ function renderAn(){
   $('an-leg').innerHTML=act.map(d=>`<span class="li"><span class="ld" style="background:${d.backgroundColor}"></span>${d.label}</span>`).join('');
   if(anChart){anChart.destroy();anChart=null;}
   const gc=chartGrid();
-  anChart=new Chart($('an-ch'),{type:'bar',data:{labels,datasets:act.length?act:[{label:'No data',data:labels.map(()=>0),backgroundColor:cssVar('--dim'),stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(Math.round(ctx.parsed.y))}`}}},scales:{x:{stacked:true,ticks:{autoSkip:labels.length>20,maxRotation:45,color:cssVar('--muted'),font:monoFont()},grid:gc,border:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{callback:v=>sym()+Math.round(v).toLocaleString(CUR().locale),color:cssVar('--muted'),font:monoFont()},grid:gc,border:{display:false}}}}});
-  const bkd=allCats().map(c=>({c,t:datasets.find(d=>d.label===c.name)?.data.reduce((a,v)=>a+v,0)||0})).filter(x=>x.t>0).sort((a,b)=>b.t-a.t);
-  $('an-bkd').innerHTML=bkd.length?bkd.map(({c,t})=>`<div class="ti"><div class="tidot" style="background:${c.color}"></div><div class="tib"><div class="tin">${c.name}</div></div><div class="tia">${fmt(t)}</div><div style="font-size:11px;color:var(--muted);margin-left:10px;font-family:'JetBrains Mono',monospace">${tot?Math.round((t/tot)*100)+'%':''}</div></div>`).join(''):'<div class="empty">Add expenses to see breakdown</div>';
+  const catTotals=act.map(d=>({label:d.label,color:d.backgroundColor,total:d.data.reduce((a,v)=>a+v,0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+  const grandTot=catTotals.reduce((s,c)=>s+c.total,0);
+  if(anChartType==='pie'||anChartType==='doughnut'){
+    anChart=new Chart($('an-ch'),{type:anChartType,data:{labels:catTotals.map(c=>c.label),datasets:[{data:catTotals.map(c=>c.total),backgroundColor:catTotals.map(c=>c.color),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(Math.round(ctx.parsed))}${grandTot?' ('+Math.round((ctx.parsed/grandTot)*100)+'%)':''}`}}}}});
+  } else if(anChartType==='line'){
+    const lineSets=(act.length?act:[{label:'No data',data:labels.map(()=>0),backgroundColor:cssVar('--dim')}]).map(d=>({label:d.label,data:d.data,type:'line',fill:false,tension:.3,borderColor:d.backgroundColor,backgroundColor:d.backgroundColor,pointRadius:2,borderWidth:2}));
+    anChart=new Chart($('an-ch'),{type:'line',data:{labels,datasets:lineSets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(Math.round(ctx.parsed.y))}`}}},scales:{x:{ticks:{autoSkip:labels.length>20,maxRotation:45,color:cssVar('--muted'),font:monoFont()},grid:gc,border:{display:false}},y:{beginAtZero:true,ticks:{callback:v=>sym()+Math.round(v).toLocaleString(CUR().locale),color:cssVar('--muted'),font:monoFont()},grid:gc,border:{display:false}}}}});
+  } else {
+    anChart=new Chart($('an-ch'),{type:'bar',data:{labels,datasets:act.length?act:[{label:'No data',data:labels.map(()=>0),backgroundColor:cssVar('--dim'),stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(Math.round(ctx.parsed.y))}`}}},scales:{x:{stacked:true,ticks:{autoSkip:labels.length>20,maxRotation:45,color:cssVar('--muted'),font:monoFont()},grid:gc,border:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{callback:v=>sym()+Math.round(v).toLocaleString(CUR().locale),color:cssVar('--muted'),font:monoFont()},grid:gc,border:{display:false}}}}});
+  }
+  // Category breakdown: with 20+ categories a flat list gets unreadable, so it's
+  // searchable and collapsed to the top 8 by spend with a "show all" expander.
+  const bkdMatch=anBkdSearch?catTotals.filter(c=>c.label.toLowerCase().includes(anBkdSearch)):catTotals;
+  const shown=anBkdExpanded?bkdMatch:bkdMatch.slice(0,8);
+  const hiddenCount=bkdMatch.length-shown.length;
+  $('an-bkd').innerHTML=`
+    ${catTotals.length>8?`<input type="text" id="an-bkd-search" class="txn-cat-dd-search" style="margin-bottom:10px" placeholder="Filter categories…" value="${anBkdSearch.replace(/"/g,'&quot;')}" oninput="setAnBkdSearch(this.value)" autocomplete="off"/>`:''}
+    ${shown.length?shown.map(c=>`<div class="ti"><div class="tidot" style="background:${c.color}"></div><div class="tib"><div class="tin">${c.label}</div><div class="bpw2" style="margin-top:6px"><div class="bpb2" style="width:${grandTot?Math.round((c.total/grandTot)*100):0}%;background:${c.color}"></div></div></div><div class="tia">${fmt(c.total)}</div><div style="font-size:11px;color:var(--muted);margin-left:10px;font-family:'JetBrains Mono',monospace">${grandTot?Math.round((c.total/grandTot)*100)+'%':''}</div></div>`).join(''):'<div class="empty">'+(anBkdSearch?'No matching categories':'Add expenses to see breakdown')+'</div>'}
+    ${hiddenCount>0?`<button class="ghost" style="width:100%;margin-top:10px;padding:9px;font-size:12px" onclick="toggleAnBkdExpand()">Show all ${bkdMatch.length} categories</button>`:''}
+    ${anBkdExpanded&&catTotals.length>8?`<button class="ghost" style="width:100%;margin-top:10px;padding:9px;font-size:12px" onclick="toggleAnBkdExpand()">Show top 8 only</button>`:''}
+  `;
   if(window.lucide)lucide.createIcons();
 }
 
@@ -3734,14 +3835,14 @@ function renderSav(){
       <div class="metric"><div class="metric-l">Best Month</div><div class="metric-v sm">${best?best.label+' · '+fmt(best.sav):'Set salary to track'}</div></div>
       <div class="metric"><div class="metric-l">Avg Savings Rate</div><div class="metric-v ${rate!==null&&rate>=0?'pos':'neg'}">${rate!==null?rate+'%':'—'}</div></div>
     </div>
-    <div class="panel" style="margin-bottom:14px">
+    <div class="panel no-tab-swipe" style="margin-bottom:14px">
       <div class="panel-t"><i data-lucide="trending-up" class="ic-sm"></i>Income vs Expenses — 12 months</div>
       <div class="leg"><span class="li"><span class="ld" style="background:#8cd9a0"></span>Income</span><span class="li"><span class="ld" style="background:#ff5e5e"></span>Expenses</span><span class="li"><span class="ld" style="background:var(--accent);border-radius:50%"></span>Savings</span></div>
       <div style="position:relative;width:100%;height:280px"><canvas id="s-ch"></canvas></div>
     </div>
     <div class="panel"><div class="panel-t"><i data-lucide="table" class="ic-sm"></i>Monthly Summary</div>
-      <div style="overflow-x:auto"><table class="sav-tbl">
-        <thead><tr><th>Month</th><th>Salary</th><th>+Others</th><th>Carry In</th><th>Expenses</th><th>Saved</th><th>→ Next</th></tr></thead>
+      <div class="no-tab-swipe" style="overflow-x:auto"><table class="sav-tbl">
+        <thead><tr><th>Month</th><th>Salary</th><th>+Others</th><th>Carry In</th><th>Expenses</th><th>Saved This Month</th><th>Balance Carried Forward</th></tr></thead>
         <tbody>${data.map(d=>`<tr><td>${d.label}</td><td>${d.sal?fmt(d.sal):'—'}</td><td class="pos">${d.oi?'+'+fmt(d.oi):'—'}</td><td class="${d.carry>=0?'pos':'neg'}">${fmt(d.carry)}</td><td>${d.exp?fmt(d.exp):'—'}</td><td class="${d.sav>=0?'pos':'neg'}">${d.sal?fmt(d.sav):'—'}</td><td class="${(d.carry+d.sav)>=0?'pos':'neg'}">${d.sal?fmt(d.carry+d.sav):'—'}</td></tr>`).join('')}</tbody>
       </table></div>
     </div>`;
@@ -3758,8 +3859,12 @@ function renderSav(){
 // ════════════════════════════════════════════════════════
 // TRANSACTIONS PAGE (full list, filterable)
 // ════════════════════════════════════════════════════════
-let txnFilter='all';
-function setTxnFilter(f){txnFilter=f;renderTxn();}
+let txnFilterCats=new Set(); // empty = All categories
+let txnCatDdOpen=false, txnCatDdSearch='';
+function toggleTxnCatDd(force){ txnCatDdOpen = force!==undefined?force:!txnCatDdOpen; if(!txnCatDdOpen)txnCatDdSearch=''; renderTxn(); }
+function setTxnCatDdSearch(v){ txnCatDdSearch=(v||'').toLowerCase(); renderTxn(); const el=document.getElementById('txn-cat-dd-search'); if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);} }
+function toggleTxnCat(id){ if(txnFilterCats.has(id))txnFilterCats.delete(id); else txnFilterCats.add(id); renderTxn(); }
+function clearTxnCatFilter(){ txnFilterCats.clear(); renderTxn(); }
 let txnSearch='';
 function setTxnSearch(v){txnSearch=(v||'').toLowerCase();renderTxn();}
 function clearTxnSearch(){txnSearch='';renderTxn();const el=document.getElementById('txn-search');if(el)el.focus();}
@@ -3767,7 +3872,7 @@ function clearTxnSearch(){txnSearch='';renderTxn();const el=document.getElementB
 function renderTxn(){
   const me=curExps();
   let filtered=me;
-  if(txnFilter!=='all') filtered=filtered.filter(e=>e.catId===txnFilter);
+  if(txnFilterCats.size) filtered=filtered.filter(e=>txnFilterCats.has(e.catId));
   // Full-text search across note, category, sub-category, amount, date
   if(txnSearch){
     const q=txnSearch;
@@ -3791,22 +3896,40 @@ function renderTxn(){
     (byDate[e.date]=byDate[e.date]||[]).push(e);
   });
   const total=filtered.reduce((s,e)=>s+e.amount,0);
-  const usedCats=[...new Set(me.map(e=>e.catId))];
-  const filters=[{id:'all',name:'All'},...usedCats.map(id=>{const c=getCat(id);return{id,name:c.name,color:c.color};})];
+  const usedCats=[...new Set(me.map(e=>e.catId))].map(id=>{const c=getCat(id);return{id,name:c.name,color:c.color};});
+  const ddOptions=txnCatDdSearch?usedCats.filter(c=>c.name.toLowerCase().includes(txnCatDdSearch)):usedCats;
+  const ddLabel=txnFilterCats.size===0?'All categories'
+    :txnFilterCats.size===1?usedCats.find(c=>txnFilterCats.has(c.id))?.name||'1 selected'
+    :`${txnFilterCats.size} categories selected`;
   $('main-content').innerHTML=`
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap">
-      <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${filtered.length} transaction${filtered.length===1?'':'s'} · ${fmt(total)}${txnSearch?` · matching "${txnSearch}"`:''}</div></div>
+      <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${filtered.length} transaction${filtered.length===1?'':'s'} · ${fmt(total)}${txnSearch?` · matching "${txnSearch}"`:''}${txnFilterCats.size?` · filtered by ${txnFilterCats.size} categor${txnFilterCats.size===1?'y':'ies'}`:''}</div></div>
     </div>
     <div class="txn-search-wrap">
       <i data-lucide="search" class="ic-sm txn-search-icon"></i>
       <input type="text" id="txn-search" class="txn-search" placeholder="Search by note, category, amount, or date…" value="${txnSearch.replace(/"/g,'&quot;')}" oninput="setTxnSearch(this.value)" autocomplete="off"/>
       ${txnSearch?`<button class="txn-search-clear" onclick="clearTxnSearch()" aria-label="Clear"><i data-lucide="x" class="ic-sm"></i></button>`:''}
     </div>
-    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch">
-      ${filters.map(f=>`<button class="ptab${txnFilter===f.id?' on':''}" style="flex-shrink:0;white-space:nowrap" onclick="setTxnFilter('${f.id}')">${f.color?`<span class="ld" style="background:${f.color};margin-right:6px;display:inline-block;vertical-align:2px"></span>`:''}${f.name}</button>`).join('')}
+    <div class="txn-cat-dd">
+      ${txnCatDdOpen?`<div class="txn-cat-dd-backdrop" onclick="toggleTxnCatDd(false)"></div>`:''}
+      <button class="txn-cat-dd-btn" onclick="toggleTxnCatDd()">
+        <span class="chips">${txnFilterCats.size?[...txnFilterCats].slice(0,4).map(id=>{const c=usedCats.find(x=>x.id===id);return c?`<span class="ld" style="background:${c.color};display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px"></span>`:'';}).join(''):''}${ddLabel}</span>
+        <i data-lucide="${txnCatDdOpen?'chevron-up':'chevron-down'}" class="ic-sm"></i>
+      </button>
+      ${txnCatDdOpen?`
+      <div class="txn-cat-dd-panel">
+        <input type="text" id="txn-cat-dd-search" class="txn-cat-dd-search" placeholder="Filter categories…" value="${txnCatDdSearch.replace(/"/g,'&quot;')}" oninput="setTxnCatDdSearch(this.value)" autocomplete="off"/>
+        <div class="txn-cat-dd-list">
+          ${ddOptions.length?ddOptions.map(c=>`<label class="txn-cat-dd-opt"><input type="checkbox" ${txnFilterCats.has(c.id)?'checked':''} onchange="toggleTxnCat('${c.id}')"/><span class="ld" style="background:${c.color};display:inline-block;width:10px;height:10px;border-radius:50%"></span><span>${c.name}</span></label>`).join(''):'<div class="empty" style="padding:14px 4px">No matching categories</div>'}
+        </div>
+        <div class="txn-cat-dd-actions">
+          <button class="ghost" style="padding:8px 14px;font-size:12px" onclick="clearTxnCatFilter()">Clear (show all)</button>
+          <button class="primary" style="padding:8px 16px;font-size:12px" onclick="toggleTxnCatDd(false)">Done</button>
+        </div>
+      </div>`:''}
     </div>
     <div class="panel" style="padding:10px 16px">
-      ${Object.keys(byDate).length===0?`<div class="empty">${txnSearch?'No matches — try a different search':'No transactions for this filter'}</div>`:
+      ${Object.keys(byDate).length===0?`<div class="empty">${txnSearch||txnFilterCats.size?'No matches — try different filters':'No transactions for this filter'}</div>`:
         Object.entries(byDate).map(([date,items])=>{
           const dTot=items.reduce((s,e)=>s+e.amount,0);
           return `<div style="padding:12px 0 4px;border-bottom:1px solid var(--border)">
@@ -3821,8 +3944,13 @@ function renderTxn(){
     </div>
     <div style="text-align:center;margin-top:16px;font-size:14px;color:var(--dim);font-style:italic;font-family:'Instrument Serif',serif">Tap any transaction to edit · long-press on mobile</div>`;
   if(window.lucide)lucide.createIcons();
-  // Restore focus if user was typing in search (so input doesn't blur on re-render)
-  if(document.activeElement?.tagName!=='INPUT'){const s=document.getElementById('txn-search');if(s&&txnSearch){s.focus();s.setSelectionRange(txnSearch.length,txnSearch.length);}}
+  // Restore focus if user was typing in either search box (so it doesn't blur on re-render)
+  if(document.activeElement?.tagName!=='INPUT'){
+    const s=document.getElementById('txn-search');
+    if(s&&txnSearch){s.focus();s.setSelectionRange(txnSearch.length,txnSearch.length);}
+    const cs=document.getElementById('txn-cat-dd-search');
+    if(cs&&txnCatDdOpen){cs.focus();cs.setSelectionRange(txnCatDdSearch.length,txnCatDdSearch.length);}
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -3864,8 +3992,8 @@ function onBudgetInput(id,val,el){
 function renderBud(){
   const me=curExps();
   $('main-content').innerHTML=`
-    <div style="margin-bottom:18px;font-size:13px;color:var(--muted);max-width:520px;line-height:1.55">Set monthly limits per category. Progress fills live as you spend. Going over is loud; staying under is quiet.</div>
-    <div class="bud-list">${allCats().map(c=>{
+    <div style="margin-bottom:18px;font-size:13px;color:var(--muted);max-width:520px;line-height:1.55">Set monthly limits per category.</div>
+    <div class="bud-list">${allCats().filter(c=>!c.excludeFromBudget).map(c=>{
       const spent=me.filter(e=>e.catId===c.id).reduce((s,e)=>s+e.amount,0);
       const bgt=state.budgets[c.id]||0,pct=bgt?Math.min(100,Math.round((spent/bgt)*100)):0,over=bgt&&spent>bgt;
       return`<div class="bi"><div class="bi-row"><div class="bi-left"><div class="cat-dot" style="background:${c.color}"></div><span class="bi-name">${c.name}</span><span class="bi-spent">${fmt(spent)} spent</span></div><div class="bi-in-w"><label>Budget ${sym()}</label><input type="number" inputmode="decimal" class="bi-in" id="bi-${c.id}" value="${bgt||''}" placeholder="No limit" min="0" step="any" oninput="onBudgetInput('${c.id}',this.value,this)"/></div></div>${bgt?`<div class="bpw2"><div class="bpb2" style="width:${pct}%;background:${over?'var(--danger)':c.color}"></div></div><div class="bi-foot"><span>${fmt(spent)} of ${fmt(bgt)}</span><span style="color:${over?'var(--danger)':'inherit'};font-weight:600">${pct}%${over?' · OVER BUDGET':''}</span></div>`:''}</div>`;
@@ -3902,14 +4030,42 @@ function renderEmi(){
   }).join(''):'<div class="empty">Nothing recurring yet — add your first EMI, loan, or subscription above</div>';
   $('main-content').innerHTML=`
     <div class="emi-add"><div class="sec-title"><i data-lucide="repeat" class="ic-sm"></i>Add EMI / Loan / Subscription / Custom recurring</div>
-      <div class="add-row"><div class="fg"><label>Name</label><input type="text" id="e-name" placeholder="e.g. Home Loan · Netflix" maxlength="30"/></div><div class="fg"><label>${sym()} / month</label><input type="number" inputmode="decimal" step="any" id="e-amt" placeholder="0" min="0"/></div><div class="fg"><label>Category</label><select id="e-cat"></select></div><div class="fg" style="min-width:160px"><label>Start Month</label><input type="month" id="e-start" style="min-width:150px"/></div><div class="fg"><label>Months <span style="color:var(--dim)">(999=∞)</span></label><input type="number" inputmode="numeric" id="e-months" placeholder="12" min="1" max="999"/></div><div class="fg"><label>Due Day</label><input type="number" inputmode="numeric" id="e-day" value="1" min="1" max="28"/></div><div class="fg0"><button class="primary" onclick="addEmi()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px">Use <b>999</b> months for ongoing subscriptions (Netflix, Spotify, gym). They'll auto-appear every month — no re-entry needed.</div>
+      <div class="add-row"><div class="fg"><label>Name</label><input type="text" id="e-name" placeholder="e.g. Home Loan · Netflix" maxlength="30" oninput="saveEmiDraft()"/></div><div class="fg"><label>${sym()} / month</label><input type="number" inputmode="decimal" step="any" id="e-amt" placeholder="0" min="0" oninput="saveEmiDraft()"/></div><div class="fg"><label>Category</label><select id="e-cat" onchange="saveEmiDraft()"></select></div><div class="fg" style="min-width:160px"><label>Start Month</label><input type="month" id="e-start" style="min-width:150px" oninput="saveEmiDraft()"/></div><div class="fg"><label>Months <span style="color:var(--dim)">(optional — blank = ∞)</span></label><input type="number" inputmode="numeric" id="e-months" placeholder="Leave blank = ongoing" min="1" max="999" oninput="saveEmiDraft()"/></div><div class="fg"><label>Due Day</label><input type="number" inputmode="numeric" id="e-day" value="1" min="1" max="28" oninput="saveEmiDraft()"/></div><div class="fg0"><button class="primary" onclick="addEmi()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">Leave <b>Months</b> blank for ongoing subscriptions (Netflix, Spotify, gym, UPI autopay) with no fixed end date — they'll auto-appear every month, no re-entry needed. Your draft here is saved automatically, so switching apps or minimising won't lose what you typed.</div>
     </div><div class="emi-list">${emiHTML}</div>`;
   const es=$('e-cat');
   if(es){allCats().forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;if(c.id==='emi')o.selected=true;es.appendChild(o);});}
   $('e-start').value=todayLocal().toISOString().slice(0,7);
+  restoreEmiDraft();
   if(window.lucide)lucide.createIcons();
 }
+// ── Draft autosave for the Recurring form ───────────────────────────────
+// Android WebViews (and sometimes Chrome) can kill/reload the page when the
+// app is backgrounded, wiping any in-progress typing. We mirror the form's
+// fields to localStorage on every change and restore them on render so
+// switching apps or minimising never loses what you were adding.
+const EMI_DRAFT_KEY='tln_emi_draft';
+function saveEmiDraft(){
+  try{
+    const draft={
+      name:$('e-name')?.value||'', amt:$('e-amt')?.value||'', cat:$('e-cat')?.value||'',
+      start:$('e-start')?.value||'', months:$('e-months')?.value||'', day:$('e-day')?.value||''
+    };
+    localStorage.setItem(EMI_DRAFT_KEY,JSON.stringify(draft));
+  }catch(e){}
+}
+function restoreEmiDraft(){
+  let d=null;
+  try{d=JSON.parse(localStorage.getItem(EMI_DRAFT_KEY)||'null');}catch(e){}
+  if(!d)return;
+  if(d.name&&$('e-name'))$('e-name').value=d.name;
+  if(d.amt&&$('e-amt'))$('e-amt').value=d.amt;
+  if(d.cat&&$('e-cat'))$('e-cat').value=d.cat;
+  if(d.start&&$('e-start'))$('e-start').value=d.start;
+  if(d.months&&$('e-months'))$('e-months').value=d.months;
+  if(d.day&&$('e-day'))$('e-day').value=d.day;
+}
+function clearEmiDraft(){ try{localStorage.removeItem(EMI_DRAFT_KEY);}catch(e){} }
 // ════════════════════════════════════════════════════════
 // CATEGORIES PAGE
 // ════════════════════════════════════════════════════════
@@ -3932,6 +4088,7 @@ function renderCat(){
             <span class="cat-mgr-name">${c.name}</span>
             ${c.custom?'<span class="cat-mgr-tag">CUSTOM</span>':(overridden?'<span class="cat-mgr-tag" style="background:var(--accent-soft);color:var(--accent)">EDITED</span>':'')}
             <div style="flex:1"></div>
+            <button class="mbtn" onclick="toggleCatBudget('${c.id}')" title="${c.excludeFromBudget?'Hidden from Budgets tab — tap to include':'Shown on Budgets tab — tap to exclude'}" style="${c.excludeFromBudget?'color:var(--dim)':'color:var(--accent)'}"><i data-lucide="${c.excludeFromBudget?'eye-off':'target'}" class="ic-sm"></i></button>
             <button class="mbtn" onclick="editCategory('${c.id}')" title="Rename & recolor"><i data-lucide="pencil" class="ic-sm"></i></button>
             <button class="mbtn" onclick="addSubcategory('${c.id}')" title="Add sub-category"><i data-lucide="git-branch-plus" class="ic-sm"></i></button>
             ${overridden?`<button class="mbtn" onclick="resetCategoryOverride('${c.id}')" title="Reset to original"><i data-lucide="rotate-ccw" class="ic-sm"></i></button>`:''}
