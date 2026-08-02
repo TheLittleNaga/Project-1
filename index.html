@@ -3570,6 +3570,19 @@ window.addEventListener('popstate',(e)=>{
   // navigation proceed naturally (app exits/minimizes) when already Home.
 });
 
+// ── Hardware back button (Android/Capacitor) ────────────────────────────
+// Capacitor does NOT route the hardware back button through the browser's
+// history/popstate mechanism by default. Without this listener, the native
+// side just exits the app on a single back-press, and everything above
+// (which relies on 'popstate' firing) never runs. Requires @capacitor/app
+// to be installed (npm install @capacitor/app && npx cap sync android).
+if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App){
+  window.Capacitor.Plugins.App.addListener('backButton', ({canGoBack})=>{
+    if(canGoBack){ history.back(); }
+    else{ window.Capacitor.Plugins.App.exitApp(); }
+  });
+}
+
 // ════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════
