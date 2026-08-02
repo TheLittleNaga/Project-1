@@ -1798,13 +1798,17 @@ function openSheet(mode){
   _navPushGuardIfNeeded();
   if(window.lucide)lucide.createIcons();
 }
+let _addExpSheetLock=false;
 function addExpFromSheet(){
+  if(_addExpSheetLock)return;
   const raw=$('s-cat').value,amt=parseFloat($('s-amt').value),date=$('s-date').value,note=$('s-note').value.trim();
   if(!raw||!amt||amt<=0||!date){[$('s-amt'),$('s-date')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});hapticError();return;}
   const[catId,subId]=raw.includes('|')?raw.split('|'):[raw,null];
   const d=new Date(date+'T00:00:00');
   const cc=!!($('s-cc')&&$('s-cc').checked);
   const splitOn=!!(cc && $('s-split-toggle') && $('s-split-toggle').checked);
+  _addExpSheetLock=true;
+  setTimeout(()=>{_addExpSheetLock=false;},600);
 
   if(splitOn){
     // EMI-style: spread (amt + interest) across N months as N separate CC charges
@@ -2627,30 +2631,38 @@ function curExps(){return allExps(mk());}
 // ════════════════════════════════════════════════════════
 // MUTATIONS
 // ════════════════════════════════════════════════════════
+let _addExpLock=false;
 function addExp(){
+  if(_addExpLock)return;
   const raw=$('i-cat').value,amt=parseFloat($('i-amt').value),date=$('i-date').value,note=$('i-note').value.trim();
   if(!raw||!amt||amt<=0||!date){[$('i-amt'),$('i-date')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});return;}
   const[catId,subId]=raw.includes('|')?raw.split('|'):[raw,null];
   const d=new Date(date+'T00:00:00');
   const cc=!!($('i-cc')&&$('i-cc').checked);
+  _addExpLock=true;
   state.exps.push({id:++state.uid,catId,subId,amount:amt,date,note,paidWithCC:cc,mk:mk(d.getFullYear(),d.getMonth())});
   curY=d.getFullYear();curM=d.getMonth();
   $('i-amt').value='';$('i-note').value='';if($('i-cc'))$('i-cc').checked=false;save();
   if(sheetMode==='add')closeSheet();
   checkBudgetNotifications();
   render();
+  setTimeout(()=>{_addExpLock=false;},400);
 }
 async function delExp(id){
   if(String(id).startsWith('emi_'))return;
   if(!await confirmAsync('This expense will be permanently removed.',{title:'Delete expense',danger:true,okText:'Delete',cancelText:'Cancel'}))return;
   state.exps=state.exps.filter(e=>e.id!==id);save();hapticTick();render();
 }
+let _addOILock=false;
 function addOI(){
+  if(_addOILock)return;
   const amt=parseFloat($('oi-amt').value),note=$('oi-note').value.trim(),date=$('oi-date').value;
   if(!amt||amt<=0||!date){$('oi-amt').classList.add('err');setTimeout(()=>$('oi-amt').classList.remove('err'),900);return;}
   const d=new Date(date+'T00:00:00');
+  _addOILock=true;
   state.otherIncome.push({id:++state.uid,amount:amt,note:note||'Others',date,mk:mk(d.getFullYear(),d.getMonth())});
   $('oi-amt').value='';$('oi-note').value='';save();render();
+  setTimeout(()=>{_addOILock=false;},400);
 }
 function delOI(id){state.otherIncome=state.otherIncome.filter(o=>o.id!==id);save();render();}
 let _addEmiLock=false;
@@ -2797,11 +2809,15 @@ function _ccpayUpdateTotal(){
   hapticTap();
 }
 
+let _confirmCcLock=false;
 function confirmCcPayment(mkey){
+  if(_confirmCcLock)return;
   const boxes=document.querySelectorAll('#sheet-content input[type=checkbox][data-amt]:checked');
   if(!boxes.length){showToast('Select at least one charge','x');hapticError();return;}
   let total=0;const ids=[];
   boxes.forEach(b=>{total+=parseFloat(b.dataset.amt);ids.push(parseInt(b.dataset.eid));});
+  _confirmCcLock=true;
+  setTimeout(()=>{_confirmCcLock=false;},600);
   // Mark selected charges as ccPaid so they don't roll into next month
   ids.forEach(eid=>{
     const e=state.exps.find(x=>x.id===eid);
@@ -2829,11 +2845,15 @@ function confirmCcPayment(mkey){
   render();
 }
 
+let _quickPayCcLock=false;
 function _quickPayCc(mkey){
   promptAsync('Amount to pay (applied to oldest unpaid charges first):','',{title:'Custom payment',okText:'Pay'}).then(raw=>{
     if(!raw)return;
+    if(_quickPayCcLock)return;
     const amt=parseFloat(raw);
     if(!amt||amt<=0){showToast('Invalid amount','x');hapticError();return;}
+    _quickPayCcLock=true;
+    setTimeout(()=>{_quickPayCcLock=false;},600);
     const[yy,mm]=mkey.split('-').map(Number);
     const bill=getCreditBill(yy,mm-1);
     // FIFO-fill: walk oldest→newest, mark as ccPaid until amt exhausted
@@ -3405,9 +3425,13 @@ async function pickNewCatColor(){
   }
   hapticTick();
 }
+let _addCustomCatLock=false;
 function addCustomCat(){
+  if(_addCustomCatLock)return;
   const name=$('cc-name').value.trim(),color=state._pendingCatColor||'#a8e063';
   if(!name){showToast('Enter a name','x');$('cc-name').classList.add('err');setTimeout(()=>$('cc-name').classList.remove('err'),800);hapticError();return;}
+  _addCustomCatLock=true;
+  setTimeout(()=>{_addCustomCatLock=false;},400);
   state.customCats=state.customCats||[];
   const id='c_'+Date.now().toString(36);
   state.customCats.push({id,name,color});
@@ -3457,20 +3481,25 @@ function deleteCategoryEntirely(id){
   if(!cat||!cat.custom){showToast('Built-in categories cannot be deleted. You can rename them instead.','x');return;}
   delCustomCat(id);
 }
+let _addSubcatLock=false;
 async function addSubcategory(parentId){
+  if(_addSubcatLock)return;
+  _addSubcatLock=true;
   const name=await promptAsync('Sub-category name (e.g. "WiFi"):','',{title:'Add sub-category'});
-  if(name===null)return;
+  if(name===null){_addSubcatLock=false;return;}
   const trimmed=name.trim();
-  if(!trimmed){showToast('Name required','x');return;}
+  if(!trimmed){showToast('Name required','x');_addSubcatLock=false;return;}
   const parent=allCats().find(c=>c.id===parentId);
   const defaultColor=(parent&&parent.color)||'#a8e063';
   const color=await promptAsync('Pick a colour:',defaultColor,{title:'Sub-category colour',type:'color'});
-  if(color===null)return;
+  if(color===null){_addSubcatLock=false;return;}
   const subId='s_'+Date.now().toString(36);
   state.customSubs=state.customSubs||{};
   state.customSubs[parentId]=state.customSubs[parentId]||[];
   state.customSubs[parentId].push({id:subId,name:trimmed,color:color.trim()||defaultColor});
-  save();hapticTick();showToast(`"${trimmed}" added ✓`);render();}
+  save();hapticTick();showToast(`"${trimmed}" added ✓`);render();
+  _addSubcatLock=false;
+}
 async function editSubcategory(parentId,subId){
   const sub=(state.customSubs&&state.customSubs[parentId]||[]).find(s=>s.id===subId);
   if(!sub){showToast('Built-in sub-categories cannot be edited yet','x');return;}
