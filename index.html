@@ -3506,7 +3506,8 @@ function setTab(t,opts){
   };
   if(!opts.silent && document.startViewTransition) document.startViewTransition(inner);
   else inner();
-  _navHistorySync(t,opts.fromPop);
+  _navDepth=_navTabDepth(t);
+  _exitArmed=false; // any real screen change cancels a pending "press again to exit"
 }
 
 // ── Back-gesture / hardware-back handling ───────────────────────────────
@@ -3514,40 +3515,19 @@ function setTab(t,opts){
 //   0 = Home (dash)
 //   1 = any top-level tab (txn, an, sav, bud, emi, set, notif)
 //   2 = a page nested INSIDE Settings (cat, cur)
-// A single back-press/swipe always moves exactly one depth shallower:
-// depth2 -> depth1 (its parent, currently always 'set') -> depth0 (Home) ->
-// (nothing left to pop) OS/browser handles exit/minimize, as intended.
-let _navDepth=0,_navSuppressPop=false,_navGuardPushed=false;
+// Driven entirely by our own app state (activeTab / overlay flags) — NOT by
+// window.history — so there's no native back-stack bookkeeping to get out
+// of sync. A single back-press always moves exactly one depth shallower:
+// depth2 -> depth1 (parent, 'set') -> depth0 (Home) -> press-again-to-exit.
+let _navDepth=0;
 function _navTabDepth(t){ return (t==='cat'||t==='cur') ? 2 : (t==='dash' ? 0 : 1); }
 function _navParentOf(t){ return (t==='cat'||t==='cur') ? 'set' : 'dash'; }
-function _navPushGuardIfNeeded(){
-  // Makes sure there's always at least one history entry to pop, so a back
-  // press can be intercepted (to close an overlay) even when the user is
-  // still on Home and hasn't "left" it yet.
-  if(_navDepth>0||_navGuardPushed)return;
-  history.pushState({tln:1,tab:'dash',guard:true},'');
-  _navGuardPushed=true;
-}
-function _navHistorySync(t,fromPop){
-  if(fromPop)return; // this call came FROM popstate — don't push/replace again
-  const d=_navTabDepth(t);
-  if(d===0){
-    if(_navDepth>0) history.replaceState({tln:1,tab:'dash'},'');
-    _navDepth=0;_navGuardPushed=false;
-  } else if(d===1){
-    if(_navDepth===0) history.pushState({tln:1,tab:t},'');
-    else history.replaceState({tln:1,tab:t},''); // moving between siblings / up from depth2
-    _navDepth=1;_navGuardPushed=false;
-  } else { // d===2 — nested inside Settings
-    if(_navDepth<2) history.pushState({tln:1,tab:t},'');
-    else history.replaceState({tln:1,tab:t},''); // cat <-> cur, stay at depth 2
-    _navDepth=2;_navGuardPushed=false;
-  }
-}
-window.addEventListener('popstate',(e)=>{
-  if(_navSuppressPop){ _navSuppressPop=false; return; }
-  // Close whatever overlay is on top first; re-arm one history entry so the
-  // NEXT back press is still available to do the next step.
+function _navPushGuardIfNeeded(){/* no-op — kept so existing call sites (drawer/sheet/drill open) don't error */}
+
+let _exitArmed=false,_exitArmTimer=null;
+function _handleBackPress(){
+  // 1. Close whatever overlay is on top first — always takes priority over
+  //    any tab-depth navigation, regardless of which tab is underneath.
   const sheetOpen=document.getElementById('sheet')?.classList.contains('on');
   const drawerOpen=document.getElementById('shell')?.classList.contains('menu-open');
   const drillOpen=document.getElementById('drill-modal')?.classList.contains('on');
@@ -3555,32 +3535,32 @@ window.addEventListener('popstate',(e)=>{
     if(sheetOpen)closeSheet();
     if(drawerOpen)toggleMenu(false);
     if(drillOpen)closeDrill();
-    _navSuppressPop=true;_navGuardPushed=true;
-    history.pushState({tln:1,tab:activeTab},'');
     return;
   }
-  // Land on whichever tab this history entry actually represents. Falls back
-  // to Home for the initial guard entry (which has no meaningful tab).
-  const targetTab=(e.state&&e.state.tab&&!e.state.guard)?e.state.tab:'dash';
-  _navDepth=_navTabDepth(targetTab);_navGuardPushed=false;
-  if(activeTab!==targetTab){
-    setTab(targetTab,{fromPop:true,silent:true});
+  // 2. Nested-in-Settings pages (Categories/Currency) unwind one level.
+  if(_navDepth===2){ setTab(_navParentOf(activeTab),{silent:true}); return; }
+  // 3. Any top-level tab goes back to Home.
+  if(_navDepth===1){ setTab('dash',{silent:true}); return; }
+  // 4. Already on Home with nothing open — require a confirming second
+  //    press within 2s ("press back again to exit") before actually exiting.
+  if(_exitArmed){
+    clearTimeout(_exitArmTimer);
+    _exitArmed=false;
+    if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App){
+      window.Capacitor.Plugins.App.exitApp();
+    }
+    return;
   }
-  // else: no overlay, nothing meaningful changed — let the back
-  // navigation proceed naturally (app exits/minimizes) when already Home.
-});
+  _exitArmed=true;
+  showToast('Press back again to exit','arrow-left');
+  clearTimeout(_exitArmTimer);
+  _exitArmTimer=setTimeout(()=>{ _exitArmed=false; },2000);
+}
 
-// ── Hardware back button (Android/Capacitor) ────────────────────────────
-// Capacitor does NOT route the hardware back button through the browser's
-// history/popstate mechanism by default. Without this listener, the native
-// side just exits the app on a single back-press, and everything above
-// (which relies on 'popstate' firing) never runs. Requires @capacitor/app
-// to be installed (npm install @capacitor/app && npx cap sync android).
+// Android hardware back button / system back gesture (Capacitor).
+// Requires @capacitor/app (npm install @capacitor/app && npx cap sync android).
 if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App){
-  window.Capacitor.Plugins.App.addListener('backButton', ({canGoBack})=>{
-    if(canGoBack){ history.back(); }
-    else{ window.Capacitor.Plugins.App.exitApp(); }
-  });
+  window.Capacitor.Plugins.App.addListener('backButton', ()=>{ _handleBackPress(); });
 }
 
 // ════════════════════════════════════════════════════════
