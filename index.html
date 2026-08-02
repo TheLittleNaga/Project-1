@@ -2653,17 +2653,21 @@ function addOI(){
   $('oi-amt').value='';$('oi-note').value='';save();render();
 }
 function delOI(id){state.otherIncome=state.otherIncome.filter(o=>o.id!==id);save();render();}
+let _addEmiLock=false;
 function addEmi(){
+  if(_addEmiLock)return; // ignore a second tap that lands before the first add finishes
   const name=$('e-name').value.trim(),amt=parseFloat($('e-amt').value),cat=$('e-cat').value,
         start=$('e-start').value,monthsRaw=$('e-months').value.trim(),day=parseInt($('e-day').value)||1;
   // Months is optional — leave it blank for open-ended subs (Netflix, UPI autopay,
   // gym, etc.) that don't have a fixed end date; we treat that as 999 (ongoing).
   const months=monthsRaw?parseInt(monthsRaw):999;
   if(!name||!amt||!start||!months||months<1){[$('e-name'),$('e-amt'),$('e-start')].forEach(el=>{el.classList.add('err');setTimeout(()=>el.classList.remove('err'),900);});return;}
+  _addEmiLock=true;
   const[sy,sm]=start.split('-').map(Number);
   state.emis.push({id:++state.uid,name,catId:cat,amount:amt,sy,sm:sm-1,months:Math.min(999,months),day});
   $('e-name').value='';$('e-amt').value='';$('e-months').value='';save();hapticTick();showToast('Recurring added ✓');render();
   clearEmiDraft();
+  setTimeout(()=>{_addEmiLock=false;},400);
 }
 // Cancelling a recurring entry should stop FUTURE billing only — any month that
 // already happened (this month included, if today's date is past the due day)
