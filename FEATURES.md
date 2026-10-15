@@ -20,12 +20,39 @@ A plain-language walkthrough of every feature in the app, tab by tab. Written so
 - **Category filter (dropdown)** — tap it to open a full-width panel with a checkbox list of every category you've actually used this month. You can select **one, several, or all of them**; there's a filter box inside the dropdown too if your category list is long. The total transaction count and amount at the top updates live as you change the selection. "Clear (show all)" resets it.
 - Tap any transaction to edit it; long-press on mobile also works.
 - Expenses marked "Paid with CC" show a card icon and don't count against this month's balance — they roll into next month's credit card bill instead.
+- Card purchases already settled by a bill payment carry a small **BILLED** tag. They stay visible (so you can see what you bought and when) but aren't counted in totals — the matching **CC payment** lines, one per category, carry the amount in the month you paid.
+- The **Import** button (top right of the month header) opens statement import.
 
 ## Analytics
 
 - Four time views: **Daily, Weekly, Monthly (12mo), Yearly**.
 - **Chart type switcher** — Bar (stacked), Line, Pie, Doughnut. Bar/Line show spend over time per category; Pie/Doughnut show the split of total spend across categories for the period you're viewing.
 - **Category Breakdown** list below the chart — sorted by highest spend first. Once you have more than 8 categories with spend in a period, it collapses to the top 8 with a "Show all" button, and gets a search box so you can jump straight to one category instead of scrolling.
+
+## Credit cards, EMIs & paying the bill
+
+- Mark an expense **Paid with CC** → it isn't deducted from your balance yet. It appears in the card bill that is due the following month (your cut-off day is respected).
+- **Pay the bill** by ticking the exact purchases you're settling, or enter any amount (oldest purchases are settled first; anything that doesn't match a whole purchase is recorded as a part-payment line).
+- Each payment is saved **one line per category** — e.g. *CC payment · Aug bill · Food & Dining (3 items)*, *… · Utilities — WiFi (1 item)* — so Analytics and Budgets show where the money actually went. The purchases themselves get a **BILLED** tag and aren't counted a second time.
+- **Settings → Import statement → Split past card payments by category** converts older single "Miscellaneous" payments the same way (one-time; only payments where the app recorded which purchases they covered).
+- **Split into monthly EMIs** (Add sheet → Paid with CC → Split):
+  - *Months* (+ optional annual interest %) → equal installments; odd paise land on the last one so the total is exact.
+  - *Advance paid now* → the advance is billed first, the rest is split equally.
+  - *Or exact amounts* → type what your bank bills, e.g. `4000, 4000, 2000`.
+  - The live preview shows every installment and warns if the amounts add up to less than the purchase.
+- Note: Charts, Budgets and Savings count a card purchase in the month you buy it until its bill is paid; Home's remaining balance counts it when you pay. After payment both agree.
+
+## Importing transactions
+
+Open **Settings → Import statement** (or **Import** on the Transactions tab).
+
+- Pick your bank's **CSV / Excel** statement, a **credit-card** statement (tick the box), or fill in the **template** and import that. PDF isn't supported.
+- Everything is shown on a **review screen** first: a note, category and action (Expense / Income / Salary / Card bill / Skip) per row, grouped by month, with filters for what will be imported, what's skipped and what looks like a duplicate. Changing one merchant's category offers it to the other rows of that merchant.
+- **Salary** credits set the month's salary. **Other credits** become Other income (payer's name as the note). **Card-bill payments** settle the matching bill — you can change which bill per row. **Repeating monthly debits** (EMIs especially) can become one Recurring entry.
+- **Duplicates** (same amount within a day of something already recorded, or matching a recurring charge) are skipped; you can override any row.
+- The **template** (Excel, CSV, *Copy CSV* → Google Sheets, or *Paste rows*) is built into the app with your own categories. Types: Expense · Income · Salary · CC Bill Payment · Recurring; card EMIs via Months or exact amounts.
+- The file is read on your device — it's never uploaded or stored. Only the transactions you approve are saved.
+- **Undo last import** (Settings) removes everything the last import added and restores salary and card-bill totals.
 
 ## Savings
 
@@ -63,6 +90,7 @@ A plain-language walkthrough of every feature in the app, tab by tab. Written so
 - **Themes** — 5 total: Noir, Paper, Lagoon, Sunset, Monet. Switches instantly, saved per device.
 - **Currency** — 20 currencies; your choice syncs across devices.
 - **Manage Categories** — rename or recolor any category (built-in or custom), add sub-categories, add brand-new custom categories, delete custom ones. **New:** a target/eye icon on each row toggles whether that category shows up on the Budgets tab at all — handy for categories you never want to cap (like Tithe) or ones you do.
+- **Import statement** — bring in a bank/credit-card statement or the template (see *Importing transactions*); **Undo last import** lives here too, plus *Split past card payments by category* when you have older payments to convert.
 - **Notifications toggle** — turn budget/CC alerts on or off; on Chrome PWA these become real background OS push notifications, on the Android APK they show as in-app banners.
 - **Wipe data** — permanently erases everything for your account (type "WIPE" to confirm).
 
@@ -76,8 +104,8 @@ A plain-language walkthrough of every feature in the app, tab by tab. Written so
 ## Everything else (unchanged, still there)
 
 - Live cloud sync via Supabase — realtime across devices, pull-to-refresh on mobile.
-- Smart credit-card tracking with a per-charge bill allocator and FIFO custom-amount fill.
-- Split-into-EMI with optional annual interest and live preview.
+- Smart credit-card tracking with a per-charge bill allocator and FIFO custom-amount fill (now recorded per category).
+- Split-into-EMI with optional annual interest, advance, exact bank amounts and live preview.
 - IST-aware dates (Asia/Kolkata "now"), themed dialogs everywhere (no native browser popups), haptic feedback, bottom-sheet forms, view-transition animations.
 
 ---

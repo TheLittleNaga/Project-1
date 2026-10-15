@@ -1277,7 +1277,78 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 .txn-cat-dd-opt{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:9px;cursor:pointer;font-size:13.5px}
 .txn-cat-dd-opt:hover{background:var(--surface)}
 .txn-cat-dd-opt input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0}
-.txn-cat-dd-actions{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-shrink:0}</style>
+.txn-cat-dd-actions{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-shrink:0}
+/* ═══ Statement import overlay ═══ */
+.imp-ov{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateY(16px);transition:opacity .25s,transform .3s cubic-bezier(.2,.85,.25,1)}
+.imp-ov.on{opacity:1;pointer-events:auto;transform:none}
+.imp-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:max(14px,env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid var(--border)}
+.imp-title{font-family:'Instrument Serif',serif;font-size:26px;line-height:1.1}
+.imp-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 24px;width:100%;max-width:760px;margin:0 auto}
+.imp-foot{display:none;align-items:center;gap:12px;padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--card);justify-content:space-between}
+.imp-fsum{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.5}
+.imp-foot button.primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.imp-busy{padding:60px 0;text-align:center;color:var(--muted);font-size:14px}
+.imp-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:26px 14px 20px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--accent)}
+.imp-h1{font-family:'Instrument Serif',serif;font-size:23px;color:var(--text);line-height:1.2}
+.imp-p{font-size:13px;color:var(--muted);line-height:1.55;max-width:460px}
+.imp-pick{background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;margin-top:6px}
+.imp-pick:active{transform:scale(.97)}
+.imp-err{background:color-mix(in srgb,var(--danger) 12%,transparent);border:1px solid color-mix(in srgb,var(--danger) 35%,transparent);color:var(--text);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:12px}
+.imp-cc{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:12.5px;color:var(--muted);line-height:1.5;cursor:pointer}
+.imp-cc input{width:18px;height:18px;margin-top:1px;flex:0 0 auto;accent-color:var(--accent);-webkit-appearance:auto;appearance:auto;padding:0}
+.imp-cc b{color:var(--text)}
+.imp-tips{display:flex;flex-direction:column;gap:10px;margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.imp-tips div{display:flex;gap:10px;align-items:flex-start}
+.imp-tips svg{flex:0 0 auto;margin-top:2px;color:var(--accent)}
+.imp-sum{font-size:13px;line-height:1.5}
+.imp-file{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;word-break:break-all}
+.imp-chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.imp-chip{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:12px;font-family:inherit;cursor:pointer}
+.imp-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.imp-det{margin-bottom:6px;font-size:12.5px;color:var(--muted)}
+.imp-det summary{cursor:pointer;padding:6px 0}
+.imp-map{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.imp-mapf{display:flex;flex-direction:column;gap:5px}
+.imp-mapf span{font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.imp-mh{position:sticky;top:-16px;z-index:2;background:var(--bg);padding:12px 2px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600;display:flex;justify-content:space-between}
+.imp-mh span{font-family:'JetBrains Mono',monospace}
+.imp-row{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:8px;display:flex;flex-direction:column;gap:7px}
+.imp-row.t-skip{opacity:.55;background:transparent}
+.imp-row.t-skip .imp-raw{-webkit-line-clamp:2}
+.imp-r1{display:flex;align-items:center;gap:10px}
+.imp-date{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:52px}
+.imp-amt{font-size:15px;font-weight:600;font-family:'JetBrains Mono',monospace;flex:1;letter-spacing:-.01em}
+.imp-amt.in{color:var(--accent2)}
+.imp-r1 select{width:auto;flex:0 0 auto;padding:6px 26px 6px 10px;font-size:12px}
+.imp-row input.imp-note,.imp-row select.imp-cat{padding:8px 10px;font-size:13px}
+.imp-tag{font-size:9px;letter-spacing:.08em;padding:2px 6px;border-radius:999px;border:1px solid var(--border-strong);color:var(--muted);vertical-align:middle;font-family:'DM Sans',sans-serif;font-weight:600}
+.imp-why{font-size:11px;color:var(--danger);letter-spacing:.01em}
+.imp-row:not(.t-skip) .imp-why{color:var(--muted)}
+.imp-raw{font-size:10.5px;color:var(--dim);font-family:'JetBrains Mono',monospace;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;word-break:break-all}
+@media (max-width:420px){.imp-map{grid-template-columns:1fr}}
+
+.imp-recs{background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:12px 14px;margin:12px 0}
+.imp-rech{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;color:var(--accent)}
+.imp-recsub{font-size:12px;color:var(--muted);margin:4px 0 8px;line-height:1.5}
+.imp-rec{border-top:1px solid var(--border);padding:10px 0 4px}
+.imp-rec-top{display:flex;gap:10px;align-items:flex-start;font-size:13px;cursor:pointer;line-height:1.45}
+.imp-rec-top input{width:18px;height:18px;margin-top:2px;flex:0 0 auto;accent-color:var(--accent);-webkit-appearance:auto;appearance:auto;padding:0}
+.imp-rec-top small{color:var(--muted);font-size:11px}
+.imp-recend{margin:8px 0 2px 28px;width:calc(100% - 28px);font-size:12px;padding:8px 10px}
+.imp-billrow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.imp-billrow select{flex:1;padding:8px 10px;font-size:13px}
+.imp-row.t-ccpay{border-color:color-mix(in srgb,var(--accent2) 45%,var(--border))}
+.imp-row.t-sal{border-color:color-mix(in srgb,var(--accent) 55%,var(--border))}
+.imp-row.t-rec{border-style:dashed}
+.imp-why.bad{color:var(--danger)}
+
+.imp-tpl{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:14px}
+.imp-tplh{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.imp-tplb{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.imp-tplb .ghost{flex:1 1 44%;justify-content:center;padding:10px 12px;font-size:13px}
+.imp-hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;min-height:2px}
+.imp-paste{width:100%;min-height:260px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;padding:12px;border-radius:14px;background:var(--card);color:var(--text);border:1px solid var(--border);resize:vertical;white-space:pre;overflow:auto}
+</style>
 </head>
 <body>
 
@@ -1420,6 +1491,13 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 
 <!-- Toast -->
 <div class="toast" id="toast"><i data-lucide="check" class="ic-sm"></i><span id="toast-text">Saved</span></div>
+
+<!-- Statement import overlay -->
+<div class="imp-ov" id="imp-ov" role="dialog" aria-label="Import statement">
+  <div class="imp-top"><div class="imp-title" id="imp-title">Import statement</div><button class="drill-close" onclick="impRequestClose()" aria-label="Close"><i data-lucide="x" class="ic-sm"></i></button></div>
+  <div class="imp-body" id="imp-body"></div>
+  <div class="imp-foot" id="imp-foot"></div>
+</div>
 
 <!-- Drill modal (category drill-down) -->
 <div class="drill-modal-bg" id="drill-bg" onclick="closeDrill()"></div>
@@ -1722,7 +1800,7 @@ function showToast(msg,icon='check'){
 // ════════════════════════════════════════════════════════
 function openDrill(catId){
   const bg=document.getElementById('drill-bg'),md=document.getElementById('drill-modal'),body=document.getElementById('drill-body');
-  const c=getCat(catId),me=curExps(),ce=me.filter(e=>e.catId===catId);
+  const c=getCat(catId),me=cntCur(),ce=me.filter(e=>e.catId===catId);
   const cs=ce.reduce((a,e)=>a+e.amount,0);
   const bgt=state.budgets[catId]||0,pct=bgt?Math.min(100,Math.round((cs/bgt)*100)):0,over=bgt&&cs>bgt;
   let pills='';
@@ -1777,7 +1855,7 @@ function openSheet(mode){
     const sel=document.getElementById('s-cat');
     if(sel && sel.options.length>0) sel.selectedIndex=0;
     const dt=document.getElementById('s-date');
-    if(dt) dt.value=todayLocal().toISOString().split('T')[0];
+    if(dt) dt.value=todayYMD();
     setTimeout(()=>{
       const a=document.getElementById('s-amt');
       if(a)a.focus();
@@ -1811,34 +1889,30 @@ function addExpFromSheet(){
   setTimeout(()=>{_addExpSheetLock=false;},600);
 
   if(splitOn){
-    // EMI-style: spread (amt + interest) across N months as N separate CC charges
-    const months=Math.max(2,Math.min(60,parseInt($('s-split-months').value)||3));
-    const interestRate=parseFloat($('s-split-interest').value)||0; // annual %, optional
-    const total=amt*(1+(interestRate/100)*(months/12));
-    const per=Math.round(total/months*100)/100;
+    // EMI-style: spread across N months as N separate CC charges (equal, with advance, or exact bank amounts)
+    const S=_splitSchedule();
+    const sched=S.arr,N=sched.length,interestRate=S.rate;
     const groupId='sp_'+Date.now().toString(36);
-    for(let i=0;i<months;i++){
-      const dd=new Date(d);dd.setMonth(dd.getMonth()+i);
-      const y2=dd.getFullYear(),m2=dd.getMonth();
-      const dayStr=dd.toISOString().split('T')[0];
+    for(let i=0;i<N;i++){
+      const t=addMonthsYMD(date,i);
       state.exps.push({
         id:++state.uid,
         catId,subId,
-        amount:per,
-        date:dayStr,
-        note:`${note||getCat(catId).name} · EMI ${i+1}/${months}${interestRate?` @${interestRate}%`:''}`,
+        amount:sched[i],
+        date:t.date,
+        note:`${note||getCat(catId).name} · EMI ${i+1}/${N}${interestRate&&S.custom.length<2?` @${interestRate}%`:''}`,
         paidWithCC:true,
         splitOf:groupId,
         splitTotal:amt,
-        splitInterest:interestRate,
+        splitInterest:S.custom.length>=2?0:interestRate,
         splitIndex:i+1,
-        splitMonths:months,
-        mk:mk(y2,m2),
+        splitMonths:N,
+        mk:mk(t.y,t.m),
       });
     }
     curY=d.getFullYear();curM=d.getMonth();
     save();closeSheet();hapticDone();
-    showToast(`Split ${fmt(amt)} into ${months}×${fmt(per)} ✓`,'check');
+    showToast(`Split ${fmt(amt)} into ${N} installments ✓`,'check');
     checkBudgetNotifications();render();
     return;
   }
@@ -1876,21 +1950,33 @@ function _updateSplitPanel(){
       <div class="fg"><label>Months</label><input type="number" id="s-split-months" min="2" max="60" value="3" oninput="_splitPreview()"/></div>
       <div class="fg"><label>Interest % (annual)</label><input type="number" id="s-split-interest" step="0.1" min="0" value="0" oninput="_splitPreview()"/></div>
     </div>
+    <div class="split-row">
+      <div class="fg"><label>Advance paid now (optional)</label><input type="number" inputmode="decimal" id="s-split-adv" step="any" min="0" placeholder="0" oninput="_splitPreview()"/></div>
+      <div class="fg"><label>Or exact amounts (optional)</label><input type="text" id="s-split-custom" placeholder="e.g. 4000, 4000, 2000" oninput="_splitPreview()"/></div>
+    </div>
     <div class="split-preview" id="s-split-preview">Enter an amount above to preview the EMI plan.</div>
   </div>`;
   if(window.lucide)lucide.createIcons();
   _splitPreview();
 }
-function _splitPreview(){
-  const out=$('s-split-preview');if(!out)return;
+function _splitSchedule(){
   const amt=parseFloat($('s-amt')?.value)||0;
   const months=Math.max(2,Math.min(60,parseInt($('s-split-months')?.value)||3));
   const rate=parseFloat($('s-split-interest')?.value)||0;
-  if(!amt){out.innerHTML='<span style="color:var(--dim)">Enter an amount above to preview.</span>';return;}
-  const total=amt*(1+(rate/100)*(months/12));
-  const per=total/months;
-  const extra=total-amt;
-  out.innerHTML=`<b>${months}×${fmt(per)}</b> / month${rate?` · +${fmt(extra)} interest`:''} · Total <b>${fmt(total)}</b>`;
+  const adv=parseFloat($('s-split-adv')?.value)||0;
+  const custom=parseAmountList($('s-split-custom')?.value);
+  return{amt,months,rate,adv,custom,arr:buildSplitSchedule(amt,months,rate,adv,custom)};
+}
+function _splitPreview(){
+  const out=$('s-split-preview');if(!out)return;
+  const S=_splitSchedule();
+  if(!S.amt){out.innerHTML='<span style="color:var(--dim)">Enter an amount above to preview.</span>';return;}
+  const a=S.arr,sum=a.reduce((x,y)=>x+y,0);
+  const same=a.every(v=>Math.abs(v-a[0])<0.005);
+  const lastDiff=a.length>2&&a.slice(0,-1).every(v=>Math.abs(v-a[0])<0.005);
+  const txt=same?`<b>${a.length}×${fmt(a[0])}</b>`:lastDiff?`<b>${a.length-1}×${fmt(a[0])} + ${fmt(a[a.length-1])}</b>`:`<b>${a.map(v=>fmt(v)).join(' + ')}</b>`;
+  const extra=sum-S.amt;
+  out.innerHTML=`${txt} / month · Total <b>${fmt(sum)}</b>${extra>0.005?` · +${fmt(extra)} interest/fees`:''}${extra<-0.005?` <span style="color:var(--danger)">· ${fmt(-extra)} less than the purchase</span>`:''}${S.custom.length>=2?' · <i>exact amounts</i>':''}`;
 }
 // Re-run preview when amount changes
 document.addEventListener('input',e=>{
@@ -2467,6 +2553,35 @@ const getSub=(cid,sid)=>{const c=getCat(cid);return(c.subs||[]).find(s=>s.id===s
 const din=(y,m)=>new Date(y,m+1,0).getDate();
 function isCCUnpaid(e){ return e.paidWithCC===true && !e.ccPaid && !e.ccPayment && !e.prepaid; }
 function todayLocal(){ try{ return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'})); }catch(e){ return new Date(); } }
+// YYYY-MM-DD from LOCAL date parts (toISOString() converts to UTC, which shifts dates by a day in India)
+function ymdLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayYMD(){return ymdLocal(todayLocal());}
+// date string + k months (day clamped to month length) → {date,y,m}
+function addMonthsYMD(ymd,k){
+  const y=+ymd.slice(0,4),m=+ymd.slice(5,7)-1,d=+ymd.slice(8,10);
+  const yy=y+Math.floor((m+k)/12),mm=(((m+k)%12)+12)%12,dim=new Date(yy,mm+1,0).getDate();
+  return{date:yy+'-'+String(mm+1).padStart(2,'0')+'-'+String(Math.min(d,dim)).padStart(2,'0'),y:yy,m:mm};
+}
+// "4000, 4000, 2000" / "4000+4000+2000" → [4000,4000,2000]   (no thousands separators)
+function parseAmountList(str){
+  return String(str==null?'':str).replace(/[₹$]/g,'').split(/[,;+\s]+/).map(x=>parseFloat(x)).filter(x=>x>0);
+}
+// Installment amounts for a card EMI. Always adds up to the exact total (no lost/extra paise):
+//  · custom list      → used as given (bank-specific patterns like 4000+4000+2000)
+//  · advance + months → advance paid up-front, the rest split equally (remainder paise on the last one)
+//  · plain months     → equal split, remainder paise on the last one
+function buildSplitSchedule(amount,months,ratePct,advance,custom){
+  const r2=x=>Math.round(x*100)/100;
+  if(custom&&custom.length>=2)return custom.map(r2);
+  const n=Math.max(1,Math.min(60,Math.floor(months)||1));
+  const total=r2(amount*(1+((ratePct||0)/100)*(n/12)));
+  const adv=Math.min(Math.max(advance||0,0),total);
+  const rest=r2(total-adv);
+  const base=Math.floor(rest/n*100)/100;
+  const arr=Array(n).fill(base);
+  arr[n-1]=r2(arr[n-1]+(rest-base*n));
+  return adv>0?[r2(adv),...arr]:arr;
+}
 
 // ════════════════════════════════════════════════════════
 // SYNC
@@ -2503,14 +2618,14 @@ async function startListener(){
     if(error&&error.code!=='PGRST116')throw error;
     if(data?.data){
       const p=JSON.parse(data.data);
-      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
+      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},impLog:p.impLog||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
       if(p.curY)curY=p.curY;if(p.curM!==undefined)curM=p.curM;
       if(state.theme && state.theme!==localStorage.getItem('theme')) applyTheme(state.theme);
     }
     setSyncStatus('ok',data?'Synced':'Ready — add your first expense');
   }catch(e){
     setSyncStatus('err','Offline — using local data');
-    try{const p=JSON.parse(localStorage.getItem('et_'+uid)||'{}');if(p.exps)state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};}catch(le){}
+    try{const p=JSON.parse(localStorage.getItem('et_'+uid)||'{}');if(p.exps)state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},impLog:p.impLog||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};}catch(le){}
   }
   pruneNotifState();
   render();
@@ -2519,7 +2634,7 @@ async function startListener(){
     .on('postgres_changes',{event:'*',schema:'public',table:'tracker',filter:`id=eq.${uid}`},pl=>{
       if(!pl.new?.data)return;
       const p=JSON.parse(pl.new.data);
-      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
+      state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},impLog:p.impLog||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
       if(p.curY)curY=p.curY;if(p.curM!==undefined)curM=p.curM;
       setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString(CUR().locale,{hour:'2-digit',minute:'2-digit'}));
       // Skip render if user is mid-input — don't wipe their typing
@@ -2601,7 +2716,7 @@ function getCarryover(toY,toM){
     const sal=state.salaries[mkey]||0;
     const oi=state.otherIncome.filter(o=>o.mk===mkey).reduce((s,o)=>s+o.amount,0);
     // Only count expenses that actually left the wallet (exclude unpaid CC)
-    const spent=allExps(mkey).filter(e=>!isCCUnpaid(e)).reduce((s,e)=>s+e.amount,0);
+    const spent=allExps(mkey).filter(e=>!isCCUnpaid(e)&&!e.ccBilled).reduce((s,e)=>s+e.amount,0);
     carry+=sal+oi-spent;
     if(++m>11){m=0;y++;}
   }
@@ -2627,6 +2742,58 @@ function getEmiExps(mkey){
 }
 function allExps(mkey){return[...state.exps.filter(e=>e.mk===mkey),...getEmiExps(mkey)];}
 function curExps(){return allExps(mk());}
+// "Counted" entries = everything except card purchases already settled by a bill payment.
+// Those purchases are represented by the per-category CC payment lines instead, so they must not count twice.
+function cntExps(mkey){return allExps(mkey).filter(e=>!e.ccBilled);}
+function cntCur(){return cntExps(mk());}
+// Settle card charges: one payment line PER CATEGORY (so analytics keep the original categories),
+// mark the charges as settled, return the ids that were newly flagged.
+function ccSettleCharges(ids,amount,billKey,entryMk,dateStr,extra){
+  const[yy,mm]=billKey.split('-').map(Number);
+  const label=`${MOS3[(mm-1+11)%12]} bill`;
+  const groups={},flagged=[];
+  ids.forEach(id=>{
+    const c=state.exps.find(x=>x.id===id);if(!c)return;
+    const k=c.catId+'|'+(c.subId||'');
+    const g=groups[k]=groups[k]||{catId:c.catId,subId:c.subId||null,amount:0,ids:[]};
+    g.amount+=c.amount;g.ids.push(c.id);
+    if(!c.ccPaid)flagged.push(c.id);
+    c.ccPaid=true;c.ccBilled=true;
+  });
+  const pg='pg'+Date.now().toString(36)+state.uid;
+  let used=0;
+  Object.values(groups).forEach(g=>{
+    const amt=Math.round(g.amount*100)/100;used+=amt;
+    const cat=getCat(g.catId),sub=g.subId?getSub(g.catId,g.subId):null;
+    state.exps.push(Object.assign({id:++state.uid,catId:g.catId,subId:g.subId,amount:amt,date:dateStr,
+      note:`CC payment · ${label} · ${sub?sub.name:cat.name} (${g.ids.length} item${g.ids.length===1?'':'s'})`,
+      ccPayment:true,ccPaidFor:g.ids,payGroup:pg,mk:entryMk},extra||{}));
+  });
+  const rest=Math.round((amount-used)*100)/100;
+  if(rest>0.004){
+    state.exps.push(Object.assign({id:++state.uid,catId:'misc',subId:null,amount:rest,date:dateStr,
+      note:`CC payment · ${label}`+(used>0?' · fees / part-payment':''),ccPayment:true,payGroup:pg,mk:entryMk},extra||{}));
+  }
+  return flagged;
+}
+// Older single "Miscellaneous" payments that know which purchases they paid for can be split retroactively
+function ccLegacyLumps(){
+  return state.exps.filter(e=>e.ccPayment&&!e.payGroup&&Array.isArray(e.ccPaidFor)&&e.ccPaidFor.length&&e.ccPaidFor.some(id=>state.exps.some(c=>c.id===id)));
+}
+async function ccRelabelPast(){
+  const L=ccLegacyLumps();
+  if(!L.length){showToast('Nothing to split','x');return;}
+  const total=L.reduce((a,e)=>a+e.amount,0);
+  const ok=await confirmAsync(`${L.length} past card payment${L.length===1?'':'s'} (${fmt(total)}) will be split into one line per category, using the purchases each one paid for. The original purchases stop being counted a second time, so some past monthly totals will go DOWN to the correct figure. This can't be undone automatically.`,{title:'Split past card payments?',okText:'Split them',cancelText:'Not now'});
+  if(!ok)return;
+  for(const lump of L){
+    const ids=lump.ccPaidFor.filter(id=>state.exps.some(c=>c.id===id));
+    state.exps=state.exps.filter(e=>e!==lump);
+    ccSettleCharges(ids,lump.amount,lump.mk,lump.mk,lump.date,{});
+  }
+  save();render();
+  showToast(`Split ${L.length} payment${L.length===1?'':'s'} by category`,'check');
+}
 
 // ════════════════════════════════════════════════════════
 // MUTATIONS
@@ -2818,28 +2985,11 @@ function confirmCcPayment(mkey){
   boxes.forEach(b=>{total+=parseFloat(b.dataset.amt);ids.push(parseInt(b.dataset.eid));});
   _confirmCcLock=true;
   setTimeout(()=>{_confirmCcLock=false;},600);
-  // Mark selected charges as ccPaid so they don't roll into next month
-  ids.forEach(eid=>{
-    const e=state.exps.find(x=>x.id===eid);
-    if(e)e.ccPaid=true;
-  });
-  // Bump the paid counter
+  // Bump the paid counter, then record one payment line per category and mark the charges settled
   const cur=_ccPaidRaw(mkey);const base=cur===-1?0:cur;
   _ccSetPaid(mkey,base+total);
-  // Insert a single repayment expense in the current month tagged with the paid item ids
-  const today=todayLocal().toISOString().split('T')[0];
-  const[yy,mm]=mkey.split('-').map(Number);
-  state.exps.push({
-    id:++state.uid,
-    catId:'misc',
-    subId:null,
-    amount:total,
-    date:today,
-    note:`CC payment · ${MOS3[(mm-1+11)%12]} bill (${ids.length} item${ids.length===1?'':'s'})`,
-    ccPayment:true,
-    ccPaidFor:ids,
-    mk:mkey,
-  });
+  const today=todayYMD();
+  ccSettleCharges(ids,total,mkey,mkey,today,{});
   save();hapticDone();closeSheet();
   showToast(`Paid ${fmt(total)} ✓`,'check');
   render();
@@ -2856,20 +3006,17 @@ function _quickPayCc(mkey){
     setTimeout(()=>{_quickPayCcLock=false;},600);
     const[yy,mm]=mkey.split('-').map(Number);
     const bill=getCreditBill(yy,mm-1);
-    // FIFO-fill: walk oldest→newest, mark as ccPaid until amt exhausted
+    // FIFO-fill: walk oldest→newest, settle whole charges until the amount runs out
     const sorted=bill.charges.slice().sort((a,b)=>a.date.localeCompare(b.date));
-    let left=amt;
+    let left=amt;const covered=[];
     for(const ch of sorted){
       if(left<=0)break;
-      if(left>=ch.amount-0.001){
-        const e=state.exps.find(x=>x.id===ch.id);if(e)e.ccPaid=true;
-        left-=ch.amount;
-      }
+      if(typeof ch.id==='number'&&left>=ch.amount-0.001){covered.push(ch.id);left-=ch.amount;}
     }
     const cur=_ccPaidRaw(mkey);const base=cur===-1?0:cur;
     _ccSetPaid(mkey,base+amt);
-    const today=todayLocal().toISOString().split('T')[0];
-    state.exps.push({id:++state.uid,catId:'misc',subId:null,amount:amt,date:today,note:`CC payment · ${MOS3[(mm-1+11)%12]} bill`,ccPayment:true,mk:mkey});
+    const today=todayYMD();
+    ccSettleCharges(covered,amt,mkey,mkey,today,{});
     save();hapticDone();closeSheet();
     showToast(`Paid ${fmt(amt)} ✓`,'check');
     render();
@@ -3106,7 +3253,7 @@ function checkBudgetNotifications(){
   const stages=[{k:'p50',pct:50,lbl:'Halfway'},{k:'p80',pct:80,lbl:'Heads-up'},{k:'p100',pct:100,lbl:'Over budget'}];
   Object.entries(state.budgets||{}).forEach(([catId,limit])=>{
     if(!limit||limit<=0)return;
-    const spent=allExps(mkey).filter(e=>e.catId===catId).reduce((s,e)=>s+e.amount,0);
+    const spent=cntExps(mkey).filter(e=>e.catId===catId).reduce((s,e)=>s+e.amount,0);
     const pct=(spent/limit)*100;
     const cat=getCat(catId);
     stages.forEach(st=>{
@@ -3160,7 +3307,7 @@ function renderNotif(){
       <div class="notif-dot" style="background:${n.kind==='cc'?'var(--danger)':'var(--accent)'}"></div>
       <div class="notif-body">
         <div class="notif-title">${n.title}${n.read?'':' <span class="cc-tag" style="background:var(--accent);color:var(--accent-ink,#0b1a00);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:700">NEW</span>'}</div>
-        <div class="notif-desc">${n.body} · ${fmtD(n.mkey?n.mkey+'-01':todayLocal().toISOString().split('T')[0])}</div>
+        <div class="notif-desc">${n.body} · ${fmtD(n.mkey?n.mkey+'-01':todayYMD())}</div>
       </div>
       <button class="notif-del" onclick="event.stopPropagation();dismissNotif('${n.id}')" aria-label="Dismiss"><i data-lucide="x" class="ic-sm"></i></button>
     </div>`).join(''):'<div class="notif-empty">No notifications yet — you\'re all caught up.</div>';
@@ -3255,7 +3402,7 @@ async function prepayRemainingSplit(groupId,currentId){
   // Mark remaining rows as prepaid (don't delete — keeps history)
   remaining.forEach(r=>{r.prepaid=true;});
   // Create a consolidated charge in the current month, tagged as CC but already settled
-  const today=todayLocal().toISOString().split('T')[0];
+  const today=todayYMD();
   const d=todayLocal();
   state.exps.push({
     id:++state.uid,
@@ -3561,6 +3708,7 @@ let _exitArmed=false,_exitArmTimer=null;
 function _handleBackPress(){
   // 1. Close whatever overlay is on top first — always takes priority over
   //    any tab-depth navigation, regardless of which tab is underneath.
+  if(impIsOpen()){ impRequestClose(); return; }
   const sheetOpen=document.getElementById('sheet')?.classList.contains('on');
   const drawerOpen=document.getElementById('shell')?.classList.contains('menu-open');
   const drillOpen=document.getElementById('drill-modal')?.classList.contains('on');
@@ -3596,6 +3744,993 @@ if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App)
   window.Capacitor.Plugins.App.addListener('backButton', ()=>{ _handleBackPress(); });
 }
 
+// ── Pure parsing / categorising helpers (no DOM, no app state) ───────────
+const ImpCore=(()=>{
+  const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+
+  function parseCSV(text){
+    if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+    const lines=text.split(/\r?\n/).filter(l=>l.trim()).slice(0,15);
+    let delim=',',best=-1;
+    for(const d of [',',';','\t','|']){
+      const n=lines.reduce((s,l)=>s+(l.split(d).length-1),0);
+      if(n>best){best=n;delim=d;}
+    }
+    const rows=[];let row=[],cur='',q=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(q){
+        if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+        else cur+=c;
+      }else if(c==='"'&&cur===''){q=true;}
+      else if(c===delim){row.push(cur);cur='';}
+      else if(c==='\n'||c==='\r'){
+        if(c==='\r'&&text[i+1]==='\n')i++;
+        row.push(cur);cur='';
+        if(row.some(x=>x.trim()!==''))rows.push(row);
+        row=[];
+      }else cur+=c;
+    }
+    row.push(cur);
+    if(row.some(x=>x.trim()!==''))rows.push(row);
+    return rows;
+  }
+
+  const pad=n=>String(n).padStart(2,'0');
+  function validYMD(y,m,d){
+    if(y<1990||y>2100||m<1||m>12||d<1||d>31)return null;
+    const dt=new Date(Date.UTC(y,m-1,d));
+    if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==m-1||dt.getUTCDate()!==d)return null;
+    return y+'-'+pad(m)+'-'+pad(d);
+  }
+  // mdy=true when the file is known to use month-first dates
+  function parseDate(v,mdy){
+    if(v==null||v==='')return null;
+    if(v instanceof Date&&!isNaN(v))return validYMD(v.getFullYear(),v.getMonth()+1,v.getDate());
+    if(typeof v==='number'){
+      if(v>20000&&v<80000){const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);return validYMD(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());}
+      return null;
+    }
+    let s=String(v).trim().replace(/\s+/g,' ');
+    if(!s)return null;
+    s=s.replace(/[T ]\d{1,2}:\d{2}(:\d{2})?(\.\d+)?\s*(am|pm)?(\s*[+-]\d{2}:?\d{2}|Z)?$/i,'').trim();
+    let m;
+    if((m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/)))return validYMD(+m[1],+m[2],+m[3]);
+    if((m=s.match(/^(\d{1,2})[-\/. ]([A-Za-z]{3,9})[-\/. ,]+(\d{2,4})$/))){
+      const mo=MON[m[2].slice(0,4).toLowerCase()]||MON[m[2].slice(0,3).toLowerCase()];
+      if(!mo)return null;let y=+m[3];if(y<100)y+=2000;return validYMD(y,mo,+m[1]);
+    }
+    if((m=s.match(/^([A-Za-z]{3,9})[ .-](\d{1,2}),?[ -](\d{2,4})$/))){
+      const mo=MON[m[1].slice(0,4).toLowerCase()]||MON[m[1].slice(0,3).toLowerCase()];
+      if(!mo)return null;let y=+m[3];if(y<100)y+=2000;return validYMD(y,mo,+m[2]);
+    }
+    if((m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/))){
+      let a=+m[1],b=+m[2],y=+m[3];if(y<100)y+=2000;
+      return mdy?validYMD(y,a,b):validYMD(y,b,a);
+    }
+    if(/^\d{5}$/.test(s))return parseDate(+s);
+    return null;
+  }
+  // true when any slash/dash date has a second field > 12 and first <= 12 (=> month-first)
+  function detectMDY(samples){
+    let dayFirst=0,monthFirst=0;
+    for(const v of samples){
+      const m=typeof v==='string'&&v.trim().match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+      if(!m)continue;
+      if(+m[1]>12)dayFirst++;else if(+m[2]>12)monthFirst++;
+    }
+    return monthFirst>0&&dayFirst===0;
+  }
+
+  // → {n:number, side:'dr'|'cr'|null} or null
+  function parseAmount(v){
+    if(v==null||v==='')return null;
+    if(typeof v==='number')return isFinite(v)?{n:v,side:null}:null;
+    let s=String(v).trim();
+    if(!s||/^[-–—]+$/.test(s))return null;
+    let side=null;
+    const sm=s.match(/\b(dr|cr|debit|credit)\.?\s*$/i)||s.match(/^(dr|cr)\b/i);
+    if(sm){side=/^d/i.test(sm[1])?'dr':'cr';s=s.replace(sm[0],'');}
+    let neg=false;
+    if(/^\(.*\)$/.test(s.trim())){neg=true;}
+    if(/^-|-$/.test(s.trim()))neg=true;
+    s=s.replace(/[^0-9.,]/g,'');
+    if(!s)return null;
+    // Indian & western grouping both use comma as thousands separator here
+    s=s.replace(/,/g,'');
+    const n=parseFloat(s);
+    if(!isFinite(n))return null;
+    return{n:neg?-n:n,side};
+  }
+
+  const ROLE_TESTS={
+    type:h=>/^(dr\s*\/\s*cr|cr\s*\/\s*dr|type|txn type|transaction type|dr\/cr|cr\/dr|debit\/credit|credit\/debit)\b/.test(h),
+    custom:h=>/custom|exact amounts?|installment amounts?|schedule/.test(h),
+    bill:h=>/^bill( month| for)?\b|bill month|statement month/.test(h),
+    months:h=>/^(emi |recurring |split )?(months?|tenure|installments?)\b|emi months/.test(h),
+    interest:h=>/interest|^rate\b/.test(h),
+    cc:h=>/paid (with|by|via|using) (cc|card|credit)|^cc\b|^credit card\??$|^paid with cc|^card$/.test(h),
+    sub:h=>/sub.?categor|^sub\b/.test(h),
+    cat:h=>/^categor|^cat\b/.test(h),
+    amount:h=>/^amount\b|^txn amount|^transaction amount|(withdraw|debit).*(deposit|credit)|(deposit|credit).*(withdraw|debit)/.test(h),
+    debit:h=>/withdraw|debit|^dr\b|\bdr\.?$|paid out|money out/.test(h),
+    credit:h=>/deposit|credit|^cr\b|\bcr\.?$|paid in|money in/.test(h),
+    balance:h=>/balance|^bal\b|closing/.test(h),
+    desc:h=>/narration|description|particular|remark|detail|payee|merchant|note|memo|transaction$/.test(h),
+    date:h=>/date|^dt\b|\bdt\.?$/.test(h),
+  };
+  function classifyHeader(row){
+    const map={},cells=row.map(c=>String(c==null?'':c).trim().toLowerCase().replace(/\s+/g,' '));
+    const dateCols=[];
+    cells.forEach((h,i)=>{
+      if(!h)return;
+      if(ROLE_TESTS.type(h)){if(map.type==null)map.type=i;return;}
+      if(ROLE_TESTS.cc(h)){if(map.cc==null)map.cc=i;return;}
+      if(ROLE_TESTS.custom(h)){if(map.custom==null)map.custom=i;return;}
+      if(ROLE_TESTS.bill(h)){if(map.bill==null)map.bill=i;return;}
+      if(ROLE_TESTS.months(h)){if(map.months==null)map.months=i;return;}
+      if(ROLE_TESTS.interest(h)){if(map.interest==null)map.interest=i;return;}
+      if(ROLE_TESTS.sub(h)){if(map.sub==null)map.sub=i;return;}
+      if(ROLE_TESTS.cat(h)){if(map.cat==null)map.cat=i;return;}
+      if(ROLE_TESTS.balance(h)){if(map.balance==null)map.balance=i;return;}
+      if(ROLE_TESTS.amount(h)){if(map.amount==null)map.amount=i;return;}
+      if(ROLE_TESTS.date(h)){dateCols.push(i);return;}
+      if(ROLE_TESTS.debit(h)){if(map.debit==null)map.debit=i;return;}
+      if(ROLE_TESTS.credit(h)){if(map.credit==null)map.credit=i;return;}
+      if(ROLE_TESTS.desc(h)){if(map.desc==null)map.desc=i;return;}
+    });
+    if(dateCols.length){
+      const pref=dateCols.find(i=>/(txn|tran|transaction|posting)/.test(cells[i]))??dateCols.find(i=>!/value/.test(cells[i]))??dateCols[0];
+      map.date=pref;
+    }
+    return map;
+  }
+  function findHeader(rows){
+    for(let i=0;i<Math.min(rows.length,80);i++){
+      const m=classifyHeader(rows[i]);
+      if(m.date!=null&&(m.debit!=null||m.credit!=null||m.amount!=null))return{headerRow:i,map:m};
+    }
+    return null;
+  }
+
+  // explicit "app" type words only (NOT bank Dr/Cr words)
+  function kindOf(t){
+    t=String(t||'').trim().toLowerCase();
+    if(!t)return'';
+    if(/^salary\b/.test(t))return'sal';
+    if(/(cc|card|credit card).*(bill|payment|pay|settle)|bill payment|card bill/.test(t))return'ccpay';
+    if(/^(recurring|emi|subscription|autopay|standing)/.test(t))return'rec';
+    if(/^(income|other income|received)/.test(t))return'inc';
+    if(/^(expense|spent)/.test(t))return'exp';
+    return'';
+  }
+  // rows: array of arrays. map: {date,desc,debit,credit,amount,type,...}. returns {txns, skipped}
+  function extract(rows,headerRow,map,opts){
+    opts=opts||{};
+    const body=rows.slice(headerRow+1);
+    const mdy=detectMDY(body.map(r=>r[map.date]));
+    const out=[];let skipped=0;
+    for(const r of body){
+      const date=parseDate(r[map.date],mdy);
+      if(!date){skipped++;continue;}
+      const cell=k=>map[k]!=null?String(r[map[k]]==null?'':r[map[k]]).trim():'';
+      const kind=map.type!=null?kindOf(cell('type')):'';
+      let debit=null,credit=null;
+      if(map.debit!=null||map.credit!=null){
+        const d=map.debit!=null?parseAmount(r[map.debit]):null;
+        const c=map.credit!=null?parseAmount(r[map.credit]):null;
+        if(d&&Math.abs(d.n)>0)debit=Math.abs(d.n);
+        if(c&&Math.abs(c.n)>0)credit=Math.abs(c.n);
+      }
+      if(debit==null&&credit==null&&map.amount!=null){
+        const a=parseAmount(r[map.amount]);
+        if(a&&a.n!==0){
+          let side=a.side;
+          if(!side&&kind)side=(kind==='inc'||kind==='sal')?'cr':'dr';
+          if(!side&&map.type!=null){
+            const t=cell('type').toLowerCase();
+            if(/^(dr|d|debit|withdrawal|w|out)\b/.test(t))side='dr';
+            else if(/^(cr|c|credit|deposit|in)\b/.test(t))side='cr';
+          }
+          if(!side)side=opts.cardMode?(a.n<0?'cr':'dr'):(opts.defaultDebit?'dr':(a.n<0?'dr':'cr'));
+          if(opts.flip&&!kind)side=side==='dr'?'cr':'dr';
+          if(side==='dr')debit=Math.abs(a.n);else credit=Math.abs(a.n);
+        }
+      }else if(opts.flip&&(debit!=null||credit!=null)){
+        [debit,credit]=[credit,debit];
+      }
+      if(debit==null&&credit==null){skipped++;continue;}
+      const raw=map.desc!=null?String(r[map.desc]==null?'':r[map.desc]).replace(/\s+/g,' ').trim():'';
+      out.push({date,raw,kind,cat:cell('cat'),sub:cell('sub'),cc:/^(y|yes|true|1|cc|card|paid)$/i.test(cell('cc')),
+        months:parseInt(cell('months'))||0,interest:parseFloat(cell('interest'))||0,billRaw:cell('bill'),
+        custom:cell('custom').replace(/[₹$]/g,'').split(/[,;+\s]+/).map(x=>parseFloat(x)).filter(x=>x>0),
+        debit:debit!=null?Math.round(debit*100)/100:null,credit:credit!=null?Math.round(credit*100)/100:null});
+    }
+    return{txns:out,skipped};
+  }
+
+  // ── narration → friendly note ──────────────────────────────────────────
+  const NOISE=new Set(['upi','dr','cr','imps','neft','rtgs','pos','ach','nach','mb','ib','mob','ecs','by','to','from','payment','paymen','pay','paid','transfer','trf','txn','ref','no','online','purchase','debit','credit','card','atm','cash','wdl','withdrawal','bil','bill','si','upiin','upiout','pur','ecom','inb','mmt','cms','tpt','fund','p2p','p2m','collect','request','mandate','autopay']);
+  const HANDLE=/^(ok)?(axis|hdfc|hdfcbank|icici|sbi|ybl|ibl|axl|paytm|apl|upi|okicici|oksbi|okhdfcbank|okaxis|fbl|pthdfc|ptyes|ptsbi|barodampay|kotak|idfcfirst|idfcbank|jupiteraxis|freecharge|airtel|postbank|aubank|yesbank|cnrb|cboi|unionbank|pnb|boi|rbl|federal|slice|jio|naviaxis|waaxis|wahdfcbank|waicici|wasbi|abfspay|ikwik|mairtel|axisb|axisbank|sbipay|ezeepay|dbs|indus|csbpay|kvb|tjsb|mahb|apb|fam|ptaxis)$/i;
+  function titleCase(s){return s.toLowerCase().replace(/\b([a-z])/g,(m,c)=>c.toUpperCase());}
+  function cleanNote(raw){
+    raw=String(raw||'').trim();
+    if(!raw)return'';
+    if(/\batw\b|\batm\b|cash\s*(wdl|withdrawal)|nfs\/cash/i.test(raw))return'ATM withdrawal';
+    let toks=raw.split(/[\/|]/);
+    if(toks.length<2)toks=raw.split(/\s*-\s*|\s{2,}/);
+    let best=null;
+    for(let t of toks){
+      t=t.trim();
+      if(!t)continue;
+      if(t.includes('@'))continue;
+      if(/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(t))continue;           // IFSC
+      if(/^\W*$/.test(t))continue;
+      t=t.replace(/\b[A-Za-z]*\d[A-Za-z\d]*\b/g,' ').replace(/[Xx*]{3,}\d*/g,' ').replace(/\s+/g,' ').trim(); // tokens containing digits
+      if(!t)continue;
+      const words=t.split(' ').filter(w=>w&&!NOISE.has(w.toLowerCase())&&!HANDLE.test(w));
+      if(!words.length)continue;
+      const cand=words.join(' ').replace(/[^\w &.'+()-]/g,'').trim();
+      if(cand.replace(/[^A-Za-z]/g,'').length<3)continue;
+      best=cand;break;
+    }
+    if(!best)best=raw;
+    best=titleCase(best).slice(0,42).trim();
+    return best;
+  }
+  function merchantKey(note){
+    const w=String(note||'').toLowerCase().replace(/[^a-z\s]/g,' ').trim().split(/\s+/).filter(x=>x.length>=3);
+    return w[0]||String(note||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
+
+  // ── rule-based category suggestions ────────────────────────────────────
+  const RULES=[
+    [/tithe|church|offering/,'tithe'],
+    [/zerodha|groww|upstox|kuvera|mutual fund|\bsip\b|\bnps\b|\bppf\b|indmoney|smallcase|angel one|prudential|\blic\b|policybazaar|insurance|\bmf\b|coin by/,'investments'],
+    [/\bemi\b|loan|ach d|\bnach\b|bajaj fin|home fin|chola|tata capital|kreditbee|moneyview|fullerton/,'emi'],
+    [/act fibernet|airtel xstream|xstream|jiofiber|jio fiber|broadband|hathway|excitel|wifi|wi-fi|tikona|you broadband/,'utilities|wifi'],
+    [/indane|bharatgas|bharat gas|hp gas|\blpg\b|gas booking|gas cylinder|hpcl/,'utilities|lpg'],
+    [/bescom|msedcl|mseb|tneb|tangedco|adani elec|tata power|\bbses\b|electricity|torrent power|\bcesc\b|kseb|apspdcl|mahadiscom|bijli/,'utilities|elec'],
+    [/recharge|\bjio\b|vodafone|\bvi\b|airtel|\bbsnl\b|idea cellular|mobile bill|postpaid/,'mobile'],
+    [/swiggy|zomato|eatsure|domino|pizza|mcdonald|\bkfc\b|burger|starbucks|cafe|restaurant|dhaba|biryani|bakery|barbeque|juice|ice ?cream|\bhotel\b|food|kitchen|eatery|tiffin|canteen|chai|coffee|subway|haldiram/,'food'],
+    [/bigbasket|big basket|blinkit|grofers|zepto|instamart|dmart|d-mart|avenue supermarts|reliance fresh|reliance smart|more retail|supermarket|grocer|kirana|provision|vegetable|fruit|milk|dairy|nature.?s basket|jiomart|licious|freshtohome|spencer|star bazaar|general store|mart\b/,'grocery'],
+    [/metro|bmtc|\bbest\b|bus pass|nmmt|monthly pass|dmrc|bmrc|local train|season ticket/,'office'],
+    [/uber|\bola\b|olacabs|rapido|irctc|redbus|makemytrip|goibibo|indigo|air india|spicejet|vistara|akasa|yatra|cleartrip|abhibus|flight|railway|ixigo|fastag|petrol|diesel|fuel|\bhpcl\b|\bbpcl\b|indian oil|iocl|shell|airlines|travel/,'travel'],
+    [/netflix|spotify|hotstar|prime video|youtube|bookmyshow|\bpvr\b|\binox\b|sonyliv|zee5|gaana|apple\.com|itunes|jiocinema|steam|playstation|xbox|google play|disney|gaming|cinema|movie|theatre/,'entertainment'],
+    [/pharmacy|apollo|medplus|netmeds|\b1mg\b|pharmeasy|hospital|clinic|diagnostic|\blab\b|doctor|medical|dental|thyrocare|practo|healthcare|chemist|medicine|scan/,'health'],
+    [/salon|\bspa\b|parlou?r|barber|urban ?company|urbanclap|grooming|beauty|nykaa|cosmetic|haircut|wellness/,'care'],
+    [/school|college|tuition|\bfees?\b|udemy|coursera|byju|unacademy|vedantu|exam|university|education|skillshare|upgrad|academy|books|stationery|institute/,'edu'],
+    [/myntra|ajio|zara|h&m|westside|pantaloons|lifestyle|max fashion|trends|decathlon|nike|adidas|puma|fashion|cloth|tailor|apparel|garment|boutique|footwear|bata|jockey|levis|reliance trends/,'apparel'],
+  ];
+  const SKIP_CARD=/credit\s*card|\bcc\s*(pay|bill|pmt)|\bcred\b|cred club|card\s*(payment|bill)|billdesk.*card|autopay.*card|\bcard\s*dues/i;
+  const SKIP_SELF=/own account|self transfer|to self|\bself\b.*transfer|sweep|fd\s*(booking|closure)|rd\s*instal|auto sweep/i;
+  const SALARY=/salary|\bsal\b|payroll|\bwages\b/i;
+  function ruleCategory(text){
+    const t=String(text||'').toLowerCase();
+    for(const[re,cat]of RULES)if(re.test(t))return cat;
+    return null;
+  }
+  return{parseCSV,parseDate,parseAmount,detectMDY,classifyHeader,findHeader,extract,kindOf,cleanNote,merchantKey,ruleCategory,SKIP_CARD,SKIP_SELF,SALARY};
+})();
+
+// ════════════════════════════════════════════════════════
+// STATEMENT IMPORT (bank CSV / Excel → expenses & income)
+// ════════════════════════════════════════════════════════
+let impS=null;
+const _impEsc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function impIsOpen(){return !!document.getElementById('imp-ov')?.classList.contains('on');}
+function impOpen(){
+  impS={step:'pick',fileName:'',rows:null,headerRow:0,map:{},flip:false,cc:false,list:[],recs:[],filter:'all',skippedLines:0,needMap:false,manual:false,result:null};
+  document.getElementById('imp-ov').classList.add('on');
+  document.body.style.overflow='hidden';
+  impRender();
+}
+function impClose(){
+  document.getElementById('imp-ov').classList.remove('on');
+  document.body.style.overflow='';
+  impS=null;
+}
+async function impRequestClose(){
+  if(!impS)return impClose();
+  if(impS.step==='review'&&impS.list.length){
+    const ok=await confirmAsync('Nothing has been added yet. Leave without importing?',{title:'Discard import?',okText:'Discard',cancelText:'Keep reviewing',danger:true});
+    if(!ok)return;
+  }
+  impClose();
+}
+
+// ── undo ────────────────────────────────────────────────
+function impLastBatch(){
+  let b=0;
+  const bump=x=>{if(x&&x.imp&&x.imp>b)b=x.imp;};
+  state.exps.forEach(bump);state.otherIncome.forEach(bump);state.emis.forEach(bump);
+  Object.keys(state.impLog||{}).forEach(k=>{if(+k>b)b=+k;});
+  if(!b)return null;
+  const L=(state.impLog||{})[b]||{};
+  const n=state.exps.filter(e=>e.imp===b).length+state.otherIncome.filter(o=>o.imp===b).length+state.emis.filter(e=>e.imp===b).length+Object.keys(L.salaries||{}).length;
+  return{batch:b,n};
+}
+async function impUndoLast(fromOverlay){
+  const lb=impLastBatch();
+  if(!lb){showToast('Nothing to undo','x');return;}
+  const ok=await confirmAsync(`This removes everything added by your last import (${lb.n} item${lb.n===1?'':'s'}: transactions, income, salary months, card payments and recurring entries). Anything you entered by hand is untouched.`,{title:'Undo last import?',okText:'Undo import',cancelText:'Keep',danger:true});
+  if(!ok)return;
+  const b=lb.batch,L=(state.impLog||{})[b]||{};
+  state.exps=state.exps.filter(e=>e.imp!==b);
+  state.otherIncome=state.otherIncome.filter(o=>o.imp!==b);
+  state.emis=state.emis.filter(e=>e.imp!==b);
+  (L.billed||[]).forEach(id=>{const c=state.exps.find(x=>x.id===id);if(c){delete c.ccPaid;delete c.ccBilled;}});
+  for(const m in (L.salaries||{})){const prev=L.salaries[m];if(prev>0)state.salaries[m]=prev;else delete state.salaries[m];}
+  for(const m in (L.creditPaid||{})){const v=Math.max(0,(+(state.creditPaid||{})[m]||0)-L.creditPaid[m]);state.creditPaid=state.creditPaid||{};state.creditPaid[m]=v;}
+  if(state.impLog)delete state.impLog[b];
+  save();render();
+  showToast('Import undone','check');
+  if(fromOverlay)impClose();
+}
+
+// ── file reading ────────────────────────────────────────
+function _impLoadXLSX(){
+  if(window.XLSX)return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>res();s.onerror=()=>rej(new Error('xlsx-load'));
+    document.head.appendChild(s);
+  });
+}
+async function impOnFile(input){
+  const f=input.files&&input.files[0];
+  input.value='';
+  if(!f)return;
+  const name=f.name||'statement';
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  if(ext==='pdf'){impSetError('PDF statements can\'t be read yet. In net banking, download the statement as <b>CSV</b> or <b>Excel (XLS/XLSX)</b> instead.');return;}
+  impSetBusy('Reading '+_impEsc(name)+'…');
+  try{
+    let rows;
+    if(ext==='xls'||ext==='xlsx'||ext==='xlsm'){
+      try{await _impLoadXLSX();}catch(e){impSetError('Excel support needs an internet connection the first time. Connect and try again, or export the statement as CSV.');return;}
+      const buf=await f.arrayBuffer();
+      const wb=XLSX.read(buf,{type:'array',cellDates:false});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:false});
+    }else{
+      rows=ImpCore.parseCSV(await f.text());
+    }
+    impLoadRows(rows,name);
+  }catch(e){
+    console.warn('Import read failed',e);
+    impSetError('Couldn\'t read that file. Make sure it\'s an unprotected CSV or Excel statement.');
+  }
+}
+function impLoadRows(rows,name){
+  if(!rows||rows.length<2){impSetError('That looks empty. Please check it and try again.');return;}
+  impS.fileName=name;impS.rows=rows;impS.flip=false;impS.filter='all';
+  const h=ImpCore.findHeader(rows);
+  if(h){impS.headerRow=h.headerRow;impS.map=h.map;impS.needMap=false;}
+  else{
+    const hr=Math.max(0,rows.findIndex(r=>r.filter(c=>String(c).trim()!=='').length>=3));
+    impS.headerRow=hr;impS.map=ImpCore.classifyHeader(rows[hr]||[]);impS.needMap=true;
+  }
+  impBuild();
+}
+
+// ── in-app template / paste ─────────────────────────────
+const _IMP_TPL_HEAD=['Date','Type','Category','Sub-category','Amount','Note / Name / Payer','Paid with CC','Months (EMI / split)','Interest % (split only)','Bill month (card payments)','Custom installment amounts'];
+function _impTplRows(){
+  const t=todayLocal(),mm=String(t.getMonth()+1).padStart(2,'0'),yy=t.getFullYear();
+  const d=day=>String(day).padStart(2,'0')+'/'+mm+'/'+yy;
+  const nm=id=>(allCats().find(c=>c.id===id)||{}).name||id;
+  const prev=MOS3[(t.getMonth()+11)%12]+' '+(t.getMonth()===0?yy-1:yy);
+  return[
+    [d(1),'Expense',nm('grocery'),'','1240.50','Bigbasket weekly order','No','','','',''],
+    [d(2),'Expense',nm('food'),'','450','Swiggy dinner','Yes','','','',''],
+    [d(3),'Expense',nm('utilities'),'Electricity','1860','Electricity bill','No','','','',''],
+    [d(5),'Salary','','','85000','Salary - Acme Corp','','','','',''],
+    [d(6),'Income','','','1500','Rahul - dinner split','','','','',''],
+    [d(5),'Recurring',nm('emi'),'','12500','Bike loan EMI','','24','','',''],
+    [d(8),'Expense',nm('misc'),'','10000','Phone on card EMI (4000+4000+2000)','Yes','','','','4000, 4000, 2000'],
+    [d(9),'Expense',nm('misc'),'','8000','Laptop on card: 2000 advance + 3 EMIs','Yes','','','','2000, 2000, 2000, 2000'],
+    [d(10),'CC Bill Payment','','','3200','HDFC card','','','',prev,''],
+  ];
+}
+function impTemplateCSV(){
+  const q=v=>/[",\n]/.test(v)?'"'+String(v).replace(/"/g,'""')+'"':v;
+  return '\uFEFF'+[_IMP_TPL_HEAD,..._impTplRows()].map(r=>r.map(q).join(',')).join('\r\n')+'\r\n';
+}
+const _IMP_GUIDE=[
+ 'HOW TO USE',
+ '1. Type one transaction per row on the Entries sheet (the Examples sheet shows every kind). Keep Entries as the FIRST sheet and do not rename the headings.',
+ '2. Date DD/MM/YYYY. Amount: positive number only. Category and Sub-category must match the Categories sheet (your own categories work too).',
+ '3. Save, then in the app: Settings > Import statement > Choose file. You review everything before it is saved; Settings > Undo last import reverses it.',
+ '',
+ 'TYPES',
+ 'Expense — normal spending. Paid with CC = Yes for card purchases (they count when you pay the bill).',
+ 'Income — money received that is not salary (people paying you, refunds). Put who paid in the Note.',
+ 'Salary — sets your salary for that month.',
+ 'CC Bill Payment — you paid your card bill. Bill month = the month the purchases were made (blank = matched automatically).',
+ 'Recurring — EMI / subscription / rent billed monthly. Date = first due date, Months blank = keeps going.',
+ '',
+ 'CARD EMI (SPLIT) PURCHASES',
+ 'Paid with CC = Yes plus Months (equal parts, any odd paise land on the last one), or type exact bank amounts in Custom installment amounts, e.g. 4000, 4000, 2000.',
+ 'Advance + EMIs: list every payment, the first is the advance, e.g. 2000, 2000, 2000, 2000. Each is billed one month after the previous.',
+];
+async function _impTplWorkbook(){
+  await _impLoadXLSX();
+  const wb=XLSX.utils.book_new(),cols=[13,16,20,15,13,36,12,14,14,16,26].map(w=>({wch:w}));
+  const e=XLSX.utils.aoa_to_sheet([_IMP_TPL_HEAD]);e['!cols']=cols;XLSX.utils.book_append_sheet(wb,e,'Entries');
+  const x=XLSX.utils.aoa_to_sheet([_IMP_TPL_HEAD,..._impTplRows()]);x['!cols']=cols;XLSX.utils.book_append_sheet(wb,x,'Examples');
+  const cat=[['Category','Sub-category']];
+  allCats().forEach(c=>{if(c.subs&&c.subs.length)c.subs.forEach(sb=>cat.push([c.name,sb.name]));else cat.push([c.name,'']);});
+  const c=XLSX.utils.aoa_to_sheet(cat);c['!cols']=[{wch:28},{wch:20}];XLSX.utils.book_append_sheet(wb,c,'Categories');
+  const g=XLSX.utils.aoa_to_sheet(_IMP_GUIDE.map(l=>[l]));g['!cols']=[{wch:140}];XLSX.utils.book_append_sheet(wb,g,'Guide');
+  return wb;
+}
+function _impNative(){return !!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());}
+function _impHasShare(){const P=window.Capacitor&&window.Capacitor.Plugins;return !!(P&&P.Filesystem&&P.Share);}
+async function impDeliver(name,mime,payload,isB64){
+  if(_impNative()&&_impHasShare()){
+    try{
+      const P=window.Capacitor.Plugins;
+      const w=await P.Filesystem.writeFile(isB64?{path:name,data:payload,directory:'CACHE'}:{path:name,data:payload,directory:'CACHE',encoding:'utf8'});
+      await P.Share.share({title:name,url:w.uri,dialogTitle:'Save or send the template'});
+      return'shared';
+    }catch(e){if(/cancel/i.test(String(e&&e.message)))return'cancelled';console.warn('share failed',e);}
+  }
+  try{
+    const blob=isB64?new Blob([Uint8Array.from(atob(payload),ch=>ch.charCodeAt(0))],{type:mime}):new Blob([payload],{type:mime+';charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.style.display='none';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);
+    return'download';
+  }catch(e){return'failed';}
+}
+async function impGetTemplate(kind){
+  const hint=document.getElementById('imp-hint');
+  try{
+    let r;
+    if(kind==='xlsx'){
+      try{await _impLoadXLSX();}catch(e){if(hint)hint.textContent='The Excel maker needs internet once. Use the CSV template or “Copy CSV” instead.';return;}
+      const wb=await _impTplWorkbook();
+      r=await impDeliver('expense-import-template.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',XLSX.write(wb,{type:'base64',bookType:'xlsx'}),true);
+    }else{
+      r=await impDeliver('expense-import-template.csv','text/csv',impTemplateCSV(),false);
+    }
+    if(hint&&r!=='cancelled'){
+      hint.textContent=(_impNative()&&!_impHasShare())
+        ?'Saving files from this app needs the Filesystem + Share plugins (see notes). Until then tap “Copy CSV” and paste into Google Sheets, or use “Paste rows”.'
+        :(r==='shared'?'Choose where to save it (Drive, Files, WhatsApp…).':'If the download did not start, tap “Copy CSV” and paste it into Google Sheets or Excel.');
+    }
+  }catch(e){console.warn(e);if(hint)hint.textContent='Could not create the file. Use “Copy CSV” or “Paste rows”.';}
+}
+async function impCopyTemplate(){
+  const text=impTemplateCSV().replace('\uFEFF','').replace(/\r\n/g,'\n'),hint=document.getElementById('imp-hint');
+  let ok=false;
+  try{await navigator.clipboard.writeText(text);ok=true;}catch(e){}
+  if(!ok){
+    try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove();}catch(e){}
+  }
+  showToast(ok?'Template copied — paste into Google Sheets':'Copy not available','check');
+  if(hint)hint.textContent=ok?'Paste it into a new Google Sheet (it splits into columns), fill it in, then copy the rows back here with “Paste rows”.':'Copy was blocked — use “Paste rows” and type or paste there.';
+}
+function impOpenPaste(prefill){
+  impS.step='paste';impS.error=null;impS.pasteText=prefill||impS.pasteText||'';impRender();
+}
+function impReviewPaste(){
+  const t=(document.getElementById('imp-paste')||{}).value||'';
+  impS.pasteText=t;
+  if(!t.trim()){showToast('Paste some rows first','x');return;}
+  impLoadRows(ImpCore.parseCSV(t.replace(/\r\n/g,'\n')),'Pasted rows');
+}
+function impSetBusy(msg){const el=document.getElementById('imp-body');if(el)el.innerHTML=`<div class="imp-busy">${msg}</div>`;}
+function impSetError(msg){impS.step='pick';impS.error=msg;impRender();}
+
+// ── helpers ─────────────────────────────────────────────
+function _impHistory(){
+  const valid=new Set();
+  allCats().forEach(c=>{if(c.subs)c.subs.forEach(s=>valid.add(c.id+'|'+s.id));else valid.add(c.id);});
+  const tally={};
+  for(const e of state.exps){
+    if(!e.note||e.ccPayment)continue;
+    const k=ImpCore.merchantKey(e.note);if(!k)continue;
+    const v=e.subId?e.catId+'|'+e.subId:e.catId;
+    if(!valid.has(v))continue;
+    ((tally[k]=tally[k]||{})[v]=(tally[k][v]||0)+1);
+  }
+  const out={};
+  for(const k in tally){let best=null,bn=0;for(const v in tally[k])if(tally[k][v]>bn){bn=tally[k][v];best=v;}out[k]=best;}
+  return out;
+}
+const _impDay=d=>Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10))/86400000;
+function _impAdj(m,d){let y=+m.slice(0,4),mo=+m.slice(5,7)-1+d;while(mo<0){mo+=12;y--;}while(mo>11){mo-=12;y++;}return mk(y,mo);}
+function _impBillLabel(B){const mm=+B.slice(5,7);return MOS3[(mm-1+11)%12]+' bill';}   // Aug key = "Jul bill" (July purchases)
+function _impResolveCat(catText,subText){
+  const norm=x=>String(x||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]/g,'');
+  const c=norm(catText),sb=norm(subText);
+  if(!c&&!sb)return null;
+  const cats=allCats();
+  let hit=cats.find(k=>c&&(c===norm(k.name)||c===norm(k.id)));
+  if(!hit&&c){
+    for(const k of cats){
+      const cn=norm(k.name);
+      if(k.subs&&c.startsWith(cn)){const rest=c.slice(cn.length),sub=k.subs.find(x=>norm(x.name)===rest||norm(x.id)===rest);if(sub)return k.id+'|'+sub.id;}
+    }
+    if(c.length>=3)hit=cats.find(k=>norm(k.name).startsWith(c));
+  }
+  if(!hit&&sb){
+    for(const k of cats)if(k.subs){const sub=k.subs.find(x=>norm(x.name)===sb||norm(x.id)===sb);if(sub)return k.id+'|'+sub.id;}
+  }
+  if(!hit)return null;
+  if(hit.subs&&hit.subs.length){
+    const sub=hit.subs.find(x=>norm(x.name)===sb||norm(x.id)===sb);
+    return{id:hit.id+'|'+(sub?sub.id:hit.subs[0].id),guess:!sub};
+  }
+  return hit.id;
+}
+function _impParseBillMonth(v){   // "Jul 2025" / "07/2025" / "2025-07" / a date → key of the month's PURCHASES
+  if(v==null||v==='')return null;
+  const s=String(v).trim();let m;
+  if((m=s.match(/^([A-Za-z]{3,9})[ \-\/,]+(\d{2,4})$/))){const mo={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12}[m[1].slice(0,3).toLowerCase()];if(mo){let y=+m[2];if(y<100)y+=2000;return y+'-'+String(mo).padStart(2,'0');}}
+  if((m=s.match(/^(\d{1,2})[\/\-](\d{4})$/)))return m[2]+'-'+String(+m[1]).padStart(2,'0');
+  if((m=s.match(/^(\d{4})-(\d{2})$/)))return s;
+  const d=ImpCore.parseDate(v);return d?d.slice(0,7):null;
+}
+
+// ── build the review list ───────────────────────────────
+function impBuild(){
+  const s=impS;
+  s.step='review';s.error=null;
+  const ok=s.map.date!=null&&(s.map.debit!=null||s.map.credit!=null||s.map.amount!=null);
+  if(!ok){s.list=[];s.recs=[];s.needMap=true;impRender();return;}
+  const{txns,skipped}=ImpCore.extract(s.rows,s.headerRow,s.map,{flip:s.flip,cardMode:s.cc,defaultDebit:s.map.cat!=null||s.map.cc!=null||s.map.type!=null});
+  s.skippedLines=skipped;
+  const rcs=txns.map(t=>(t.cat||t.sub)?_impResolveCat(t.cat,t.sub):null);
+  const manual=rcs.some(Boolean)||txns.some(t=>t.kind);   // file follows the app's own entry format
+  s.manual=manual;
+  const hist=_impHistory();
+  const today=todayLocal(),nowMk=mk(today.getFullYear(),today.getMonth());
+  let list=txns.map((t,i)=>{
+    const isOut=t.debit!=null;
+    const amount=isOut?t.debit:t.credit;
+    const rc=rcs[i];
+    const kind=t.kind||'';
+    const note=manual?(t.raw.slice(0,80)||(isOut?'Imported expense':'Imported income')):(ImpCore.cleanNote(t.raw)||t.raw.slice(0,42)||(isOut?'Imported expense':'Imported income'));
+    const key=ImpCore.merchantKey(note);
+    let cat=(rc&&(rc.id||rc))||((manual&&(t.cat||t.sub))?'misc':(hist[key]||ImpCore.ruleCategory(t.raw+' '+note)||'misc'));
+    let type=isOut?'exp':'inc',reason='';
+    const m=t.date.slice(0,7);
+    if(kind){type=kind;}
+    else if(!manual){
+      if(s.cc){ if(!isOut){type='skip';reason='Card payment / refund — recorded from your bank statement';} }
+      else if(isOut&&ImpCore.SKIP_SELF.test(t.raw)){type='skip';reason='Own-account transfer';}
+      else if(isOut&&ImpCore.SKIP_CARD.test(t.raw)){type='ccpay';}
+      else if(!isOut&&ImpCore.SALARY.test(t.raw)){type='sal';}
+    }
+    if(manual&&(t.cat||t.sub)&&!rc&&type==='exp')reason='Category “'+(t.cat||t.sub)+'” not recognised — please pick one';
+    else if(manual&&rc&&rc.guess&&type==='exp')reason='Sub-category missing — check this one';
+    if(type==='sal'){
+      const have=state.salaries[m]||0;
+      if(have>0){type='skip';reason=Math.abs(have-amount)<0.01?'Salary already set for this month':`Salary already set (${fmt(have)}) — choose “Salary” to replace it`;}
+    }
+    const cc=!!(t.cc||s.cc);
+    const months=t.months>=1?Math.floor(t.months):0;
+    const custom=t.custom&&t.custom.length>=2?t.custom:[];
+    if(type==='exp'&&manual&&cc&&(months>=2||custom.length>=2)){
+      const arr=buildSplitSchedule(amount,months,t.interest||0,0,custom);
+      const same=arr.every(v=>Math.abs(v-arr[0])<0.005);
+      reason='Split into '+arr.length+' monthly card EMIs: '+(same?arr.length+' × '+fmt(arr[0]):arr.map(v=>fmt(v)).join(' + '));
+    }
+    if(type==='rec'){reason=months?`Recurring for ${months} months`:'Recurring — ongoing';cat=String(cat).split('|')[0];}
+    return{i,date:t.date,amount,out:isOut,raw:t.raw,note,key,cat,type,reason,dup:false,catManual:!!rc,cc,months,custom,interest:t.interest||0,bill:_impParseBillMonth(t.billRaw)?_impAdj(_impParseBillMonth(t.billRaw),1):null,billAuto:false};
+  });
+  list.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.i-b.i);
+
+  // 1) duplicates against what's already in the tracker
+  const usedE=new Set(),usedI=new Set(),usedP=new Set(),pools={};
+  const poolFor=m=>pools[m]||(pools[m]=[...allExps(m),...allExps(_impAdj(m,-1)),...allExps(_impAdj(m,1))]);
+  for(const r of list){
+    const m=r.date.slice(0,7);
+    if(r.type==='exp'||r.type==='ccpay'){
+      let pool=poolFor(m);
+      if(r.type==='ccpay'){   // one card payment may be stored as several per-category lines → compare the group total
+        const grp={};pool.filter(e=>e.ccPayment).forEach(e=>{const k=e.payGroup||('i'+e.id);(grp[k]=grp[k]||{id:k,amount:0,date:e.date}).amount+=e.amount;});
+        pool=Object.values(grp);
+      }else pool=pool.filter(e=>!e.ccPayment);
+      const hit=pool.find(e=>!usedE.has(e.id)&&Math.abs(e.amount-r.amount)<0.01&&Math.abs(_impDay(e.date)-_impDay(r.date))<=(e.isEmi?3:1));
+      if(hit){usedE.add(hit.id);r.dup=true;r.reason=hit.isEmi?'Matches a recurring charge you already set up':'Already in your tracker';r.type='skip';}
+    }else if(r.type==='inc'){
+      const hit=state.otherIncome.find(o=>!usedI.has(o.id)&&Math.abs(o.amount-r.amount)<0.01&&Math.abs(_impDay(o.date)-_impDay(r.date))<=1);
+      if(hit){usedI.add(hit.id);r.dup=true;r.reason='Already in your tracker';r.type='skip';}
+    }else if(r.type==='rec'){
+      const nm=r.note.toLowerCase();
+      const hit=state.emis.find(e=>!usedP.has(e.id)&&Math.abs(e.amount-r.amount)<0.01&&(e.name||'').toLowerCase()===nm);
+      if(hit){usedP.add(hit.id);r.dup=true;r.reason='You already have this recurring entry';r.type='skip';}
+    }
+  }
+
+  // 2) detect monthly repeats (EMIs, rent, subscriptions) in bank statements
+  s.recs=[];
+  if(!manual&&!s.cc){
+    const groups={};
+    list.forEach(r=>{
+      if(r.type!=='exp'||!r.out||r.dup||r.amount<50)return;
+      const k=r.key+'|'+Math.round(r.amount);
+      (groups[k]=groups[k]||[]).push(r);
+    });
+    for(const k in groups){
+      const rows=groups[k],months=[...new Set(rows.map(r=>r.date.slice(0,7)))].sort();
+      if(months.length<2)continue;
+      const emiLike=rows[0].cat==='emi'||/\bemi\b|loan|ach d|\bnach\b|finance|\bfin\b/i.test(rows[0].raw);
+      const need=emiLike?2:3;
+      // split into runs of consecutive months
+      const runs=[];let cur=[months[0]];
+      for(let q=1;q<months.length;q++){if(_impAdj(months[q-1],1)===months[q])cur.push(months[q]);else{runs.push(cur);cur=[months[q]];}}
+      runs.push(cur);
+      for(const run of runs){
+        if(run.length<need)continue;
+        const rr=rows.filter(r=>run.includes(r.date.slice(0,7)));
+        const days=rr.map(r=>+r.date.slice(8,10)).sort((a,b)=>a-b);
+        if(days[days.length-1]-days[0]>6)continue;
+        const last=run[run.length-1];
+        const g={id:s.recs.length,key:k,name:rr[0].note,amount:rr[0].amount,catId:String(rr[0].cat).split('|')[0],day:Math.min(28,days[Math.floor(days.length/2)]),start:run[0],last,count:run.length,rowIs:rr.map(r=>r.i),enabled:emiLike,ongoing:last>=_impAdj(nowMk,-1),emiLike};
+        s.recs.push(g);
+        if(g.enabled)rr.forEach(r=>{r.type='rec';r.recId=g.id;r.reason='Part of recurring “'+g.name+'”';});
+      }
+    }
+  }
+  s.list=list;
+  _impAssignBills();
+  impRender();
+}
+
+// pick which card bill each bank "card payment" settles (uses the app's own getCreditBill so cut-off day etc. are respected)
+function _impAssignBills(){
+  const s=impS,pays=s.list.filter(r=>r.type==='ccpay');
+  if(!pays.length)return;
+  const tmp=s.list.filter(r=>r.type==='exp'&&r.cc).map(r=>({id:'imptmp'+r.i,catId:String(r.cat).split('|')[0],amount:r.amount,date:r.date,mk:r.date.slice(0,7),paidWithCC:true,_tmp:1}));
+  const used={};
+  state.exps.push(...tmp);
+  try{
+    for(const r of pays){
+      const P=r.date.slice(0,7);
+      const cands=[P,_impAdj(P,-1),_impAdj(P,1)];
+      const info=B=>{const b=getCreditBill(+B.slice(0,4),+B.slice(5,7)-1);return{B,total:b.total,remaining:Math.max(0,b.remaining-(used[B]||0))};};
+      const I=cands.map(info);
+      let pick=I.find(x=>x.remaining>0&&Math.abs(x.remaining-r.amount)<=Math.max(1,r.amount*0.005))
+            ||I.find(x=>x.B===P&&x.remaining>=r.amount-0.01)
+            ||I.slice(1).find(x=>x.remaining>=r.amount-0.01)
+            ||I[0];
+      if(!r.bill){r.bill=pick.B;r.billAuto=true;}
+      const sel=I.find(x=>x.B===r.bill)||info(r.bill);
+      used[r.bill]=(used[r.bill]||0)+r.amount;
+      r.reason=sel.total>0?`Settles the ${_impBillLabel(r.bill)} · ${fmt(sel.remaining)} was due`:`No card purchases recorded for the ${_impBillLabel(r.bill)} — counted as plain card spending`;
+    }
+  }finally{state.exps=state.exps.filter(e=>!e._tmp);}
+}
+
+// ── rendering ───────────────────────────────────────────
+let _impCatOpts='';
+function _impCatOptions(){
+  let h='';
+  allCats().forEach(c=>{
+    if(c.subs){h+=`<optgroup label="${_impEsc(c.name)}">`+c.subs.map(s=>`<option value="${c.id}|${s.id}">${_impEsc(c.name)} — ${_impEsc(s.name)}</option>`).join('')+'</optgroup>';}
+    else h+=`<option value="${c.id}">${_impEsc(c.name)}</option>`;
+  });
+  return h;
+}
+const _IMP_TYPES=[['exp','Expense'],['inc','Income'],['sal','Salary'],['ccpay','Card bill'],['skip','Skip']];
+function _impBillSelect(r){
+  const P=r.date.slice(0,7),set=new Set([_impAdj(P,-2),_impAdj(P,-1),P,_impAdj(P,1),r.bill].filter(Boolean));
+  const opts=[...set].sort().map(B=>`<option value="${B}"${B===r.bill?' selected':''}>${_impBillLabel(B)}</option>`).join('');
+  return `<select class="imp-bill" data-k="bill" aria-label="Which card bill">${opts}</select>`;
+}
+function _impRowHTML(r){
+  const typeOpts=_IMP_TYPES.concat(r.type==='rec'?[['rec','Recurring']]:[]).map(([v,l])=>`<option value="${v}"${r.type===v?' selected':''}>${l}</option>`).join('');
+  const locked=r.type==='rec'&&r.recId!=null;
+  const cat=r.type==='exp'||(r.type==='rec'&&!locked)?`<select class="imp-cat" data-k="cat" aria-label="Category">${_impCatOpts.replace(`value="${r.cat}"`,`value="${r.cat}" selected`)}</select>`:'';
+  const bill=r.type==='ccpay'?`<div class="imp-billrow"><span>Pays</span>${_impBillSelect(r)}</div>`:'';
+  const inflow=r.type==='inc'||r.type==='sal';
+  return `<div class="imp-row t-${r.type}${r.dup?' is-dup':''}" data-i="${r.i}">
+    <div class="imp-r1"><span class="imp-date">${_impEsc(fmtD(r.date))}</span><span class="imp-amt ${inflow?'in':'out'}">${inflow?'+':'−'}${_impEsc(fmt(r.amount))}${r.cc&&r.type==='exp'?' <span class="imp-tag">CC</span>':''}</span>
+      <select class="imp-type" data-k="type" aria-label="Action"${locked?' disabled':''}>${typeOpts}</select></div>
+    ${r.type==='skip'?'':`<input class="imp-note" data-k="note" type="text" value="${_impEsc(r.note)}" maxlength="80" aria-label="Note"/>`}
+    ${cat}${bill}
+    ${r.reason?`<div class="imp-why ${r.type==='skip'?'bad':''}">${_impEsc(r.reason)}</div>`:''}
+    <div class="imp-raw" title="${_impEsc(r.raw)}">${_impEsc(r.raw)}</div>
+  </div>`;
+}
+function _impCounts(){
+  const c={exp:0,inc:0,sal:0,ccpay:0,rec:0,skip:0,dup:0,te:0,ti:0,ts:0,tp:0};
+  const recSeen=new Set();
+  for(const r of impS.list){
+    if(r.dup)c.dup++;
+    if(r.type==='exp'){c.exp++;c.te+=r.amount;}
+    else if(r.type==='inc'){c.inc++;c.ti+=r.amount;}
+    else if(r.type==='sal'){c.sal++;c.ts+=r.amount;}
+    else if(r.type==='ccpay'){c.ccpay++;c.tp+=r.amount;}
+    else if(r.type==='rec'){if(r.recId==null)c.rec++;else if(!recSeen.has(r.recId)){recSeen.add(r.recId);c.rec++;}}
+    else c.skip++;
+  }
+  c.n=c.exp+c.inc+c.sal+c.ccpay+c.rec;
+  return c;
+}
+function _impMapSelects(){
+  const s=impS,hdr=s.rows[s.headerRow]||[];
+  const opts=sel=>`<option value="">— none —</option>`+hdr.map((c,i)=>`<option value="${i}"${sel===i?' selected':''}>${_impEsc(String(c).trim()||('Column '+(i+1)))}</option>`).join('');
+  const f=(role,label)=>`<label class="imp-mapf"><span>${label}</span><select data-map="${role}">${opts(s.map[role])}</select></label>`;
+  return `<div class="imp-map">
+    <label class="imp-mapf"><span>Header row #</span><input type="number" min="1" max="${s.rows.length}" value="${s.headerRow+1}" data-map="headerRow"/></label>
+    ${f('date','Date')}${f('desc','Description')}${f('debit','Debit / Withdrawal')}${f('credit','Credit / Deposit')}${f('amount','Single amount column')}${f('type','Type / Dr-Cr column')}
+  </div>`;
+}
+function _impRecsHTML(){
+  const R=impS.recs;if(!R.length)return'';
+  return `<div class="imp-recs"><div class="imp-rech"><i data-lucide="repeat" class="ic-sm"></i>Repeating monthly payments found</div>
+    <div class="imp-recsub">Turn them into <b>Recurring</b> entries so the app bills them every month by itself — instead of importing each one separately.</div>
+    ${R.map(g=>`<div class="imp-rec" data-g="${g.id}">
+      <label class="imp-rec-top"><input type="checkbox" data-g="${g.id}" ${g.enabled?'checked':''}/><span><b>${_impEsc(g.name)}</b> · ${_impEsc(fmt(g.amount))}/mo<br><small>around the ${g.day}${['th','st','nd','rd'][(g.day%10<4&&(g.day<11||g.day>13))?g.day%10:0]} · ${g.count} months (${MOS3[+g.start.slice(5,7)-1]} ${g.start.slice(0,4)} – ${MOS3[+g.last.slice(5,7)-1]} ${g.last.slice(0,4)})</small></span></label>
+      ${g.enabled?`<select class="imp-recend" data-g="${g.id}"><option value="1"${g.ongoing?' selected':''}>Keeps going (until I remove it)</option><option value="0"${g.ongoing?'':' selected'}>Ends after ${g.count} months</option></select>`:''}
+    </div>`).join('')}</div>`;
+}
+function impRender(){
+  const s=impS;if(!s)return;
+  const body=document.getElementById('imp-body'),foot=document.getElementById('imp-foot');
+  const title=document.getElementById('imp-title');
+  if(s.step==='pick'){
+    title.textContent='Import statement';
+    foot.innerHTML='';foot.style.display='none';
+    body.innerHTML=`
+      ${s.error?`<div class="imp-err">${s.error}</div>`:''}
+      <div class="imp-hero"><i data-lucide="file-up" style="width:30px;height:30px"></i>
+        <div class="imp-h1">Add months of transactions in one go</div>
+        <div class="imp-p">Use your bank's <b>CSV / Excel</b> statement, or the Excel <b>template</b> for full control. You'll review everything before anything is saved.</div>
+        <label class="imp-pick" for="imp-file"><i data-lucide="upload" class="ic-sm"></i>Choose file</label>
+        <input id="imp-file" type="file" onchange="impOnFile(this)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"/>
+      </div>
+      <label class="imp-cc"><input type="checkbox" id="imp-cc" ${s.cc?'checked':''} onchange="impS.cc=this.checked"/><span><b>This is a credit-card statement.</b> Purchases are imported as “Paid with CC” (counted when you pay the bill); payments and refunds are skipped.</span></label>
+      <div class="imp-tpl">
+        <div class="imp-tplh"><i data-lucide="table-2" class="ic-sm"></i>Template &amp; manual entry</div>
+        <div class="imp-p" style="max-width:none;text-align:left">A sheet laid out like the Add form — expenses, salary, income, recurring EMIs, card-bill payments and card EMIs (equal or exact amounts like 4000 + 4000 + 2000) — pre-filled with <b>your</b> categories. It lives in the app, so you can never lose it.</div>
+        <div class="imp-tplb">
+          <button class="ghost" onclick="impGetTemplate('xlsx')">Excel template</button>
+          <button class="ghost" onclick="impGetTemplate('csv')">CSV template</button>
+          <button class="ghost" onclick="impCopyTemplate()">Copy CSV</button>
+          <button class="ghost" onclick="impOpenPaste()">Paste rows</button>
+        </div>
+        <div class="imp-hint" id="imp-hint">${_impNative()&&!_impHasShare()?'Tip: “Copy CSV” → paste into Google Sheets works everywhere. Saving as a file needs the optional Filesystem + Share plugins.':''}</div>
+      </div>
+      <div class="imp-tips">
+        <div><i data-lucide="wallet" class="ic-sm"></i><span><b>Bank statement:</b> salary credits set your monthly salary, other credits (people paying you) become income, card-bill payments settle your card bill, and repeating EMIs can become Recurring entries.</span></div>
+        <div><i data-lucide="credit-card" class="ic-sm"></i><span><b>Card flow:</b> import the card statement first (tick the box above), then the bank statement — each card payment is matched to the bill it settles.</span></div>
+        <div><i data-lucide="copy-check" class="ic-sm"></i><span>Anything already in your tracker is detected and skipped, so overlapping dates are safe.</span></div>
+        <div><i data-lucide="undo-2" class="ic-sm"></i><span>One tap in Settings undoes the whole import.</span></div>
+      </div>`;
+  }else if(s.step==='paste'){
+    title.textContent='Paste rows';
+    foot.style.display='flex';
+    foot.innerHTML=`<button class="ghost" onclick="impBackToPick()">Back</button><button class="primary" style="flex:1;justify-content:center" onclick="impReviewPaste()">Review rows</button>`;
+    body.innerHTML=`<div class="imp-p" style="max-width:none;text-align:left;margin-bottom:10px">Paste rows copied from Google Sheets / Excel (with the heading row), or CSV text. Not sure of the layout? <a href="#" onclick="document.getElementById('imp-paste').value=impTemplateCSV().replace('\uFEFF','');return false" style="color:var(--accent)">Fill in the template</a>.</div>
+      <textarea id="imp-paste" class="imp-paste" spellcheck="false" placeholder="Date, Type, Category, Sub-category, Amount, Note…">${_impEsc(s.pasteText||'')}</textarea>`;
+  }else if(s.step==='review'){
+    title.textContent='Review import';
+    if(!s.list.length){
+      body.innerHTML=`<div class="imp-err">${s.needMap?'I couldn\'t recognise the columns in this file. Tell me which column is which:':'No transactions were found with the current column choices.'}</div>${_impMapSelects()}`;
+      foot.innerHTML=`<button class="ghost" onclick="impBackToPick()">Choose another file</button>`;foot.style.display='flex';
+    }else{
+      const months=[...new Set(s.list.map(r=>r.date.slice(0,7)))];
+      const first=s.list[0].date,last=s.list[s.list.length-1].date;
+      _impCatOpts=_impCatOptions();
+      body.innerHTML=`
+        <div class="imp-sum">
+          <div><b>${s.list.length}</b> rows · ${_impEsc(fmtD(first))} ${first.slice(0,4)} → ${_impEsc(fmtD(last))} ${last.slice(0,4)} · ${months.length} month${months.length===1?'':'s'}${s.manual?' · <em>template format</em>':''}</div>
+          <div class="imp-file">${_impEsc(s.fileName)}${s.skippedLines?` · ${s.skippedLines} non-transaction line${s.skippedLines===1?'':'s'} ignored`:''}</div>
+        </div>
+        <div id="imp-recs-wrap">${_impRecsHTML()}</div>
+        <div class="imp-chips" id="imp-chips"></div>
+        <details class="imp-det"><summary>Columns &amp; options</summary>
+          ${_impMapSelects()}
+          <button class="ghost" style="margin-top:10px" onclick="impFlip()"><i data-lucide="arrow-left-right" class="ic-sm"></i>Debits and credits look swapped</button>
+        </details>
+        <div id="imp-list"></div>`;
+      impRenderList();
+      impRenderFoot();
+    }
+  }else if(s.step==='done'){
+    title.textContent='Import complete';
+    const r=s.result;
+    foot.style.display='flex';
+    foot.innerHTML=`<button class="ghost" onclick="impUndoLast(true)"><i data-lucide="undo-2" class="ic-sm"></i>Undo</button><button class="primary" style="flex:1;justify-content:center" onclick="impViewResult()">View transactions</button>`;
+    const parts=[];
+    if(r.ne)parts.push(`${r.ne} expense${r.ne===1?'':'s'} (${_impEsc(fmt(r.te))})`);
+    if(r.ni)parts.push(`${r.ni} income entr${r.ni===1?'y':'ies'} (${_impEsc(fmt(r.ti))})`);
+    if(r.ns)parts.push(`salary set for ${r.ns} month${r.ns===1?'':'s'}`);
+    if(r.np)parts.push(`${r.np} card bill payment${r.np===1?'':'s'} (${_impEsc(fmt(r.tp))})`);
+    if(r.nr)parts.push(`${r.nr} recurring entr${r.nr===1?'y':'ies'}`);
+    body.innerHTML=`<div class="imp-hero"><i data-lucide="circle-check" style="width:34px;height:34px;color:var(--accent)"></i>
+      <div class="imp-h1">Import complete</div>
+      <div class="imp-p">${parts.join(' · ')||'Nothing was added.'}<br>across ${r.months.length} month${r.months.length===1?'':'s'}. Your balances and charts are already updated.</div>
+      ${r.skipped?`<div class="imp-p" style="margin-top:6px">${r.skipped} row${r.skipped===1?' was':'s were'} skipped.</div>`:''}</div>`;
+  }
+  if(window.lucide)lucide.createIcons();
+}
+function impRenderFoot(){
+  const c=_impCounts(),foot=document.getElementById('imp-foot');
+  foot.style.display='flex';
+  const l1=[c.exp?`${c.exp} expense${c.exp===1?'':'s'} · ${fmt(c.te)}`:'',c.inc?`${c.inc} income · ${fmt(c.ti)}`:''].filter(Boolean).join(' · ');
+  const l2=[c.sal?`${c.sal} salary · ${fmt(c.ts)}`:'',c.ccpay?`${c.ccpay} card bill${c.ccpay===1?'':'s'} · ${fmt(c.tp)}`:'',c.rec?`${c.rec} recurring`:''].filter(Boolean).join(' · ');
+  foot.innerHTML=`<div class="imp-fsum">${_impEsc(l1||'Nothing selected')}${l2?'<br>'+_impEsc(l2):''}</div>
+    <button class="primary" id="imp-go" ${c.n?'':'disabled'} onclick="impCommit()">Import ${c.n}</button>`;
+  const chips=document.getElementById('imp-chips');
+  if(chips){
+    const f=impS.filter,chip=(k,l,n)=>`<button class="imp-chip${f===k?' on':''}" onclick="impSetFilter('${k}')">${l} ${n}</button>`;
+    chips.innerHTML=chip('all','All',impS.list.length)+chip('import','To import',c.n)+chip('skip','Skipped',c.skip)+(c.dup?chip('dup','Duplicates',c.dup):'');
+  }
+}
+function impRenderList(){
+  const s=impS,f=s.filter;
+  const vis=s.list.filter(r=>f==='all'||(f==='import'&&r.type!=='skip')||(f==='skip'&&r.type==='skip')||(f==='dup'&&r.dup));
+  let h='',lastM='';
+  const cnt={};vis.forEach(r=>{const m=r.date.slice(0,7);cnt[m]=(cnt[m]||0)+1;});
+  for(const r of vis){
+    const m=r.date.slice(0,7);
+    if(m!==lastM){lastM=m;h+=`<div class="imp-mh">${MOS[+m.slice(5,7)-1]} ${m.slice(0,4)} <span>${cnt[m]}</span></div>`;}
+    h+=_impRowHTML(r);
+  }
+  document.getElementById('imp-list').innerHTML=h||'<div class="empty">Nothing here</div>';
+}
+function impSetFilter(f){impS.filter=f;impRenderList();impRenderFoot();}
+function impBackToPick(){impS.step='pick';impS.list=[];impS.recs=[];impS.error=null;impRender();}
+function impFlip(){impS.flip=!impS.flip;impBuild();showToast('Swapped debits and credits','check');}
+
+// ── interaction (delegated) ─────────────────────────────
+document.addEventListener('change',e=>{
+  if(!impS)return;
+  const t=e.target;
+  if(t.dataset&&t.dataset.map!==undefined){
+    const role=t.dataset.map;
+    if(role==='headerRow'){
+      const hr=Math.max(0,Math.min(impS.rows.length-1,(parseInt(t.value)||1)-1));
+      impS.headerRow=hr;impS.map=ImpCore.classifyHeader(impS.rows[hr]||[]);
+    }else{impS.map[role]=t.value===''?undefined:parseInt(t.value);}
+    impBuild();return;
+  }
+  if(t.dataset&&t.dataset.g!==undefined&&impS.recs.length){
+    const g=impS.recs[+t.dataset.g];if(!g)return;
+    if(t.type==='checkbox'){
+      g.enabled=t.checked;
+      impS.list.forEach(r=>{
+        if(g.rowIs.includes(r.i)&&(r.type==='rec'||r.type==='exp')){
+          if(g.enabled){r.type='rec';r.recId=g.id;r.reason='Part of recurring “'+g.name+'”';}
+          else{r.type='exp';r.recId=null;r.reason='';}
+        }
+      });
+      document.getElementById('imp-recs-wrap').innerHTML=_impRecsHTML();
+      if(window.lucide)lucide.createIcons();
+      impRenderList();impRenderFoot();
+    }else{g.ongoing=t.value==='1';}
+    return;
+  }
+  const row=t.closest&&t.closest('.imp-row');if(!row)return;
+  const r=impS.list.find(x=>x.i===+row.dataset.i);if(!r)return;
+  if(t.dataset.k==='type'){
+    r.type=t.value;
+    if(r.type==='skip'){if(!r.reason||!r.dup)r.reason='Skipped by you';}
+    else{
+      if(r.dup)r.reason='Duplicate check overridden';
+      else if(/^Skipped by you|^Salary already set/.test(r.reason))r.reason='';
+      if(r.type==='sal'&&(state.salaries[r.date.slice(0,7)]||0)>0)r.reason='Will replace the salary already set for this month';
+      if(r.type==='ccpay'){r.bill=null;r.billAuto=false;_impAssignBills();}
+    }
+    if(impS.filter==='all'){row.outerHTML=_impRowHTML(r);}else impRenderList();
+    impRenderFoot();
+  }else if(t.dataset.k==='bill'){
+    r.bill=t.value;r.billAuto=false;
+  }else if(t.dataset.k==='cat'){
+    r.cat=t.value;r.catManual=true;
+    let n=0;
+    for(const o of impS.list){
+      if(o!==r&&o.type==='exp'&&!o.catManual&&o.key&&o.key===r.key){
+        o.cat=t.value;n++;
+        const el=document.querySelector(`#imp-list .imp-row[data-i="${o.i}"] .imp-cat`);if(el)el.value=t.value;
+      }
+    }
+    if(n)showToast(`Also set ${n} other “${r.note.split(' ')[0]}” transaction${n===1?'':'s'}`,'check');
+  }
+});
+document.addEventListener('input',e=>{
+  if(!impS)return;
+  const t=e.target;
+  if(t.dataset&&t.dataset.k==='note'){
+    const row=t.closest('.imp-row'),r=impS.list.find(x=>x.i===+row.dataset.i);if(r)r.note=t.value;
+  }
+});
+
+// ── commit ──────────────────────────────────────────────
+let _impCommitting=false;
+function impCommit(){
+  if(_impCommitting||!impS)return;
+  const s=impS,batch=Date.now();
+  const rows=s.list.filter(r=>r.type!=='skip');
+  if(!rows.length)return;
+  _impCommitting=true;
+  state.impLog=state.impLog||{};
+  const log=state.impLog[batch]={salaries:{},creditPaid:{}};
+  const res={n:0,ne:0,ni:0,ns:0,np:0,nr:0,te:0,ti:0,tp:0,months:[],skipped:s.list.length-rows.length,latest:''};
+  const months=new Set();let latest='';
+  const touch=r=>{const m=r.date.slice(0,7);months.add(m);if(r.date>latest)latest=r.date;return m;};
+  const pad=n=>String(n).padStart(2,'0');
+  // 1 · salary (several credits in one month are added together)
+  const sal={};
+  rows.filter(r=>r.type==='sal').forEach(r=>{const m=touch(r);sal[m]=(sal[m]||0)+r.amount;});
+  for(const m in sal){log.salaries[m]=state.salaries[m]||0;state.salaries[m]=Math.round(sal[m]*100)/100;res.ns++;}
+  // 2 · recurring entries (detected groups + template "Recurring" rows)
+  const done=new Set();
+  for(const r of rows.filter(x=>x.type==='rec')){
+    touch(r);
+    if(r.recId!=null){
+      if(done.has(r.recId))continue;done.add(r.recId);
+      const g=s.recs[r.recId];
+      state.emis.push({id:++state.uid,name:g.name.slice(0,30),catId:g.catId,amount:g.amount,sy:+g.start.slice(0,4),sm:+g.start.slice(5,7)-1,months:g.ongoing?999:g.count,day:g.day,imp:batch});
+    }else{
+      state.emis.push({id:++state.uid,name:(r.note||'Recurring').slice(0,30),catId:String(r.cat).split('|')[0],amount:r.amount,sy:+r.date.slice(0,4),sm:+r.date.slice(5,7)-1,months:r.months>=1?Math.min(999,r.months):999,day:Math.min(28,+r.date.slice(8,10)||1),imp:batch});
+    }
+    res.nr++;
+  }
+  // 3 · expenses (incl. card purchases and split-into-EMI purchases)
+  for(const r of rows.filter(x=>x.type==='exp')){
+    const m=touch(r);
+    const note=(r.note||'').trim()||'Imported expense';
+    const[catId,subId]=String(r.cat).includes('|')?String(r.cat).split('|'):[r.cat,null];
+    if(r.cc&&s.manual&&(r.months>=2||(r.custom&&r.custom.length>=2))){
+      const sched=buildSplitSchedule(r.amount,r.months,r.interest,0,r.custom),n=sched.length;
+      const gid='sp_'+batch.toString(36)+r.i;
+      for(let k=0;k<n;k++){
+        const t=addMonthsYMD(r.date,k);
+        state.exps.push({id:++state.uid,catId,subId,amount:sched[k],date:t.date,note:`${note} · EMI ${k+1}/${n}${r.interest&&!(r.custom&&r.custom.length>=2)?` @${r.interest}%`:''}`,paidWithCC:true,splitOf:gid,splitTotal:r.amount,splitInterest:(r.custom&&r.custom.length>=2)?0:(r.interest||0),splitIndex:k+1,splitMonths:n,mk:mk(t.y,t.m),imp:batch});
+      }
+    }else{
+      state.exps.push({id:++state.uid,catId,subId,amount:r.amount,date:r.date,note,paidWithCC:!!r.cc,mk:m,imp:batch});
+    }
+    res.ne++;res.te+=r.amount;
+  }
+  // 4 · other income (people paying you, refunds, interest…)
+  for(const r of rows.filter(x=>x.type==='inc')){
+    const m=touch(r);
+    state.otherIncome.push({id:++state.uid,amount:r.amount,note:(r.note||'').trim()||'Others',date:r.date,mk:m,imp:batch});
+    res.ni++;res.ti+=r.amount;
+  }
+  // 5 · card bill payments → same records the app's "Settle bill" creates
+  for(const r of rows.filter(x=>x.type==='ccpay')){
+    const m=touch(r),B=r.bill||m;
+    // settle the oldest purchases of that bill (whole charges), one payment line per category
+    const bill=getCreditBill(+B.slice(0,4),+B.slice(5,7)-1);
+    let left=r.amount;const covered=[];
+    bill.charges.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(ch=>{
+      if(left>=ch.amount-0.001&&typeof ch.id==='number'&&left>0){covered.push(ch.id);left-=ch.amount;}
+    });
+    const flagged=ccSettleCharges(covered,r.amount,B,m,r.date,{imp:batch});
+    (log.billed=log.billed||[]).push(...flagged);
+    state.creditPaid=state.creditPaid||{};
+    const base=state.creditPaid[B]===true?0:(+state.creditPaid[B]||0);
+    state.creditPaid[B]=base+r.amount;
+    log.creditPaid[B]=(log.creditPaid[B]||0)+r.amount;
+    res.np++;res.tp+=r.amount;
+  }
+  res.n=res.ne+res.ni+res.ns+res.np+res.nr;
+  res.months=[...months];res.latest=latest;
+  s.result=res;s.step='done';
+  save();render();
+  impRender();
+  hapticTap&&hapticTap();
+  setTimeout(()=>{_impCommitting=false;},600);
+}
+function impViewResult(){
+  const r=impS&&impS.result;
+  if(r&&r.latest){curY=+r.latest.slice(0,4);curM=+r.latest.slice(5,7)-1;}
+  impClose();
+  setTab('txn');
+}
+
 // ════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════
@@ -3604,7 +4739,7 @@ function makeTList(list){
   return[...list].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>{
     const c=getCat(e.catId),sub=e.subId?getSub(e.catId,e.subId):null,dot=sub?sub.color:c.color;
     const lbl=e.note||(sub?sub.name:c.name);
-    return`<div class="ti${isCCUnpaid(e)?' cc-unpaid':''}" data-tid="${e.id}" ${e.isEmi?'':`onclick="if(!event.target.closest('.tdel'))openEditExp(${e.id})"`}><div class="tidot" style="background:${dot}"></div><div class="tib"><div class="tin">${lbl}${e.isEmi?'<span class="emi-tag">EMI</span>':''}${e.paidWithCC?'<span class="cc-tag" title="Paid with Credit Card">💳</span>':''}${isCCUnpaid(e)?'<span class="cc-tag" style="background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Booked on credit, not yet settled">UNPAID</span>':''}${e.ccPayment?'<span class="cc-tag" style="background:var(--accent-soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Payment applied to credit-card bill">CC PAYMENT</span>':''}</div><div class="tis">${sub?sub.name+' · ':c.name+' · '}${fmtD(e.date)}</div></div><div class="tia">${fmt(e.amount)}</div>${e.isEmi?'':`<button class="tdel" onclick="event.stopPropagation();delExp(${e.id})" aria-label="Delete">✕</button>`}</div>`;
+    return`<div class="ti${isCCUnpaid(e)?' cc-unpaid':''}" data-tid="${e.id}" ${e.isEmi?'':`onclick="if(!event.target.closest('.tdel'))openEditExp(${e.id})"`}><div class="tidot" style="background:${dot}"></div><div class="tib"><div class="tin">${lbl}${e.isEmi?'<span class="emi-tag">EMI</span>':''}${e.paidWithCC?'<span class="cc-tag" title="Paid with Credit Card">💳</span>':''}${isCCUnpaid(e)?'<span class="cc-tag" style="background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Booked on credit, not yet settled">UNPAID</span>':''}${e.ccBilled?'<span class="cc-tag" style="opacity:.7" title="Settled by a card-bill payment — counted in that payment, not here">BILLED</span>':''}${e.ccPayment?'<span class="cc-tag" style="background:var(--accent-soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Payment applied to credit-card bill">CC PAYMENT</span>':''}</div><div class="tis">${sub?sub.name+' · ':c.name+' · '}${fmtD(e.date)}</div></div><div class="tia">${fmt(e.amount)}</div>${e.isEmi?'':`<button class="tdel" onclick="event.stopPropagation();delExp(${e.id})" aria-label="Delete">✕</button>`}</div>`;
   }).join('');
 }
 function buildCatSelect(id,val){
@@ -3631,7 +4766,7 @@ function quoteForBalance(rem,avail){
 // DASHBOARD
 // ════════════════════════════════════════════════════════
 function renderDash(){
-  const mkey=mk(),me=curExps();
+  const mkey=mk(),me=cntCur();
   // "Actually spent" = excludes unpaid CC entries (not yet deducted from wallet)
   const meSettled=me.filter(e=>!isCCUnpaid(e));
   const total=meSettled.reduce((s,e)=>s+e.amount,0);
@@ -3743,8 +4878,8 @@ function renderDash(){
   if(carry!==0)ce.innerHTML=`Carry-in <b style="color:${carry>=0?'var(--accent2)':'var(--danger)'}">${carry>=0?'+':''}${fmt(carry)}</b>`;
   else ce.textContent=sal?'':'Enter salary to start';
   buildCatSelect('i-cat');
-  $('i-date').value=todayLocal().toISOString().split('T')[0];
-  $('oi-date').value=todayLocal().toISOString().split('T')[0];
+  $('i-date').value=todayYMD();
+  $('oi-date').value=todayYMD();
   if(dChart){dChart.destroy();dChart=null;}
   if(active.length)dChart=new Chart($('d-ch'),{type:'doughnut',data:{labels:active.map(c=>c.name),datasets:[{data:cdata,backgroundColor:active.map(c=>c.color),borderWidth:2,borderColor:chartBorder()}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(Math.round(ctx.parsed))}}},cutout:'66%'}});
   if(window.lucide)lucide.createIcons();
@@ -3773,15 +4908,15 @@ function renderAn(){
     </div>
     <div class="panel"><div class="panel-t"><i data-lucide="layers" class="ic-sm"></i>Category Breakdown</div><div id="an-bkd"></div></div>`;
   if(period==='daily'){
-    const mkey=mk(anY,anM),me=allExps(mkey),dm=din(anY,anM);
+    const mkey=mk(anY,anM),me=cntExps(mkey),dm=din(anY,anM);
     if($('an-mlbl'))$('an-mlbl').textContent=MOS3[anM]+' '+anY;
     $('an-title').innerHTML='Daily — <span class="ital">'+MOS[anM]+' '+anY+'</span>';
     labels=Array.from({length:dm},(_,i)=>i+1);
     const ac=allCats().filter(c=>me.some(e=>e.catId===c.id));
     datasets=ac.map(c=>({label:c.name,data:labels.map(d=>me.filter(e=>e.catId===c.id&&e.date===mkey+'-'+String(d).padStart(2,'0')).reduce((s,e)=>s+e.amount,0)),backgroundColor:c.color,stack:'s',borderRadius:2}));
-    exp=allExps(mkey).reduce((s,e)=>s+e.amount,0);
+    exp=cntExps(mkey).reduce((s,e)=>s+e.amount,0);
   }else if(period==='weekly'){
-    const mkey=mk(anY,anM),me=allExps(mkey),dm=din(anY,anM);
+    const mkey=mk(anY,anM),me=cntExps(mkey),dm=din(anY,anM);
     if($('an-mlbl'))$('an-mlbl').textContent=MOS3[anM]+' '+anY;
     $('an-title').innerHTML='Weekly — <span class="ital">'+MOS[anM]+' '+anY+'</span>';
     const wks=[];let s=1;while(s<=dm){wks.push([s,Math.min(s+6,dm)]);s+=7;}
@@ -3794,7 +4929,7 @@ function renderAn(){
     if($('an-mlbl'))$('an-mlbl').textContent=MOS3[mos[0][1]]+'–'+MOS3[mos[11][1]]+' '+anY;
     $('an-title').innerHTML='Monthly — <span class="ital">last 12 months</span>';
     labels=mos.map(([y,m])=>MOS3[m]+' '+String(y).slice(2));
-    const allData=mos.map(([y,m])=>allExps(mk(y,m)));
+    const allData=mos.map(([y,m])=>cntExps(mk(y,m)));
     const ac=allCats().filter(c=>allData.some(ex=>ex.some(e=>e.catId===c.id)));
     datasets=ac.map(c=>({label:c.name,data:allData.map(ex=>ex.filter(e=>e.catId===c.id).reduce((s,e)=>s+e.amount,0)),backgroundColor:c.color,stack:'s',borderRadius:3}));
     tot=allData.reduce((s,ex)=>s+ex.reduce((a,e)=>a+e.amount,0),0);cnt=allData.reduce((s,ex)=>s+ex.length,0);days=365;
@@ -3802,7 +4937,7 @@ function renderAn(){
     $('an-title').innerHTML='Yearly — <span class="ital">overview</span>';
     const yrs=[...new Set([...state.exps.map(e=>e.mk.split('-')[0]),...state.emis.map(e=>String(e.sy))])].sort();
     labels=yrs.length?yrs:[String(curY)];
-    const allData=labels.map(y=>{const r=allCats().map(()=>0);for(let m=0;m<12;m++)allExps(y+'-'+String(m+1).padStart(2,'0')).forEach(e=>{const ci=allCats().findIndex(c=>c.id===e.catId);if(ci>=0)r[ci]+=e.amount;});return r;});
+    const allData=labels.map(y=>{const r=allCats().map(()=>0);for(let m=0;m<12;m++)cntExps(y+'-'+String(m+1).padStart(2,'0')).forEach(e=>{const ci=allCats().findIndex(c=>c.id===e.catId);if(ci>=0)r[ci]+=e.amount;});return r;});
     const ac=allCats().filter((c,ci)=>allData.some(r=>r[ci]>0));
     datasets=ac.map(c=>({label:c.name,data:labels.map((_,yi)=>allData[yi][allCats().indexOf(c)]||0),backgroundColor:c.color,stack:'s',borderRadius:4}));
     tot=allData.reduce((s,r)=>s+r.reduce((a,v)=>a+v,0),0);cnt=state.exps.length;days=365;
@@ -3843,7 +4978,7 @@ function getSavRows(){
   const rows=[];for(let i=11;i>=0;i--){let m=curM-i,y=curY;while(m<0){m+=12;y--;}rows.push([y,m]);}
   return rows.map(([y,m])=>{
     const mkey=mk(y,m),sal=state.salaries[mkey]||0,oi=state.otherIncome.filter(o=>o.mk===mkey).reduce((s,o)=>s+o.amount,0);
-    const carry=getCarryover(y,m),exp=allExps(mkey).reduce((s,e)=>s+e.amount,0);
+    const carry=getCarryover(y,m),exp=cntExps(mkey).reduce((s,e)=>s+e.amount,0);
     return{label:MOS3[m]+' '+String(y).slice(2),sal,oi,carry,exp,sav:sal+oi+carry-exp};
   });
 }
@@ -3921,7 +5056,7 @@ function renderTxn(){
   [...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e=>{
     (byDate[e.date]=byDate[e.date]||[]).push(e);
   });
-  const total=filtered.reduce((s,e)=>s+e.amount,0);
+  const total=filtered.filter(e=>!e.ccBilled).reduce((s,e)=>s+e.amount,0);
   const usedCats=[...new Set(me.map(e=>e.catId))].map(id=>{const c=getCat(id);return{id,name:c.name,color:c.color};});
   const ddOptions=txnCatDdSearch?usedCats.filter(c=>c.name.toLowerCase().includes(txnCatDdSearch)):usedCats;
   const ddLabel=txnFilterCats.size===0?'All categories'
@@ -3930,6 +5065,7 @@ function renderTxn(){
   $('main-content').innerHTML=`
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap">
       <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${filtered.length} transaction${filtered.length===1?'':'s'} · ${fmt(total)}${txnSearch?` · matching "${txnSearch}"`:''}${txnFilterCats.size?` · filtered by ${txnFilterCats.size} categor${txnFilterCats.size===1?'y':'ies'}`:''}</div></div>
+      <button class="ghost" onclick="impOpen()" title="Import from a bank statement"><i data-lucide="file-up" class="ic-sm"></i>Import</button>
     </div>
     <div class="txn-search-wrap">
       <i data-lucide="search" class="ic-sm txn-search-icon"></i>
@@ -3957,7 +5093,7 @@ function renderTxn(){
     <div class="panel" style="padding:10px 16px">
       ${Object.keys(byDate).length===0?`<div class="empty">${txnSearch||txnFilterCats.size?'No matches — try different filters':'No transactions for this filter'}</div>`:
         Object.entries(byDate).map(([date,items])=>{
-          const dTot=items.reduce((s,e)=>s+e.amount,0);
+          const dTot=items.filter(e=>!e.ccBilled).reduce((s,e)=>s+e.amount,0);
           return `<div style="padding:12px 0 4px;border-bottom:1px solid var(--border)">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px">
               <div style="font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em">${fmtD(date)}</div>
@@ -3988,7 +5124,7 @@ function onBudgetInput(id,val,el){
   // Update this row's progress bar inline (no full re-render — keeps keyboard open)
   const row=el.closest('.bi');
   if(row){
-    const me=curExps();
+    const me=cntCur();
     const c=getCat(id);
     const spent=me.filter(e=>e.catId===id).reduce((s,e)=>s+e.amount,0);
     const bgt=state.budgets[id]||0;
@@ -4016,7 +5152,7 @@ function onBudgetInput(id,val,el){
   budgetSaveTimer=setTimeout(()=>save(),600);
 }
 function renderBud(){
-  const me=curExps();
+  const me=cntCur();
   $('main-content').innerHTML=`
     <div style="margin-bottom:18px;font-size:13px;color:var(--muted);max-width:520px;line-height:1.55">Set monthly limits per category.</div>
     <div class="bud-list">${allCats().filter(c=>!c.excludeFromBudget).map(c=>{
@@ -4061,7 +5197,7 @@ function renderEmi(){
     </div><div class="emi-list">${emiHTML}</div>`;
   const es=$('e-cat');
   if(es){allCats().forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;if(c.id==='emi')o.selected=true;es.appendChild(o);});}
-  $('e-start').value=todayLocal().toISOString().slice(0,7);
+  $('e-start').value=todayYMD().slice(0,7);
   restoreEmiDraft();
   if(window.lucide)lucide.createIcons();
 }
@@ -4207,6 +5343,18 @@ function renderSet(){
       </div>
 
       <div class="set-section" style="grid-column:1/-1">
+        <div class="set-h"><em>Import statement</em></div>
+        <div class="set-sub">Add many transactions at once from a bank or credit-card statement (CSV or Excel) instead of typing them in.</div>
+        <button class="ghost" style="width:100%;justify-content:center;padding:16px;font-size:14px;border-radius:14px" onclick="impOpen()">
+          <i data-lucide="file-up" class="ic-sm"></i>
+          Import from file
+          <i data-lucide="chevron-right" class="ic-sm" style="margin-left:auto"></i>
+        </button>
+        ${(()=>{const L=ccLegacyLumps();return L.length?`<div class="set-row" style="margin-top:12px"><div><div class="set-rl">Split past card payments by category</div><div class="set-rs">${L.length} older card payment${L.length===1?'':'s'} show as one “Miscellaneous” line. Split them into the original categories and stop double-counting those purchases.</div></div><button class="ghost" onclick="ccRelabelPast()">Split</button></div>`:'';})()}
+        ${(()=>{const lb=impLastBatch();return lb?`<div class="set-row" style="margin-top:12px"><div><div class="set-rl">Undo last import</div><div class="set-rs">Removes everything added by your most recent import (${lb.n} item${lb.n===1?'':'s'}) and restores salary and card-bill totals.</div></div><button class="ghost" onclick="impUndoLast()">Undo</button></div>`:'';})()}
+      </div>
+
+      <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>Categories</em></div>
         <div class="set-sub">Rename, recolor, add sub-categories, or create custom categories.</div>
         <button class="ghost" style="width:100%;justify-content:center;padding:16px;font-size:14px;border-radius:14px" onclick="setTab('cat')">
@@ -4276,7 +5424,7 @@ function renderSet(){
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>About</em></div>
         <div class="set-row">
-          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v4.0</div></div>
+          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v4.1</div></div>
         </div>
       </div>
     </div>`;
@@ -4325,7 +5473,7 @@ async function refreshFromSupabase(){
     const{data,error}=await sb.from('tracker').select('data').eq('id',getUid()).single();
     if(error||!data?.data)return;
     const p=JSON.parse(data.data);
-    state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
+    state={exps:p.exps||[],budgets:p.budgets||{},emis:p.emis||[],salaries:p.salaries||{},otherIncome:p.otherIncome||[],uid:p.uid||0,currency:p.currency||'INR',theme:p.theme||state.theme,creditPaid:p.creditPaid||{},impLog:p.impLog||{},customCats:p.customCats||[],settings:Object.assign({ccCutoffDay:0,notifEnabled:false},p.settings||{}),notifState:p.notifState||{},catOverrides:p.catOverrides||{},customSubs:p.customSubs||{},notifLog:p.notifLog||[]};
     if(p.curY)curY=p.curY;if(p.curM!==undefined)curM=p.curM;
     setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString(CUR().locale,{hour:'2-digit',minute:'2-digit'}));
     if(isTyping||sheetOpen)return; // skip render — keep user's input intact

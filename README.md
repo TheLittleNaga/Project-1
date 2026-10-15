@@ -2,7 +2,7 @@
 
 > A personal finance tracker built because free apps never had exactly what I needed — so I built my own.
 
-Current version: **v4.0**
+Current version: **v4.1**
 
 ---
 
@@ -30,13 +30,15 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 | 📊 **Dashboard** | Monthly overview with salary, carryover, other income, remaining balance + live tone indicator |
 | 🗂 **Fully Customizable Categories** | Rename, recolor, add sub-categories on any built-in; create your own custom ones; themed color picker (no ugly native dialog) |
 | 💳 **Smart Credit-Card Tracking** | Mark any expense as "Paid with CC" → it won't deduct from this month's balance, automatically rolls into next month's bill. Shows as red "UNPAID" until settled. |
-| 🧮 **Per-charge Bill Allocator** | When paying the bill, tick exactly which purchases you're settling. Supports custom-amount FIFO fill too. |
-| 📅 **Split into EMIs** | Buying something big on CC? Toggle "Split into monthly EMIs", enter months + optional annual interest %, and the amount auto-spreads across future months with live preview. |
+| 🧮 **Per-charge Bill Allocator** | When paying the bill, tick exactly which purchases you're settling. Supports custom-amount FIFO fill too. Each payment is recorded **one line per category** (Food, Travel, Utilities → WiFi…), so your analytics keep the original categories. |
+| 📅 **Split into EMIs** | Buying something big on CC? Toggle "Split into monthly EMIs", enter months + optional annual interest %, and the amount auto-spreads across future months with live preview. Banks that bill unevenly? Type the **exact amounts** (`4000, 4000, 2000`) or set an **advance** paid now plus equal EMIs. Rounding paise always land on the last installment, so the total is exact. |
 | ⏩ **Prepay remaining EMIs** | On any EMI row, one tap folds all remaining installments into today — closes out big purchases early |
 | 📈 **Analytics** | Daily / Weekly / Monthly / Yearly stacked bar charts |
 | 💰 **Savings Tracker** | Auto carry-forward balance, 12-month income vs expense comparison |
 | 🎯 **Budgets** | Set per-category monthly limits with live progress bars + smart notifications at 50 / 80 / 100 % |
+| 📥 **Import statements** | Upload a bank or credit-card statement (CSV / Excel) — or the built-in template — and months of transactions land in one go. Salary credits set your salary, people paying you become income, card-bill payments settle the right bill, repeating EMIs become Recurring entries, duplicates are skipped, and one tap undoes the whole import. See [Importing transactions](#importing-transactions). |
 | 🔁 **Recurring / EMI Manager** | Add recurring loans, subscriptions, rent — auto-inserted as expenses every applicable month; use 999 months for open-ended subs |
+| 🧾 **Template inside the app** | Settings → Import statement → Excel / CSV template (built from *your* categories), **Copy CSV** for Google Sheets, or **Paste rows** straight into the app — nothing to hunt for. |
 | 🔔 **Push Notifications** | Budget alerts (50/80/100 %) + CC bill reminders — in-app banners on Android APK, real background OS push on Chrome PWA via Web Push + Supabase Edge Function |
 | 🔄 **Live Cloud Sync** | Realtime Supabase updates — changes on phone appear on desktop instantly; pull-to-refresh on mobile |
 | 📱 **Native Mobile Feel** | Bottom dock, FAB (home-only), custom bottom-sheet forms, view-transition animations, crisp haptic feedback |
@@ -56,17 +58,20 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 In the SQL editor, paste and run:
 
 ```sql
--- Main data table
-CREATE TABLE ledger_data (
-  user_id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
-  payload jsonb NOT NULL DEFAULT '{}',
+-- Main data table (the app stores one JSON document per user)
+CREATE TABLE tracker (
+  id         uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
+  data       text NOT NULL DEFAULT '{}',
   updated_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE ledger_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tracker ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "users_own_data" ON ledger_data
-  FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "users_own_data" ON tracker
+  FOR ALL USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+-- Live sync across devices
+ALTER PUBLICATION supabase_realtime ADD TABLE tracker;
 
 -- Push subscriptions (for background Web Push notifications)
 CREATE TABLE push_subscriptions (
@@ -97,7 +102,7 @@ Open `index.html` and find:
 const SUPABASE_URL = 'YOUR_SUPABASE_URL';
 const SUPABASE_KEY = 'YOUR_ANON_KEY';
 ```
-Replace with your values.
+Replace with your values. (The anon key is *meant* to be public — what protects your data is the row-level-security policy above, so make sure `ENABLE ROW LEVEL SECURITY` ran on both tables.)
 
 ### 5. Host it
 **Option A — GitHub Pages (recommended, free):**
@@ -106,6 +111,35 @@ Replace with your values.
 - Visit `https://<username>.github.io/<repo>/`
 
 **Option B — Any static host:** Netlify / Vercel / your own Nginx / Caddy — zero build step.
+
+---
+
+## Importing transactions
+
+**Settings → Import statement** (or the **Import** button on the Transactions tab). Pick a file, review everything, press **Import**. Nothing is saved until you do, the file is read on your device and never uploaded, and **Settings → Undo last import** reverses a whole batch.
+
+**What you can import**
+- Your bank's **CSV / XLS / XLSX** statement download (columns are detected automatically; if not, you map them).
+- A **credit-card statement** (tick the "credit-card statement" box — purchases come in as *Paid with CC*).
+- The **template** (Excel, CSV, or *Paste rows*) for full control — it matches the Add form. Get it from the same screen; it's pre-filled with your own categories.
+- PDF statements are **not** supported — download CSV/Excel from net banking instead.
+
+**How each row is understood (bank statements)**
+
+| In the statement | What happens |
+|---|---|
+| Salary credit | Sets that month's salary (skipped if one is already set, unless you choose to replace it) |
+| Other credits (people paying you, refunds, interest) | Imported as *Other income* with the payer's name |
+| Credit-card bill payment | Settles the matching card bill — one payment line per category — and is matched to the right bill (respects your cut-off day and partial payments) |
+| Repeating monthly debit (EMIs, rent, subscriptions) | Offered as one **Recurring** entry instead of many separate rows |
+| Everything else | Expense, categorised from your own history first, then keyword rules |
+| Already in your tracker (same amount, ±1 day) | Detected and skipped, so overlapping dates are safe |
+
+**Template types:** `Expense` · `Income` · `Salary` · `CC Bill Payment` · `Recurring`. Card EMIs: *Paid with CC* + `Months`, or exact bank amounts in `Custom installment amounts` (`4000, 4000, 2000`; for an advance list every payment — the first is paid on the purchase date).
+
+**Card flow:** import the card statement first, then the bank statement — each card payment is matched to the bill it settles. Don't enter the same spend twice (card purchases *and* plain expenses).
+
+Ready-made copies live in [`templates/`](./templates).
 
 ---
 
@@ -138,6 +172,15 @@ In Android Studio: **Build → Generate Signed Bundle / APK**.
 
 Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` are tagged `maskable` in the manifest.
 
+**After every update to `index.html`:** run `npx cap sync` and rebuild in Android Studio (unless your Capacitor config loads your hosted URL via `server.url`, in which case a deploy is enough).
+
+**Optional — save the import template as a file on the phone:** *Copy CSV* and *Paste rows* work out of the box. To make the *Excel template / CSV template* buttons open Android's Save/Share sheet, add two plugins and rebuild:
+```bash
+npm install @capacitor/filesystem @capacitor/share
+npx cap sync
+```
+Importing itself needs no plugins — the file picker is the WebView's built-in one. Excel (`.xlsx`) import loads its reader library from the internet the first time you use it; CSV works fully offline.
+
 ---
 
 ## File Structure
@@ -147,7 +190,11 @@ Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` 
 ├── index.html                          # The whole app — HTML + CSS + JS in one file
 ├── manifest.json                       # PWA manifest (brand, icons, theme color)
 ├── sw.js                               # Service worker (offline caching + Web Push handler)
+├── FEATURES.md                         # Plain-language walkthrough of every feature
 ├── PUSH_SETUP.md                       # Step-by-step guide for background push notifications
+├── templates/
+│   ├── expense-import-template.xlsx    # Import template (Entries · Examples · Categories · Guide)
+│   └── expense-import-template.csv     # Same columns, plain CSV
 ├── favicon.ico
 ├── icon.png                            # Canonical 512×512 app icon
 ├── icons/
@@ -167,6 +214,7 @@ Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` 
 - **Supabase** — Postgres DB + auth + realtime + Edge Functions
 - **Web Push (VAPID)** — background push notifications, no Firebase Console needed
 - **Chart.js** — analytics charts
+- **SheetJS** — reads Excel statements (loaded on demand, only when you import an `.xlsx`)
 - **Lucide** — iconography
 - **Capacitor** — wraps the web app into an Android APK
 
@@ -183,6 +231,16 @@ Android adaptive icons work automatically — `icon-192.png` and `icon-512.png` 
 ---
 
 ## Changelog
+
+### v4.1
+- **Import statements & templates (new).** Bring in months of transactions from a bank/credit-card CSV or Excel statement, or from the built-in template. Review screen with per-row category / type / note, month grouping, filters (All · To import · Skipped · Duplicates), merchant-based category learning, duplicate detection against what you already have, and a one-tap **Undo last import**.
+- **Statements understood the way the app works.** Salary credits → monthly salary. Other credits → Other income with the payer's name. Card-bill payments → settle the right bill. Repeating monthly debits → optional **Recurring** entries (EMIs auto-suggested). Credit-card statements import as *Paid with CC*.
+- **Card bill payments are recorded per category.** Paying a bill (allocator or custom amount) now creates one line per original category (and sub-category) instead of a single Miscellaneous line. Settings has a one-time **Split past card payments by category** tool for older payments.
+- **Settled card purchases are no longer counted twice.** Previously a purchase counted in the month you bought it *and* again when you paid the bill. Purchases covered by a payment are now tagged **BILLED** and left out of totals; the per-category payment lines carry the amount in the month you paid. Applies to Home, carry-forward, charts, budgets, savings and category drill-downs.
+- **Uneven / advance card EMIs.** Exact installment amounts (e.g. 4000 + 4000 + 2000) or an advance + equal EMIs, in both the Add form and the importer; equal splits now add up to the exact total (leftover paise on the last installment).
+- **Template built into the app.** Excel / CSV template from your own categories, *Copy CSV* for Google Sheets, and *Paste rows* — no file to lose. Optional Capacitor Filesystem + Share plugins enable saving it as a file on Android.
+- **Date fix (India).** Installment dates were one day early and "today" was wrong between midnight and ~5:30 am, because dates were built in UTC. All dates are now built from local parts.
+- **Docs fix.** The Setup SQL now matches the table the app actually uses (`tracker`) and enables realtime for it.
 
 ### v4.0
 - **Forgot password (OTP)** — login screen now has a "Forgot password?" link. Enter your email, get a code, type it in with a new password — no clicking a link that dumps you somewhere unexpected. Requires your Supabase "Reset Password" email template to include `{{ .Token }}` (see Setup above).
