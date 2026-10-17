@@ -2,7 +2,7 @@
 
 > A personal finance tracker built because free apps never had exactly what I needed — so I built my own.
 
-Current version: **v4.1**
+Current version: **v4.2**
 
 ---
 
@@ -30,7 +30,7 @@ Most free expense apps are either too bloated, paywalled behind the features tha
 | 📊 **Dashboard** | Monthly overview with salary, carryover, other income, remaining balance + live tone indicator |
 | 🗂 **Fully Customizable Categories** | Rename, recolor, add sub-categories on any built-in; create your own custom ones; themed color picker (no ugly native dialog) |
 | 💳 **Smart Credit-Card Tracking** | Mark any expense as "Paid with CC" → it won't deduct from this month's balance, automatically rolls into next month's bill. Shows as red "UNPAID" until settled. |
-| 🧮 **Per-charge Bill Allocator** | When paying the bill, tick exactly which purchases you're settling. Supports custom-amount FIFO fill too. Each payment is recorded **one line per category** (Food, Travel, Utilities → WiFi…), so your analytics keep the original categories. |
+| 🧮 **Per-charge Bill Allocator** | When paying the bill, tick exactly which purchases you're settling. Supports custom-amount FIFO fill too. You choose what paying a bill does (Settings → Credit Card): **mark the purchases as paid** (default — your entries are updated, no extra lines) or **add a repayment line per category** (Food, Travel, Utilities → WiFi…) dated the day you paid. |
 | 📅 **Split into EMIs** | Buying something big on CC? Toggle "Split into monthly EMIs", enter months + optional annual interest %, and the amount auto-spreads across future months with live preview. Banks that bill unevenly? Type the **exact amounts** (`4000, 4000, 2000`) or set an **advance** paid now plus equal EMIs. Rounding paise always land on the last installment, so the total is exact. |
 | ⏩ **Prepay remaining EMIs** | On any EMI row, one tap folds all remaining installments into today — closes out big purchases early |
 | 📈 **Analytics** | Daily / Weekly / Monthly / Yearly stacked bar charts |
@@ -231,6 +231,13 @@ Importing itself needs no plugins — the file picker is the WebView's built-in 
 ---
 
 ## Changelog
+
+### v4.2
+- **Credits in Transactions.** The Transactions tab now shows money received (Other income and the month's salary) alongside spending, with **All · Debits · Credits** filters, totals for both, search that covers credits, and tap-to-edit / ✕ to delete. The long "Others received" list on Home is replaced by a one-line summary that opens the Credits view.
+- **Newest first, everywhere.** Days run newest → oldest, and entries within a day now also show the most recently added first (Transactions, Home's recent list, category drill-downs).
+- **Card repayment setting.** Settings → Credit Card → *When I pay a card bill*: **Mark purchases as paid** (default; updates the existing entries and the bill, no new lines — also what the importer's *CC Bill Payment* rows do) or **Repayment line per category**. Money paid beyond the purchases it covers (interest / fees) is recorded as a separate line.
+- **Import keeps blank notes blank.** An empty *Note / Name / Payer* is no longer auto-filled with "Imported expense / income".
+- **Import reconciliation.** The review screen has a *Reconcile with your statement* panel: statement in/out totals, a check against the bank's own balance column (catches missing rows and swapped debit/credit columns), what will be recorded, and every skipped row grouped by reason (own-account transfers, duplicates, …) so a mismatch with your bank balance can be explained.
 
 ### v4.1
 - **Import statements & templates (new).** Bring in months of transactions from a bank/credit-card CSV or Excel statement, or from the built-in template. Review screen with per-row category / type / note, month grouping, filters (All · To import · Skipped · Duplicates), merchant-based category learning, duplicate detection against what you already have, and a one-tap **Undo last import**.

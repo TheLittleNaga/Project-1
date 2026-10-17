@@ -1348,6 +1348,17 @@ body.app-mode .ptr{top:max(72px,calc(env(safe-area-inset-top) + 64px))}
 .imp-tplb .ghost{flex:1 1 44%;justify-content:center;padding:10px 12px;font-size:13px}
 .imp-hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;min-height:2px}
 .imp-paste{width:100%;min-height:260px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;padding:12px;border-radius:14px;background:var(--card);color:var(--text);border:1px solid var(--border);resize:vertical;white-space:pre;overflow:auto}
+
+.imp-rt{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.imp-rt td{padding:8px 4px;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+.imp-rt td:first-child{width:34%;color:var(--muted)}
+.imp-rt small{color:var(--dim)}
+
+.flow-chips{display:flex;gap:8px;margin:0 0 10px}
+.flow-chip{flex:1;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:9px 12px;font-size:13px;font-family:inherit;cursor:pointer}
+.flow-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.oi-more{margin-top:10px;padding:10px 12px;border:1px dashed var(--border);border-radius:12px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;cursor:pointer}
+.oi-more span{color:var(--accent);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2748,9 +2759,21 @@ function cntExps(mkey){return allExps(mkey).filter(e=>!e.ccBilled);}
 function cntCur(){return cntExps(mk());}
 // Settle card charges: one payment line PER CATEGORY (so analytics keep the original categories),
 // mark the charges as settled, return the ids that were newly flagged.
-function ccSettleCharges(ids,amount,billKey,entryMk,dateStr,extra){
+function ccRepayMode(){return(state.settings&&state.settings.ccRepay)||'mark';}
+function ccSettleCharges(ids,amount,billKey,entryMk,dateStr,extra,forceMode){
   const[yy,mm]=billKey.split('-').map(Number);
   const label=`${MOS3[(mm-1+11)%12]} bill`;
+  ccSettleCharges.unmatched=0;
+  if((forceMode||ccRepayMode())==='mark'){
+    // "Mark as paid": the purchases themselves are updated — no extra repayment lines
+    const flagged=[];let used=0;
+    ids.forEach(id=>{const c=state.exps.find(x=>x.id===id);if(!c)return;used+=c.amount;if(!c.ccPaid)flagged.push(c.id);c.ccPaid=true;});
+    const rest=Math.round((amount-used)*100)/100;
+    if(ids.length&&rest>0.004){   // paid more than the purchases it covers (interest / fees)
+      state.exps.push(Object.assign({id:++state.uid,catId:'misc',subId:null,amount:rest,date:dateStr,note:`CC payment · ${label} · fees / interest`,ccPayment:true,payGroup:'pg'+Date.now().toString(36)+state.uid,mk:entryMk},extra||{}));
+    }else if(!ids.length)ccSettleCharges.unmatched=Math.max(0,rest);
+    return flagged;
+  }
   const groups={},flagged=[];
   ids.forEach(id=>{
     const c=state.exps.find(x=>x.id===id);if(!c)return;
@@ -2789,7 +2812,7 @@ async function ccRelabelPast(){
   for(const lump of L){
     const ids=lump.ccPaidFor.filter(id=>state.exps.some(c=>c.id===id));
     state.exps=state.exps.filter(e=>e!==lump);
-    ccSettleCharges(ids,lump.amount,lump.mk,lump.mk,lump.date,{});
+    ccSettleCharges(ids,lump.amount,lump.mk,lump.mk,lump.date,{},'lines');
   }
   save();render();
   showToast(`Split ${L.length} payment${L.length===1?'':'s'} by category`,'check');
@@ -3017,6 +3040,7 @@ function _quickPayCc(mkey){
     _ccSetPaid(mkey,base+amt);
     const today=todayYMD();
     ccSettleCharges(covered,amt,mkey,mkey,today,{});
+    if(ccSettleCharges.unmatched>0.004)setTimeout(()=>showToast(`${fmt(ccSettleCharges.unmatched)} isn't tied to a whole purchase yet — it counts once those purchases are marked paid`,'x'),900);
     save();hapticDone();closeSheet();
     showToast(`Paid ${fmt(amt)} ✓`,'check');
     render();
@@ -3115,6 +3139,10 @@ async function requestNotifPermission(){
   return true;
 }
 function disableNotifs(){state.settings=state.settings||{};state.settings.notifEnabled=false;save();showToast('Alerts turned off');render();}
+function setCcRepay(v){
+  state.settings=state.settings||{};state.settings.ccRepay=v==='lines'?'lines':'mark';
+  save();hapticTick();showToast(state.settings.ccRepay==='lines'?'Repayments add a line per category':'Repayments mark purchases as paid','check');render();
+}
 function setCcCutoff(val){
   const n=parseInt(val);
   state.settings=state.settings||{};
@@ -3941,7 +3969,8 @@ const ImpCore=(()=>{
       }
       if(debit==null&&credit==null){skipped++;continue;}
       const raw=map.desc!=null?String(r[map.desc]==null?'':r[map.desc]).replace(/\s+/g,' ').trim():'';
-      out.push({date,raw,kind,cat:cell('cat'),sub:cell('sub'),cc:/^(y|yes|true|1|cc|card|paid)$/i.test(cell('cc')),
+      const bc=map.balance!=null?parseAmount(r[map.balance]):null;
+      out.push({date,raw,kind,bal:bc?(bc.side==='dr'?-bc.n:bc.n):null,cat:cell('cat'),sub:cell('sub'),cc:/^(y|yes|true|1|cc|card|paid)$/i.test(cell('cc')),
         months:parseInt(cell('months'))||0,interest:parseFloat(cell('interest'))||0,billRaw:cell('bill'),
         custom:cell('custom').replace(/[₹$]/g,'').split(/[,;+\s]+/).map(x=>parseFloat(x)).filter(x=>x>0),
         debit:debit!=null?Math.round(debit*100)/100:null,credit:credit!=null?Math.round(credit*100)/100:null});
@@ -4284,6 +4313,7 @@ function impBuild(){
   if(!ok){s.list=[];s.recs=[];s.needMap=true;impRender();return;}
   const{txns,skipped}=ImpCore.extract(s.rows,s.headerRow,s.map,{flip:s.flip,cardMode:s.cc,defaultDebit:s.map.cat!=null||s.map.cc!=null||s.map.type!=null});
   s.skippedLines=skipped;
+  s.balCheck=_impBalanceCheck(txns);
   const rcs=txns.map(t=>(t.cat||t.sub)?_impResolveCat(t.cat,t.sub):null);
   const manual=rcs.some(Boolean)||txns.some(t=>t.kind);   // file follows the app's own entry format
   s.manual=manual;
@@ -4294,7 +4324,7 @@ function impBuild(){
     const amount=isOut?t.debit:t.credit;
     const rc=rcs[i];
     const kind=t.kind||'';
-    const note=manual?(t.raw.slice(0,80)||(isOut?'Imported expense':'Imported income')):(ImpCore.cleanNote(t.raw)||t.raw.slice(0,42)||(isOut?'Imported expense':'Imported income'));
+    const note=manual?t.raw.slice(0,80):(ImpCore.cleanNote(t.raw)||t.raw.slice(0,42));
     const key=ImpCore.merchantKey(note);
     let cat=(rc&&(rc.id||rc))||((manual&&(t.cat||t.sub))?'misc':(hist[key]||ImpCore.ruleCategory(t.raw+' '+note)||'misc'));
     let type=isOut?'exp':'inc',reason='';
@@ -4433,7 +4463,7 @@ function _impRowHTML(r){
   return `<div class="imp-row t-${r.type}${r.dup?' is-dup':''}" data-i="${r.i}">
     <div class="imp-r1"><span class="imp-date">${_impEsc(fmtD(r.date))}</span><span class="imp-amt ${inflow?'in':'out'}">${inflow?'+':'−'}${_impEsc(fmt(r.amount))}${r.cc&&r.type==='exp'?' <span class="imp-tag">CC</span>':''}</span>
       <select class="imp-type" data-k="type" aria-label="Action"${locked?' disabled':''}>${typeOpts}</select></div>
-    ${r.type==='skip'?'':`<input class="imp-note" data-k="note" type="text" value="${_impEsc(r.note)}" maxlength="80" aria-label="Note"/>`}
+    ${r.type==='skip'?'':`<input class="imp-note" data-k="note" type="text" value="${_impEsc(r.note)}" maxlength="80" placeholder="Note (optional)" aria-label="Note"/>`}
     ${cat}${bill}
     ${r.reason?`<div class="imp-why ${r.type==='skip'?'bad':''}">${_impEsc(r.reason)}</div>`:''}
     <div class="imp-raw" title="${_impEsc(r.raw)}">${_impEsc(r.raw)}</div>
@@ -4471,6 +4501,57 @@ function _impRecsHTML(){
       <label class="imp-rec-top"><input type="checkbox" data-g="${g.id}" ${g.enabled?'checked':''}/><span><b>${_impEsc(g.name)}</b> · ${_impEsc(fmt(g.amount))}/mo<br><small>around the ${g.day}${['th','st','nd','rd'][(g.day%10<4&&(g.day<11||g.day>13))?g.day%10:0]} · ${g.count} months (${MOS3[+g.start.slice(5,7)-1]} ${g.start.slice(0,4)} – ${MOS3[+g.last.slice(5,7)-1]} ${g.last.slice(0,4)})</small></span></label>
       ${g.enabled?`<select class="imp-recend" data-g="${g.id}"><option value="1"${g.ongoing?' selected':''}>Keeps going (until I remove it)</option><option value="0"${g.ongoing?'':' selected'}>Ends after ${g.count} months</option></select>`:''}
     </div>`).join('')}</div>`;
+}
+
+// ── reconciliation: does the file add up, and where does every rupee go? ──
+function _impBalanceCheck(txns){
+  const T=txns.filter(t=>t.bal!=null);
+  if(T.length<3)return null;
+  const net=t=>(t.credit||0)-(t.debit||0);
+  const run=sign=>{
+    let asc=0,desc=0;const badA=[],badD=[];
+    for(let k=1;k<T.length;k++){
+      const a=T[k-1],b=T[k];
+      if(Math.abs((b.bal-a.bal)-sign*net(b))<0.02)asc++;else badA.push(b);
+      if(Math.abs((a.bal-b.bal)-sign*net(a))<0.02)desc++;else badD.push(a);
+    }
+    return asc>=desc?{dir:'asc',ok:asc,bad:badA}:{dir:'desc',ok:desc,bad:badD};
+  };
+  const n=run(1),sw=run(-1),total=T.length-1;
+  const first=n.dir==='asc'?T[0]:T[T.length-1],last=n.dir==='asc'?T[T.length-1]:T[0];
+  return{total,ok:n.ok,badCount:n.bad.length,bad:n.bad.slice(0,4),swapped:sw.ok>n.ok&&sw.ok>=0.8*total,opening:first.bal-net(first),closing:last.bal};
+}
+function _impReconHTML(){
+  const s=impS,L=s.list;
+  const sum=a=>a.reduce((x,r)=>x+r.amount,0);
+  const outs=L.filter(r=>r.out),ins=L.filter(r=>!r.out);
+  const rows=[];
+  const line=(a,b)=>rows.push(`<tr><td>${a}</td><td>${b}</td></tr>`);
+  line('<b>Statement</b> ('+L.length+' rows)',`− ${_impEsc(fmt(sum(outs)))} out (${outs.length}) · + ${_impEsc(fmt(sum(ins)))} in (${ins.length})<br><b>Net ${_impEsc(fmt(sum(ins)-sum(outs)))}</b>`);
+  const b=s.balCheck;
+  if(b){
+    const good=b.badCount===0;
+    line('<b>Balance column</b>',good
+      ?`✓ all ${b.total+1} rows add up<br>${_impEsc(fmt(b.opening))} → ${_impEsc(fmt(b.closing))}`
+      :`<span style="color:var(--danger)">⚠ ${b.badCount} of ${b.total} rows don't add up with the balance column.</span><br>${b.swapped?'Debits and credits look <b>swapped</b> — use “Debits and credits look swapped” below.<br>':'A transaction may be missing from the file, or a row was misread. First mismatches: '+b.bad.map(t=>_impEsc(fmtD(t.date))+' '+_impEsc(fmt(t.debit||t.credit))).join(', ')+'.<br>'}${_impEsc(fmt(b.opening))} → ${_impEsc(fmt(b.closing))} per the file`);
+  }
+  const g={exp:[0,0,0],inc:[0,0,0],sal:[0,0,0],ccpay:[0,0,0],rec:[0,0,0]};
+  L.forEach(r=>{if(g[r.type]){g[r.type][r.out?0:1]+=r.amount;g[r.type][2]++;}});
+  const lab={exp:'Expenses',inc:'Income',sal:'Salary',ccpay:'Card bill payments',rec:'Recurring (app bills them monthly)'};
+  const rec=[];
+  for(const k in g)if(g[k][2])rec.push(`${lab[k]}: ${_impEsc(fmt(g[k][0]||g[k][1]))} (${g[k][2]})`);
+  line('<b>Will be recorded</b>',rec.join('<br>')||'—');
+  // what is NOT recorded, by reason — these are the usual cause of a mismatch with the bank balance
+  const sk={};
+  L.filter(r=>r.type==='skip').forEach(r=>{
+    const key=r.dup?'Already in your tracker / recurring':/^Own-account/.test(r.reason)?'Own-account transfers':/^Salary already/.test(r.reason)?'Salary already set':/^Card payment/.test(r.reason)?'Card payments / refunds (credit-card file)':'Skipped by you / other';
+    const o=sk[key]=sk[key]||{n:0,out:0,inn:0};o.n++;if(r.out)o.out+=r.amount;else o.inn+=r.amount;
+  });
+  const skl=Object.keys(sk).map(k=>`${_impEsc(k)}: ${sk[k].n} row${sk[k].n===1?'':'s'}${sk[k].out?` · − ${_impEsc(fmt(sk[k].out))}`:''}${sk[k].inn?` · + ${_impEsc(fmt(sk[k].inn))}`:''}`);
+  line('<b>Not recorded</b>',skl.join('<br>')||'Nothing skipped');
+  const recIn=g.inc[1]+g.sal[1],recOut=g.exp[0]+g.ccpay[0]+g.rec[0];
+  line('<b>Net the app records</b>',`<b>${_impEsc(fmt(recIn-recOut))}</b><br><small>The gap to the statement net is exactly the “Not recorded” rows (own-account transfers and skipped rows reduce your bank balance but not the app’s).</small>`);
+  return `<table class="imp-rt">${rows.join('')}</table>`;
 }
 function impRender(){
   const s=impS;if(!s)return;
@@ -4525,6 +4606,7 @@ function impRender(){
           <div><b>${s.list.length}</b> rows · ${_impEsc(fmtD(first))} ${first.slice(0,4)} → ${_impEsc(fmtD(last))} ${last.slice(0,4)} · ${months.length} month${months.length===1?'':'s'}${s.manual?' · <em>template format</em>':''}</div>
           <div class="imp-file">${_impEsc(s.fileName)}${s.skippedLines?` · ${s.skippedLines} non-transaction line${s.skippedLines===1?'':'s'} ignored`:''}</div>
         </div>
+        <details class="imp-det" id="imp-recon"><summary>Reconcile with your statement</summary><div id="imp-recon-body"></div></details>
         <div id="imp-recs-wrap">${_impRecsHTML()}</div>
         <div class="imp-chips" id="imp-chips"></div>
         <details class="imp-det"><summary>Columns &amp; options</summary>
@@ -4555,6 +4637,7 @@ function impRender(){
 }
 function impRenderFoot(){
   const c=_impCounts(),foot=document.getElementById('imp-foot');
+  const rb=document.getElementById('imp-recon-body');if(rb&&impS.list.length)rb.innerHTML=_impReconHTML();
   foot.style.display='flex';
   const l1=[c.exp?`${c.exp} expense${c.exp===1?'':'s'} · ${fmt(c.te)}`:'',c.inc?`${c.inc} income · ${fmt(c.ti)}`:''].filter(Boolean).join(' · ');
   const l2=[c.sal?`${c.sal} salary · ${fmt(c.ts)}`:'',c.ccpay?`${c.ccpay} card bill${c.ccpay===1?'':'s'} · ${fmt(c.tp)}`:'',c.rec?`${c.rec} recurring`:''].filter(Boolean).join(' · ');
@@ -4634,7 +4717,7 @@ document.addEventListener('change',e=>{
         const el=document.querySelector(`#imp-list .imp-row[data-i="${o.i}"] .imp-cat`);if(el)el.value=t.value;
       }
     }
-    if(n)showToast(`Also set ${n} other “${r.note.split(' ')[0]}” transaction${n===1?'':'s'}`,'check');
+    if(n)showToast(`Also set ${n} other “${(r.note||'').split(' ')[0]||'same merchant'}” transaction${n===1?'':'s'}`,'check');
   }
 });
 document.addEventListener('input',e=>{
@@ -4679,14 +4762,14 @@ function impCommit(){
   // 3 · expenses (incl. card purchases and split-into-EMI purchases)
   for(const r of rows.filter(x=>x.type==='exp')){
     const m=touch(r);
-    const note=(r.note||'').trim()||'Imported expense';
+    const note=(r.note||'').trim();
     const[catId,subId]=String(r.cat).includes('|')?String(r.cat).split('|'):[r.cat,null];
     if(r.cc&&s.manual&&(r.months>=2||(r.custom&&r.custom.length>=2))){
       const sched=buildSplitSchedule(r.amount,r.months,r.interest,0,r.custom),n=sched.length;
       const gid='sp_'+batch.toString(36)+r.i;
       for(let k=0;k<n;k++){
         const t=addMonthsYMD(r.date,k);
-        state.exps.push({id:++state.uid,catId,subId,amount:sched[k],date:t.date,note:`${note} · EMI ${k+1}/${n}${r.interest&&!(r.custom&&r.custom.length>=2)?` @${r.interest}%`:''}`,paidWithCC:true,splitOf:gid,splitTotal:r.amount,splitInterest:(r.custom&&r.custom.length>=2)?0:(r.interest||0),splitIndex:k+1,splitMonths:n,mk:mk(t.y,t.m),imp:batch});
+        state.exps.push({id:++state.uid,catId,subId,amount:sched[k],date:t.date,note:`${note||getCat(catId).name} · EMI ${k+1}/${n}${r.interest&&!(r.custom&&r.custom.length>=2)?` @${r.interest}%`:''}`,paidWithCC:true,splitOf:gid,splitTotal:r.amount,splitInterest:(r.custom&&r.custom.length>=2)?0:(r.interest||0),splitIndex:k+1,splitMonths:n,mk:mk(t.y,t.m),imp:batch});
       }
     }else{
       state.exps.push({id:++state.uid,catId,subId,amount:r.amount,date:r.date,note,paidWithCC:!!r.cc,mk:m,imp:batch});
@@ -4696,7 +4779,7 @@ function impCommit(){
   // 4 · other income (people paying you, refunds, interest…)
   for(const r of rows.filter(x=>x.type==='inc')){
     const m=touch(r);
-    state.otherIncome.push({id:++state.uid,amount:r.amount,note:(r.note||'').trim()||'Others',date:r.date,mk:m,imp:batch});
+    state.otherIncome.push({id:++state.uid,amount:r.amount,note:(r.note||'').trim(),date:r.date,mk:m,imp:batch});
     res.ni++;res.ti+=r.amount;
   }
   // 5 · card bill payments → same records the app's "Settle bill" creates
@@ -4734,13 +4817,30 @@ function impViewResult(){
 // ════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════
+// newest first: by date, then by creation order (higher id = added later) so the latest entry is on top within a day
+function _txnIdKey(e){return typeof e.id==='number'?e.id:-1;}
+function _txnCmp(a,b){return a.date<b.date?1:a.date>b.date?-1:(_txnIdKey(b)-_txnIdKey(a));}
 function makeTList(list){
   if(!list.length)return'<div class="empty">No transactions yet</div>';
-  return[...list].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>{
+  return[...list].sort(_txnCmp).map(txnRowHTML).join('');
+}
+function txnRowHTML(e){
     const c=getCat(e.catId),sub=e.subId?getSub(e.catId,e.subId):null,dot=sub?sub.color:c.color;
     const lbl=e.note||(sub?sub.name:c.name);
     return`<div class="ti${isCCUnpaid(e)?' cc-unpaid':''}" data-tid="${e.id}" ${e.isEmi?'':`onclick="if(!event.target.closest('.tdel'))openEditExp(${e.id})"`}><div class="tidot" style="background:${dot}"></div><div class="tib"><div class="tin">${lbl}${e.isEmi?'<span class="emi-tag">EMI</span>':''}${e.paidWithCC?'<span class="cc-tag" title="Paid with Credit Card">💳</span>':''}${isCCUnpaid(e)?'<span class="cc-tag" style="background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Booked on credit, not yet settled">UNPAID</span>':''}${e.ccBilled?'<span class="cc-tag" style="opacity:.7" title="Settled by a card-bill payment — counted in that payment, not here">BILLED</span>':''}${e.ccPayment?'<span class="cc-tag" style="background:var(--accent-soft);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600" title="Payment applied to credit-card bill">CC PAYMENT</span>':''}</div><div class="tis">${sub?sub.name+' · ':c.name+' · '}${fmtD(e.date)}</div></div><div class="tia">${fmt(e.amount)}</div>${e.isEmi?'':`<button class="tdel" onclick="event.stopPropagation();delExp(${e.id})" aria-label="Delete">✕</button>`}</div>`;
-  }).join('');
+}
+function creditRowHTML(c){
+  const isSal=c.kind==='sal';
+  const open=isSal?`editSalaryRow('${c.date.slice(0,7)}')`:`if(!event.target.closest('.tdel'))openEditOI(${c.id})`;
+  const tag=`<span class="cc-tag" style="background:var(--accent-soft);color:var(--accent2);padding:2px 6px;border-radius:4px;font-size:9px;letter-spacing:.08em;font-weight:600">${isSal?'SALARY':'CREDIT'}</span>`;
+  return`<div class="ti" data-tid="${c.id}" onclick="${open}"><div class="tidot" style="background:var(--accent2)"></div><div class="tib"><div class="tin">${_impEsc(c.label)}${tag}</div><div class="tis">${isSal?'Salary':'Received'} · ${fmtD(c.date)}</div></div><div class="tia" style="color:var(--accent2)">+${fmt(c.amount)}</div>${isSal?'':`<button class="tdel" onclick="event.stopPropagation();delOI(${c.id})" aria-label="Delete">✕</button>`}</div>`;
+}
+async function editSalaryRow(mkey){
+  const cur=state.salaries[mkey]||0;
+  const raw=await promptAsync('Salary for '+MOS[+mkey.slice(5,7)-1]+' '+mkey.slice(0,4),String(cur),{title:'Edit salary'});
+  if(raw===null)return;
+  const v=parseFloat(raw);if(isNaN(v)||v<0){showToast('Invalid amount','x');return;}
+  state.salaries[mkey]=v;save();hapticTick();render();
 }
 function buildCatSelect(id,val){
   const el=$(id);if(!el)return;el.innerHTML='';
@@ -4813,7 +4913,7 @@ function renderDash(){
       <div class="inc-div"></div>
       <div class="kicker" style="margin-bottom:10px">Others received</div>
       <div class="oi-row"><div class="fg" style="max-width:120px"><label>Amount ${sym()}</label><input type="number" inputmode="decimal" step="any" id="oi-amt" placeholder="50" min="0"/></div><div class="fg" style="flex:2"><label>From / Note</label><input type="text" id="oi-note" placeholder="e.g. Rahul — chai" maxlength="40"/></div><div class="fg" style="min-width:150px;flex:0 0 auto"><label>Date</label><input type="date" id="oi-date" style="min-width:140px"/></div><div class="fg0"><button class="primary" onclick="addOI()"><i data-lucide="plus" class="ic-sm"></i>Add</button></div></div>
-      <div class="oi-list">${oiList.map(o=>`<div class="oi-item" data-oid="${o.id}" onclick="if(!event.target.closest('.oi-del'))openEditOI(${o.id})" style="cursor:pointer"><span class="oi-note">${o.note} · ${fmtD(o.date)}</span><span class="oi-amt">+${fmt(o.amount)}</span><button class="oi-del" onclick="event.stopPropagation();delOI(${o.id})">✕</button></div>`).join('')}</div>
+      ${oiList.length?`<div class="oi-more" onclick="txnFlow='credit';setTab('txn')">${oiList.length} received this month · +${fmt(oiList.reduce((t,o)=>t+o.amount,0))} <span>View in Transactions →</span></div>`:''}
     </div>
     <div class="metric-row">
       <div class="metric"><div class="metric-l">Salary + Carry</div><div class="metric-v">${fmt(sal+carry)}</div></div>
@@ -5027,6 +5127,8 @@ function setTxnCatDdSearch(v){ txnCatDdSearch=(v||'').toLowerCase(); renderTxn()
 function toggleTxnCat(id){ if(txnFilterCats.has(id))txnFilterCats.delete(id); else txnFilterCats.add(id); renderTxn(); }
 function clearTxnCatFilter(){ txnFilterCats.clear(); renderTxn(); }
 let txnSearch='';
+let txnFlow='all'; // all | debit | credit
+function setTxnFlow(v){txnFlow=v;renderTxn();}
 function setTxnSearch(v){txnSearch=(v||'').toLowerCase();renderTxn();}
 function clearTxnSearch(){txnSearch='';renderTxn();const el=document.getElementById('txn-search');if(el)el.focus();}
 
@@ -5052,11 +5154,23 @@ function renderTxn(){
       return hay.includes(q);
     });
   }
+  if(txnFlow==='credit')filtered=[];
+  // credits = money received: Other income entries + this month's salary
+  let credits=[];
+  if(txnFlow!=='debit'&&!txnFilterCats.size){
+    const mkT=mk();
+    credits=state.otherIncome.filter(o=>o.mk===mkT).map(o=>({kind:'oi',id:o.id,date:o.date,amount:o.amount,label:o.note||'Others'}));
+    const salT=state.salaries[mkT]||0;
+    if(salT>0)credits.push({kind:'sal',id:'sal_'+mkT,date:mkT+'-01',amount:salT,label:'Salary'});
+    if(txnSearch)credits=credits.filter(c=>['credit','income','received',c.label,String(c.amount),fmt(c.amount),c.date,fmtD(c.date)].join(' ').toLowerCase().includes(txnSearch));
+  }
+  const rowsAll=[...filtered.map(e=>({t:'d',e,date:e.date,id:_txnIdKey(e)})),...credits.map(c=>({t:'c',c,date:c.date,id:typeof c.id==='number'?c.id:-2}))].sort(_txnCmp);
   const byDate={};
-  [...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e=>{
-    (byDate[e.date]=byDate[e.date]||[]).push(e);
-  });
+  rowsAll.forEach(r=>{(byDate[r.date]=byDate[r.date]||[]).push(r);});
   const total=filtered.filter(e=>!e.ccBilled).reduce((s,e)=>s+e.amount,0);
+  const totalIn=credits.reduce((s,c)=>s+c.amount,0);
+  const nTx=filtered.length+credits.length;
+  const sumTxt=txnFlow==='credit'?`+${fmt(totalIn)}`:(credits.length?`− ${fmt(total)} · + ${fmt(totalIn)}`:fmt(total));
   const usedCats=[...new Set(me.map(e=>e.catId))].map(id=>{const c=getCat(id);return{id,name:c.name,color:c.color};});
   const ddOptions=txnCatDdSearch?usedCats.filter(c=>c.name.toLowerCase().includes(txnCatDdSearch)):usedCats;
   const ddLabel=txnFilterCats.size===0?'All categories'
@@ -5064,7 +5178,7 @@ function renderTxn(){
     :`${txnFilterCats.size} categories selected`;
   $('main-content').innerHTML=`
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap">
-      <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${filtered.length} transaction${filtered.length===1?'':'s'} · ${fmt(total)}${txnSearch?` · matching "${txnSearch}"`:''}${txnFilterCats.size?` · filtered by ${txnFilterCats.size} categor${txnFilterCats.size===1?'y':'ies'}`:''}</div></div>
+      <div><div class="serif" style="font-size:28px">${MOS[curM]} ${curY}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace">${nTx} transaction${nTx===1?'':'s'} · ${sumTxt}${txnSearch?` · matching "${txnSearch}"`:''}${txnFilterCats.size?` · filtered by ${txnFilterCats.size} categor${txnFilterCats.size===1?'y':'ies'}`:''}</div></div>
       <button class="ghost" onclick="impOpen()" title="Import from a bank statement"><i data-lucide="file-up" class="ic-sm"></i>Import</button>
     </div>
     <div class="txn-search-wrap">
@@ -5072,7 +5186,8 @@ function renderTxn(){
       <input type="text" id="txn-search" class="txn-search" placeholder="Search by note, category, amount, or date…" value="${txnSearch.replace(/"/g,'&quot;')}" oninput="setTxnSearch(this.value)" autocomplete="off"/>
       ${txnSearch?`<button class="txn-search-clear" onclick="clearTxnSearch()" aria-label="Clear"><i data-lucide="x" class="ic-sm"></i></button>`:''}
     </div>
-    <div class="txn-cat-dd">
+    <div class="flow-chips">${[['all','All'],['debit','Debits'],['credit','Credits']].map(([k,l])=>`<button class="flow-chip${txnFlow===k?' on':''}" onclick="setTxnFlow('${k}')">${l}</button>`).join('')}</div>
+    <div class="txn-cat-dd" style="${txnFlow==='credit'?'display:none':''}">
       ${txnCatDdOpen?`<div class="txn-cat-dd-backdrop" onclick="toggleTxnCatDd(false)"></div>`:''}
       <button class="txn-cat-dd-btn" onclick="toggleTxnCatDd()">
         <span class="chips">${txnFilterCats.size?[...txnFilterCats].slice(0,4).map(id=>{const c=usedCats.find(x=>x.id===id);return c?`<span class="ld" style="background:${c.color};display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px"></span>`:'';}).join(''):''}${ddLabel}</span>
@@ -5093,13 +5208,13 @@ function renderTxn(){
     <div class="panel" style="padding:10px 16px">
       ${Object.keys(byDate).length===0?`<div class="empty">${txnSearch||txnFilterCats.size?'No matches — try different filters':'No transactions for this filter'}</div>`:
         Object.entries(byDate).map(([date,items])=>{
-          const dTot=items.filter(e=>!e.ccBilled).reduce((s,e)=>s+e.amount,0);
+          const dOut=items.filter(r=>r.t==='d'&&!r.e.ccBilled).reduce((s,r)=>s+r.e.amount,0),dIn=items.filter(r=>r.t==='c').reduce((s,r)=>s+r.c.amount,0);
           return `<div style="padding:12px 0 4px;border-bottom:1px solid var(--border)">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px">
               <div style="font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em">${fmtD(date)}</div>
-              <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">${fmt(dTot)}</div>
+              <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">${dIn?`<span style="color:var(--accent2)">+${fmt(dIn)}</span>${dOut?' · ':''}`:''}${dOut||!dIn?fmt(dOut):''}</div>
             </div>
-            ${makeTList(items)}
+            ${items.map(r=>r.t==='d'?txnRowHTML(r.e):creditRowHTML(r.c)).join('')}
           </div>`;
         }).join('')
       }
@@ -5371,6 +5486,13 @@ function renderSet(){
           <div><div class="set-rl">Statement cut-off day</div><div class="set-rs">Day of the month your card closes its statement. Leave blank for calendar month (1st → last day).</div></div>
           <input type="number" id="set-cc-cut" min="0" max="28" value="${(state.settings&&state.settings.ccCutoffDay)||''}" placeholder="0 = off" onchange="setCcCutoff(this.value)" style="width:90px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--fg);font-family:'JetBrains Mono',monospace;text-align:center"/>
         </div>
+        <div class="set-row" style="margin-top:12px">
+          <div><div class="set-rl">When I pay a card bill</div><div class="set-rs"><b>Mark purchases as paid</b> updates your existing entries — no new lines. <b>Repayment line per category</b> adds a dated payment line for each category and tags the purchases BILLED. Applies to Settle bill and to imports.</div></div>
+          <select onchange="setCcRepay(this.value)" style="width:auto;max-width:190px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13px">
+            <option value="mark"${ccRepayMode()==='mark'?' selected':''}>Mark purchases as paid</option>
+            <option value="lines"${ccRepayMode()==='lines'?' selected':''}>Repayment line per category</option>
+          </select>
+        </div>
       </div>
 
       <div class="set-section" style="grid-column:1/-1">
@@ -5424,7 +5546,7 @@ function renderSet(){
       <div class="set-section" style="grid-column:1/-1">
         <div class="set-h"><em>About</em></div>
         <div class="set-row">
-          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v4.1</div></div>
+          <div><div class="set-rl">TheLittleNaga</div><div class="set-rs">v4.2</div></div>
         </div>
       </div>
     </div>`;

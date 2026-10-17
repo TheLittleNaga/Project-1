@@ -22,6 +22,8 @@ A plain-language walkthrough of every feature in the app, tab by tab. Written so
 - Expenses marked "Paid with CC" show a card icon and don't count against this month's balance — they roll into next month's credit card bill instead.
 - Card purchases already settled by a bill payment carry a small **BILLED** tag. They stay visible (so you can see what you bought and when) but aren't counted in totals — the matching **CC payment** lines, one per category, carry the amount in the month you paid.
 - The **Import** button (top right of the month header) opens statement import.
+- **Debits and credits together.** Chips under the search box switch between **All**, **Debits** and **Credits**. Credits are money received — Other income entries and the month's salary — shown in the accent colour with +amounts, editable by tapping (salary opens a quick edit) and deletable with ✕. The header and each day show spending and money received.
+- **Newest first.** Days run newest to oldest, and within a day the most recently added entry is on top.
 
 ## Analytics
 
@@ -32,8 +34,10 @@ A plain-language walkthrough of every feature in the app, tab by tab. Written so
 ## Credit cards, EMIs & paying the bill
 
 - Mark an expense **Paid with CC** → it isn't deducted from your balance yet. It appears in the card bill that is due the following month (your cut-off day is respected).
-- **Pay the bill** by ticking the exact purchases you're settling, or enter any amount (oldest purchases are settled first; anything that doesn't match a whole purchase is recorded as a part-payment line).
-- Each payment is saved **one line per category** — e.g. *CC payment · Aug bill · Food & Dining (3 items)*, *… · Utilities — WiFi (1 item)* — so Analytics and Budgets show where the money actually went. The purchases themselves get a **BILLED** tag and aren't counted a second time.
+- **Pay the bill** by ticking the exact purchases you're settling, or enter any amount (oldest whole purchases are settled first).
+- **Settings → Credit Card → When I pay a card bill** chooses what happens:
+  - *Mark purchases as paid* (default): your existing entries are updated and the bill shows paid — no new lines, categories stay on the original entries. Money paid beyond the purchases (interest / fees) is added as a "fees / interest" line; an amount smaller than any single purchase just counts toward the bill until the purchases are marked paid.
+  - *Repayment line per category*: adds a dated payment line per category (e.g. *CC payment · Aug bill · Food & Dining (3 items)*) and tags the purchases **BILLED** so nothing is counted twice.
 - **Settings → Import statement → Split past card payments by category** converts older single "Miscellaneous" payments the same way (one-time; only payments where the app recorded which purchases they covered).
 - **Split into monthly EMIs** (Add sheet → Paid with CC → Split):
   - *Months* (+ optional annual interest %) → equal installments; odd paise land on the last one so the total is exact.
@@ -47,6 +51,8 @@ A plain-language walkthrough of every feature in the app, tab by tab. Written so
 Open **Settings → Import statement** (or **Import** on the Transactions tab).
 
 - Pick your bank's **CSV / Excel** statement, a **credit-card** statement (tick the box), or fill in the **template** and import that. PDF isn't supported.
+- **Reconcile with your statement** (on the review screen): statement in/out totals, a check against the bank's own balance column, what will be recorded and every skipped row by reason — use it when your balance doesn't match the bank.
+- Blank notes stay blank — nothing is auto-named.
 - Everything is shown on a **review screen** first: a note, category and action (Expense / Income / Salary / Card bill / Skip) per row, grouped by month, with filters for what will be imported, what's skipped and what looks like a duplicate. Changing one merchant's category offers it to the other rows of that merchant.
 - **Salary** credits set the month's salary. **Other credits** become Other income (payer's name as the note). **Card-bill payments** settle the matching bill — you can change which bill per row. **Repeating monthly debits** (EMIs especially) can become one Recurring entry.
 - **Duplicates** (same amount within a day of something already recorded, or matching a recurring charge) are skipped; you can override any row.
